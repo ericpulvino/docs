@@ -46,8 +46,8 @@ For the anycast address to activate, you must configure a VXLAN interface on eac
 | One of the switches goes down. | The other operational switch continues to use the anycast IP address. |
 | `clagd` is stopped. | All VXLAN interfaces are put in a PROTO_DOWN state. The anycast IP address is removed from the loopback interface and the local IP addresses of the VXLAN interfaces are changed from the anycast IP address to unique non-virtual IP addresses. |
 | MLAG peering cannot be established between the switches. | `clagd` brings up all the VXLAN interfaces after the reload timer expires with the configured anycast IP address. This allows the VXLAN interface to be up and running on both switches even though peering is not established. |
-| When the peer link goes down but the peer switch is up (the backup link is active). | All VXLAN interfaces are put into a PROTO_DOWN state on the secondary switch. |
-| A configuration mismatch between the MLAG switches | The VXLAN interface is placed into a PROTO_DOWN state on the secondary switch. |
+| The peer link goes down but the peer switch is up (the backup link is active). | All VXLAN interfaces are put into a PROTO_DOWN state on the secondary switch. |
+| The anycast IP address is different on the MLAG peers. | The VXLAN interface is placed into a PROTO_DOWN state on the secondary switch. |
 
 ### VXLAN Interface Configuration Consistency
 
@@ -64,10 +64,34 @@ With MLAG peering, both switches use an anycast IP address for VXLAN encapsulati
 
 {{< img src = "/images/cumulus-linux/vxlan-active-active-config.png" >}}
 
+{{< tabs "TabID67 ">}}
+{{< tab "NCLU Commands ">}}
+
 {{< tabs "TabID70 ">}}
+{{< tab "leaf01 ">}}
+
+```
+cumulus@leaf01:~$ net add loopback lo clag vxlan-anycast-ip 10.0.1.12
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
+```
+
+{{< /tab >}}
+{{< tab "leaf02 ">}}
+
+```
+cumulus@leaf02:~$ net add loopback lo clag vxlan-anycast-ip 10.0.1.12
+cumulus@leaf02:~$ net pending
+cumulus@leaf02:~$ net commit
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
+{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
-{{< tabs "TabID73 ">}}
+{{< tabs "TabID81 ">}}
 {{< tab "leaf01 ">}}
 
 ```
@@ -79,8 +103,8 @@ cumulus@leaf01:~$ nv config apply
 {{< tab "leaf02 ">}}
 
 ```
-cumulus@leaf01:~$ nv set nve vxlan mlag shared-address 10.0.1.12
-cumulus@leaf01:~$ nv config apply
+cumulus@leaf02:~$ nv set nve vxlan mlag shared-address 10.0.1.12
+cumulus@leaf02:~$ nv config apply
 ```
 
 {{< /tab >}}
