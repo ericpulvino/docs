@@ -15,6 +15,8 @@ Static and dynamic NAT both support:
 - Basic NAT, which only translates the IP address in the packet: the source IP address in the outbound direction and the destination IP address in the inbound direction.
 - Port Address Translation (PAT), which translates both the IP address and layer 4 port: the source IP address and port in the outbound direction and the destination IP address and port in the inbound direction.
 
+Static NAT supports double NAT (also known as twice NAT) where both the source and destination IP addresses are translated as a packet crosses address realms. Double NAT is used typically when address space in a private network overlaps with IP addresses in the public space.
+
 The following illustration shows a basic NAT configuration.
 
 {{< img src = "/images/cumulus-linux/nat-example.png" >}}
@@ -123,6 +125,19 @@ cumulus@switch:~$ net pending
 cumulus@switch:~$ net commit
 ```
 
+The following *double NAT* rule matches both the source and destination IP addresses of incoming and outgoing ICMP packets:  
+- For outgoing messages, NAT changes the inside local IP address 172.16.10.2 to the inside global IP address 130.1.100.10 and the outside local IP address 26.26.26.26 to the outside global IP address 140.1.1.2.
+- For incoming messages, NAT changes the inside global IP address 130.1.100.10 to the inside local IP address 172.16.10.2 and the outside global IP address 140.1.1.2 to the outside local IP address 26.26.26.26.
+
+```
+cumulus@switch:~$ net add nat static snat icmp 172.16.10.2 translate 130.1.100.100
+cumulus@switch:~$ net add nat static dnat icmp 26.26.26.26 translate 140.1.1.2
+cumulus@switch:~$ net add nat static snat icmp 140.1.1.2 translate 26.26.26.26
+cumulus@switch:~$ net add nat static dnat icmp 130.1.100.100 translate 172.16.10.2 
+cumulus@switch:~$ net pending
+cumulus@switch:~$ net commit 
+```
+
 To delete a static rule, run the `net del` command. For example:
 
 ```
@@ -169,6 +184,17 @@ The following rule matches UDP packets with destination IP address 172.30.58.80 
 -t nat -A PREROUTING -d 172.30.58.80 -p udp --dport 6000 --in-interface swp51  -j DNAT --to-destination 10.0.0.1:5000
 ```
 
+The following *double NAT* rule translates both the source and destination IP addresses of incoming and outgoing ICMP packets:  
+- For outgoing messages, NAT changes the inside local IP address 172.16.10.2 to the inside global IP address 130.1.100.10 and the outside local IP address 26.26.26.26 to the outside global IP address 140.1.1.2.
+- For incoming messages, NAT changes the inside global IP address 130.1.100.10 to the inside local IP address 172.16.10.2 and the outside global IP address 140.1.1.2 to the outside local IP address 26.26.26.26.
+
+```
+-t nat -A POSTROUTING -s 172.16.10.2 -p icmp -j SNAT --to-source 130.1.100.100 
+-t nat -A PREROUTING -d 26.26.26.26 -p icmp -j DNAT --to-destination 140.1.1.2 
+-t nat -A POSTROUTING -s 140.1.1.2 -p icmp -j SNAT --to-source 26.26.26.26 
+-t nat -A PREROUTING -d 130.1.100.100 -p icmp -j DNAT --to-destination 172.16.10.2 
+```
+
 To delete a static NAT rule, remove the rule from the policy file in the  `/etc/cumulus/acl/policy.d` directory, then run the `sudo cl-acltool -i command`.
 
 {{< /tab >}}
@@ -198,13 +224,13 @@ Then restart `switchd`.
 #### Optional Dynamic NAT Settings
 
 The `/etc/cumulus/switchd.conf` file includes the following configuration options for dynamic NAT. Only change these options if dynamic NAT is enabled.
-
+<!-- vale off -->
 | Option | Description |
 | ------ | ----------- |
 | nat.age_poll_interval | The period of inactivity before `switchd` releases a NAT entry from the translation table.<br>The default value is 5 minutes. The minimum value is 1 minute. The maximum value is 24 hours.|
 | nat.table_size | The maximum number of dynamic `snat` and `dnat` entries in the translation table. The default value is 1024.<br>NVIDIA Spectrum-2 switches support a maximum of 8192 entries. |
 | nat.config_table_size | The maximum number of rules allowed (NCLU or cl-acltool).<br>The default value is 64. The minimum value is 64. The maximum value is 1024. |
-
+<!-- vale on --> 
 After you change any of the dynamic NAT configuration options, restart `switchd`.
 
 {{<cl/restart-switchd>}}

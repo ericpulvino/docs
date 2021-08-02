@@ -186,7 +186,7 @@ agentAddress udp:66.66.66.66:161,udp:77.77.77.77:161,udp6:[2001::1]:161
 
 NVIDIA recommends you use an SNMPv3 username and password instead of the read-only community string as the more secure way to use SNMP because SNMPv3 does not expose the password in the `GetRequest` and `GetResponse` packets and can also encrypt packet contents. You can configure multiple usernames for different user roles with different levels of access to various MIBs.
 
-SNMPv3 usernames are added to the `/etc/snmp/snmpd.conf` file, along with plaintext authentication and encryption pass phrases.
+SNMPv3 usernames are added to the `/etc/snmp/snmpd.conf` file, along with plain text authentication and encryption pass phrases.
 
 {{%notice note%}}
 The default `snmpd.conf` file contains a default user, *_snmptrapusernameX*. This username cannot be used for authentication, but is required for SNMP traps.
@@ -318,7 +318,7 @@ rwuser user999
 ```
 
 {{%notice tip%}}
-The following example shows a more advanced but slightly more secure method of configuring SNMPv3 users without creating cleartext passwords:
+The following example shows a more advanced but slightly more secure method of configuring SNMPv3 users without creating clear text passwords:
 
 1. Install the `net-snmp-config` script that is in `libsnmp-dev` package:
 
@@ -361,11 +361,11 @@ To restrict MIB tree exposure, you can define a view for an SNMPv3 username or c
 
 You can define a specific view multiple times and fine tune to provide or restrict access using the `included` or `excluded` command to specify branches of certain MIB trees.
 
-By default, the `snmpd.conf` file contains numerous views within the *systemonly* view.
-
+By default, the `snmpd.conf` file contains many views within the *systemonly* view.
+<!-- vale off -->
 {{< tabs "viewname" >}}
 {{< tab "NCLU Commands" >}}
-
+<!-- vale on -->
 ```
 cumulus@switch:~$ net add snmp-server viewname cumulusOnly included .1.3.6.1.4.1.40310
 cumulus@switch:~$ net add snmp-server viewname cumulusCounters included .1.3.6.1.4.1.40310.2
@@ -409,20 +409,20 @@ You can also specify a view to restrict the subset of the OID tree.
 {{< tab "NCLU Commands" >}}
 
 The following example configuration:
-
+<!-- vale off -->
 - Sets the read only community string to *simplepassword* for SNMP requests
 - Restricts requests to only those sourced from hosts in the 192.168.200.10/24 subnet
 - Restricts viewing to the *mysystem* view defined with the `viewname` command
-
+<!-- vale on -->
 ```
 cumulus@switch:~$ net add snmp-server viewname mysystem included 1.3.6.1.2.1.1
 cumulus@switch:~$ net add snmp-server readonly-community simplepassword access 192.168.200.10/24 view mysystem
 cumulus@switch:~$ net pending
 cumulus@switch:~$ net commit
 ```
-
+<!-- vale off -->
 This example creates a read-only community password *showitall* that allows access to the entire OID tree for requests originating from any source IP address.
-
+<!-- vale on -->
 ```
 cumulus@switch:~$ net add snmp-server readonly-community showitall access any
 cumulus@switch:~$ net pending
@@ -435,7 +435,7 @@ cumulus@switch:~$ net commit
 You enable the community string by providing a community string and then setting **rocommunity** (for read-only access) or **rwcommunity** (for read-write access). Other options you can specify are described below.
 
 - `rocommunity`/`rwcommunity`: `rwcommunity` is for a read-only community; `rwcommunity` is for read-write access. Specify one or the other.
-- `public`: The plaintext password/community string.
+- `public`: The plain text password/community string.
 
   {{%notice info%}}
 NVIDIA strongly recommends you change this password to something else.
@@ -472,7 +472,7 @@ You can configure system settings for the SNMPv2 MIB. The example commands here 
 
 - The system physical location for the node in the SNMPv2-MIB system table (the `syslocation`).
 - The username and email address of the contact person for this managed node (the `syscontact`).
-- An administratively-assigned name for the managed node (the `sysname`).
+- An administratively assigned name for the managed node (the `sysname`).
 
 {{< tabs "sys-settings" >}}
 {{< tab "NCLU Commands" >}}
@@ -491,7 +491,7 @@ cumulus@switch:~$ net add snmp-server system-contact user X at myemail@example.c
 cumulus@switch:~$ net commit
 ```
 
-To set an administratively-assigned name for the managed node, run the following command. Typically, this is the fully-qualified domain name of the node.
+To set an administratively assigned name for the managed node, run the following command. Typically, this is the fully qualified domain name of the node.
 
 ```
 cumulus@switch:~$ net add snmp-server system-name CumulusBox number 1,543,567
@@ -594,9 +594,9 @@ To verify the configuration, run `snmpwalk`. For example, if you have a running 
 ```
 cumulus@switch:~$ sudo snmpwalk -v2c -cpublic localhost 1.3.6.1.2.1.14
 ```
-
+<!-- vale off -->
 ### Enable the .1.3.6.1.2.1 Range
-
+<!-- vale on -->
 Some MIBs, including storage information, are not included by default in `snmpd.conf` in Cumulus Linux. This results in some default views on common network tools (like `librenms`) to return less than optimal data. You can include more MIBs by enabling the complete .1.3.6.1.2.1 range. This simplifies the configuration file, removing the concern that any required MIBs might be missed by the monitoring system. Various MIBs included were added to the default SNMPv3 configuration and include the following:
 
 - ENTITY-MIB
@@ -611,7 +611,7 @@ To enable the .1.3.6.1.2.1 range, make sure the view commands include the requir
 
 ## Restore the Default SNMP Configuration
 
-The following command removes all custom entries in the `/etc/snmp/snmpd.conf` file and replaces them with defaults, including for all SNMPv3 usernames and readonly-communities. A `listening-address` for the localhost is configured in its place.
+The following command removes all custom entries in the `/etc/snmp/snmpd.conf` file and replaces them with defaults, including for all SNMPv3 usernames and read only communities. A `listening-address` for the localhost is configured in its place.
 
 ```
 cumulus@switch:~$ net del snmp-server all

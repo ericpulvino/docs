@@ -8,7 +8,7 @@ This section describes optional configuration. The steps provided in this sectio
 
 ## Peer Groups
 
-Instead of specifying properties of each individual peer, you can define one or more peer groups and associate all the attributes common to that peer session to a peer group. A peer needs to be attached to a peer group only once, when it then inherits all address families activated for that peer group.
+Instead of specifying properties of each individual peer, you can define one or more peer groups and associate all the attributes common to that peer session to a peer group. You need to attach a peer to a peer group one time; it then inherits all address families activated for that peer group.
 
 {{%notice note%}}
 If the peer you want to add to a group already exists in the BGP configuration, delete it first, than add it to the peer group.
@@ -89,7 +89,7 @@ leaf01(config-router)# neighbor swp51 interface peer-group SPINE
 
 *BGP dynamic neighbors* provides BGP peering to a group of remote neighbors within a specified range of IPv4 or IPv6 addresses for a BGP peer group. You can configure each range as a subnet IP address.
 
-You configure dynamic neighbors using the `bgp listen range <ip-address> peer-group <group>` command. After you configure the dynamic neighbors, a BGP speaker can listen for, and form peer relationships with, any neighbor that is in the IP address range and is mapped to a peer group.
+You configure dynamic neighbors with the `bgp listen range <ip-address> peer-group <group>` command. After you configure the dynamic neighbors, a BGP speaker can listen for, and form peer relationships with, any neighbor that is in the IP address range and maps to a peer group.
 
 The following example commands create the peer group SPINE and configure BGP peering to remote neighbors within the address range 10.0.1.0/31.
 
@@ -216,11 +216,11 @@ cumulus@leaf01:~$
 ## BGP TTL Security Hop Count
 
 You can use the TTL security hop count option to prevent attacks against eBGP, such as denial of service (DoS) attacks.
-By default, BGP messages are sent to eBGP neighbors with an IP time-to-live (TTL) of 1, which requires the peer to be directly connected, otherwise, the packets expire along the way. (You can adjust the TTL with the {{<link url="#ebgp-multihop" text="eBGP multihop">}} option.) An attacker can easily adjust the TTL of packets so that they appear to be originating from a peer that is directly connected.
+By default, BGP messages to eBGP neighbors have an IP time-to-live (TTL) of 1, which requires the peer to be directly connected, otherwise, the packets expire along the way. You can adjust the TTL with the {{<link url="#ebgp-multihop" text="eBGP multihop">}} option. An attacker can adjust the TTL of packets so that they look like they originate from a directly connected peer.
 
-The BGP TTL security hops option inverts the direction in which the TTL is counted. Instead of accepting only packets with a TTL set to 1, only BGP messages with a TTL greater than or equal to 255 minus the specified hop count are accepted.
+The BGP TTL security hops option inverts the direction in which BGP counts the TTL. Instead of accepting only packets with a TTL of 1, Cumulus Linux accepts BGP messages with a TTL greater than or equal to 255 minus the specified hop count.
 
-When TTL security is in use, eBGP multihop is no longer needed.
+When you use TTL security, you do not need eBGP multihop.
 
 The following command example sets the TTL security hop count value to 200:
 
@@ -277,19 +277,20 @@ router bgp 65101
 
 {{%notice note%}}
 - When you configure `ttl-security hops` on a peer group instead of a specific neighbor, FRR does not add it to either the running configuration or to the `/etc/frr/frr.conf` file. To work around this issue, add `ttl-security hops` to individual neighbors instead of the peer group.
-- Enabling `ttl-security hops` does not program the hardware with relevant information. Frames are forwarded to the CPU and are dropped. Use the NVUE Command to explicitly add the relevant entry to hardware. For more information about ACLs, see {{<link title="Netfilter - ACLs">}}.
+- Enabling `ttl-security hops` does not program the hardware with relevant information. Cumulus Linux forwards frames to the CPU and then drops them. Use the NVUE Command to explicitly add the relevant entry to hardware. For more information about ACLs, see {{<link title="Netfilter - ACLs">}}.
 {{%/notice%}}
 
 {{< /tab >}}
 {{< /tabs >}}
-
+<!-- vale off -->
 ## MD5-enabled BGP Neighbors
-
+<!-- vale on -->
 You can authenticate your BGP peer connection to prevent interference with your routing tables.
 
 To enable MD5 authentication for BGP peers, set the same password on each peer.
-
+<!-- vale off --> 
 The following example commands set the password *mypassword* on BGP peers leaf01 and spine01:
+<!-- vale on --> 
 
 {{< tabs "40 ">}}
 {{< tab "NCLU Commands ">}}
@@ -375,10 +376,10 @@ cumulus@spine01:~$
 {{< /tabs >}}
 
 You can confirm the configuration with the NCLU command `net show bgp neighbor <neighbor>` or with the vtysh command `show ip bgp neighbor <neighbor>`.
-
+<!-- vale off -->
 {{< expand "net show bgp neighbor <neighbor> example" >}}
 
-The following example shows that a session with the peer is established and that authentication is enabled. The output shows `Peer Authentication Enabled` towards the end.
+The following example shows that Cumulus Linux establishes a session with the peer. The output shows `Peer Authentication Enabled` towards the end.
 
 ```
 cumulus@spine01:~$ net show bgp neighbor swp1
@@ -435,7 +436,7 @@ Read thread: on  Write thread: on  FD used: 27
 {{< /expand >}}
 
 {{%notice note%}}
-The MD5 password configured against a BGP listen-range peer group (used to accept and create dynamic BGP neighbors) is not enforced; connections are accepted from peers that do not specify a password.
+Cumulus Linux does not enforce the MD5 password configured against a BGP listen-range peer group (used to accept and create dynamic BGP neighbors) and accepts connections from peers that do not specify a password.
 {{%/notice%}}
 
 ## Remove Private BGP ASNs
@@ -448,13 +449,17 @@ The following example command removes private ASNs from routes sent to the neigh
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp neighbor swp51 remove-private-AS
+cumulus@leaf01:~$ net add bgp neighbor swp51 remove-private-AS
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 You can replace the private ASNs with your public ASN with the following command:
 
 ```
-cumulus@switch:~$ net add bgp neighbor swp51 remove-private-AS replace-AS
+cumulus@leaf01:~$ net add bgp neighbor swp51 remove-private-AS replace-AS
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
@@ -693,7 +698,7 @@ Total number of neighbors 1
 ...
 ```
 
-The `net show bgp summary` command displays the global table, where the local ASN 65132 is used to peer with spine01.
+The `net show bgp summary` command displays the global table, where the local ASN 65132 peers with spine01.
 
 ```
 cumulus@border01:mgmt:~$ net show bgp summary
@@ -714,9 +719,9 @@ Total number of neighbors 1
 
 ## ECMP
 
-BGP supports equal-cost multipathing ({{<link url="Equal-Cost-Multipath-Load-Sharing-Hardware-ECMP" text="ECMP">}}). If a BGP node hears a certain prefix from multiple peers, it has all the information necessary to program the routing table and forward traffic for that prefix through all of these peers. BGP typically choses one best path for each prefix and installs that route in the forwarding table.
+BGP supports equal-cost multipathing ({{<link url="Equal-Cost-Multipath-Load-Sharing-Hardware-ECMP" text="ECMP">}}). If a BGP node hears a certain prefix from multiple peers, it has the information necessary to program the routing table and forward traffic for that prefix through all these peers. BGP typically chooses one best path for each prefix and installs that route in the forwarding table.
 
-In Cumulus Linux, the *BGP multipath* option is enabled by default with the maximum number of paths set to 64 so that the switch can install multiple equal-cost BGP paths to the forwarding table and load balance traffic across multiple links. You can change the number of paths allowed, according to your needs.
+Cumulus Linux enables the *BGP multipath* option by default and sets the maximum number of paths to 64 so that the switch can install multiple equal-cost BGP paths to the forwarding table and load balance traffic across multiple links. You can change the number of paths allowed, according to your needs.
 
 The example commands change the maximum number of paths to 120. You can set a value between 1 and 256. 1 disables the BGP multipath option.
 
@@ -779,7 +784,7 @@ exit-address-family
 {{< /tab >}}
 {{< /tabs >}}
 
-When *BGP multipath* is enabled, only BGP routes from the same AS are load balanced. If the routes go across several different AS neighbors, even if the AS path length is the same, they are not load balanced. To be able to load balance between multiple paths received from different AS neighbors:.
+When you enable *BGP multipath*, Cumulus Linux load balances BGP routes from the same AS. If the routes go across several different AS neighbors, even if the AS path length is the same, they are not load balanced. To load balance between multiple paths received from different AS neighbors:.
 
 {{< tabs "601 ">}}
 {{< tab "NCLU Commands ">}}
@@ -841,9 +846,9 @@ When you disable the *bestpath as-path multipath-relax* option, EVPN type-5 rout
 
 ## Advertise IPv4 Prefixes with IPv6 Next Hops
 
-{{<exlink url="https://tools.ietf.org/html/rfc5549" text="RFC 5549">}} defines the method used for BGP to advertise IPv4 prefixes with IPv6 next hops. The RFC does not make a distinction between whether the IPv6 peering and next hop values should be global unicast addresses (GUA) or linklocal addresses. Cumulus Linux supports advertising IPv4 prefixes with IPv6 global unicast and linklocal next hop addresses, with either *unnumbered* or *numbered* BGP.
+{{<exlink url="https://tools.ietf.org/html/rfc5549" text="RFC 5549">}} defines how BGP advertises IPv4 prefixes with IPv6 next hops. The RFC does not make a distinction between whether the IPv6 peering and next hop values must be global unicast addresses (GUA) or link-local addresses. Cumulus Linux supports advertising IPv4 prefixes with IPv6 global unicast and link-local next hop addresses, with either *unnumbered* or *numbered* BGP.
 
-When BGP peering uses IPv6 global addresses and IPv4 prefixes are being advertised and installed, IPv6 route advertisements are used to derive the MAC address of the peer so that FRR can create an IPv4 route with a linklocal IPv4 next hop address (defined by RFC 3927). This is required to install the route into the kernel. These route advertisement settings are configured automatically when FRR receives an update from a BGP peer using IPv6 global addresses that contain an IPv4 prefix with an IPv6 next hop, and the enhanced-next hop capability has been negotiated.
+When BGP peering uses IPv6 global addresses, and BGP advertises and installs IPv4 prefixes, Cumulus Linux uses IPv6 route advertisements to derive the MAC address of the peer so that FRR can create an IPv4 route with a link-local IPv4 next hop address (defined by RFC 3927). FRR configures these route advertisement settings automatically upon receiving an update from a BGP peer that uses IPv6 global addresses with an IPv4 prefix and an IPv6 next hop, and after it negotiates the enhanced-next hop capability.
 
 To enable advertisement of IPv4 prefixes with IPv6 next hops over global IPv6 peerings, add the `extended-nexthop` capability to the global IPv6 neighbor statements on each end of the BGP sessions.
 
@@ -901,7 +906,7 @@ router bgp 65101
 {{< /tab >}}
 {{< /tabs >}}
 
-Ensure that the IPv6 peers are activated under the IPv4 unicast address family; otherwise, all peers are activated in the IPv4 unicast address family by default. If `no bgp default ipv4-unicast` is configured, you need to explicitly activate the IPv6 neighbor under the IPv4 unicast address family as shown below:
+Ensure that you have activated the IPv6 peers under the IPv4 unicast address family; otherwise, all peers activate in the IPv4 unicast address family by default. If you configure `no bgp default ipv4-unicast`, you need to activate the IPv6 neighbor under the IPv4 unicast address family as shown below:
 
 {{< tabs "769 ">}}
 {{< tab "NCLU Commands ">}}
@@ -975,7 +980,7 @@ exit-address-family
 
 ## Neighbor Maximum Prefixes
 
-To protect against an internal network connectivity disruption caused by BGP, you can control how many route announcements (prefixes) can be received from a BGP neighbor.
+To protect against an internal network connectivity disruption caused by BGP, you can control the number of route announcements (prefixes) you want to receive from a BGP neighbor.
 
 The following example commands set the maximum number of prefixes allowed from the BGP neighbor on swp51 to 3000:
 
@@ -1019,7 +1024,7 @@ cumulus@leaf01:~$ net pending
 cumulus@leaf01:~$ net commit
 ```
 
-The `summary-only` option ensures that longer-prefixes inside the aggregate address are suppressed before sending BGP updates:
+The `summary-only` option ensures that BGP suppresses longer-prefixes inside the aggregate address before sending updates:
 
 ```
 cumulus@leaf01:~$ net add bgp aggregate-address 10.1.0.0/16 summary-only
@@ -1035,7 +1040,7 @@ cumulus@leaf01:~$ nv set vrf default router bgp address-family ipv4-unicast aggr
 cumulus@leaf01:~$ nv config apply
 ```
 
-The `summary-only` option ensures that longer-prefixes inside the aggregate address are suppressed before sending BGP updates:
+The `summary-only` option ensures that BGP suppresses longer-prefixes inside the aggregate address before sending updates:
 
 ```
 cumulus@leaf01:~$ nv set vrf default router bgp address-family ipv4-unicast aggregate-route 10.1.0.0/16 summary-only on
@@ -1053,9 +1058,9 @@ You can configure BGP to wait for a response from the RIB indicating that the ro
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp wait-for-install
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add bgp wait-for-install
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 The NCLU commands save the configuration in the `/etc/frr/frr.conf` file. For example:
@@ -1106,18 +1111,18 @@ router bgp 65199
 {{< /tabs >}}
 
 The {{<link url="Smart-System-Manager" text="Smart System Manager">}} suppresses route advertisement automatically when upgrading or troubleshooting an active switch so that there is minimal disruption to the network.
-
+<!-- vale off -->
 ## BGP add-path
 
 Cumulus Linux supports both BGP add-path RX and BGP add-path TX.
 
 ### BGP add-path RX
+<!-- vale on -->
+BGP add-path RX enables BGP to receive multiple paths for the same prefix. A path identifier ensures that additional paths do not override previously advertised paths. Cumulus Linux enables BGP add-path RX by default; you do not need to perform additional configuration.
 
-BGP add-path RX allows BGP to receive multiple paths for the same prefix. A path identifier is used so that additional paths do not override previously advertised paths. BGP add-path RX is enabled by default; no additional configuration is required.
+To view the existing capabilities, run the NCLU command `net show bgp neighbor` or the vtysh command `show ip bgp neighbors`. You can see the existing capabilities in the subsection *Add Path*, below *Neighbor capabilities.*
 
-To view the existing capabilities, run the NCLU command `net show bgp neighbor` or the vtysh command `show ip bgp neighbors`. The existing capabilities are listed in the subsection *Add Path*, below *Neighbor capabilities.*
-
-The following example output shows that additional BGP paths can be sent and received and that the BGP neighbor on swp51 supports both.
+The following example output shows that BGP can sent and receive additional BGP paths, and that the BGP neighbor on swp51 supports both.
 
 ```
 cumulus@leaf01:~$ net show bgp neighbor
@@ -1141,7 +1146,7 @@ Hostname: spine01
 ...
 ```
 
-To view the current additional paths, run the NCLU command `net show bgp <prefix>` or the vtysh command `show ip bgp <prefix>`. The example output shows an additional path that has been added by the TX node for receiving. Each path has a unique AddPath ID.
+To view the current additional paths, run the NCLU command `net show bgp <prefix>` or the vtysh command `show ip bgp <prefix>`. The example output shows that the TX node adds an additional path for receiving. Each path has a unique AddPath ID.
 
 ```
 cumulus@leaf01:mgmt:~$ net show bgp 10.10.10.9
@@ -1162,15 +1167,15 @@ Paths: (2 available, best #1, table Default-IP-Routing-Table)
       AddPath ID: RX 0, TX 3
       Last update: Fri Oct  2 03:56:33 2020
 ```
-
+<!-- vale off -->
 ### BGP add-path TX
 
 BGP add-path TX enables BGP to advertise more than just the best path for a prefix. Cumulus Linux includes two options:
-- `addpath-tx-all-paths` advertises all known paths to a neighbor
-- `addpath-tx-bestpath-per-AS` advertises only the best path learned from each AS to a neighbor
+- `addpath-tx-all-paths` advertises all known paths to a neighbor.
+- `addpath-tx-bestpath-per-AS` advertises only the best path learned from each AS to a neighbor.
 
 The following example commands configure leaf01 to advertise the best path learned from each AS to the BGP neighbor on swp50:
-
+<!-- vale on -->
 {{< tabs "895 ">}}
 {{< tab "NCLU Commands ">}}
 
@@ -1207,7 +1212,7 @@ cumulus@leaf01:~$
 {{< /tab >}}
 {{< /tabs >}}
 
-The following example commands configure leaf01 to advertise all paths learned from each AS to the BGP neighbor on swp50:
+The following example commands configure leaf01 to advertise all paths learned from each <!-- vale off -->AS<!-- vale on --> to the BGP neighbor on swp50:
 
 {{< tabs "928 ">}}
 {{< tab "NCLU Commands ">}}
@@ -1245,13 +1250,13 @@ cumulus@leaf01:~$
 {{< /tab >}}
 {{< /tabs >}}
 
-The following example configuration shows how BGP add-path TX is used to advertise the best path learned from each AS.
-
+The following example configuration shows how BGP add-path TX advertises the best path learned from each AS.
+<!-- vale off -->
 | <div style="width:500px">   |    |
 | -- | -- |
 | {{< img src = "/images/cumulus-linux/bgp-add-path-tx.png" >}} | In this configuration:<ul><li>Every leaf and every spine has a different ASN</li><li>eBGP is configured between:<ul><li>leaf01 and spine01, spine02</li><li>leaf03 and spine01, spine02</li><li>leaf01 and leaf02 (leaf02 only has a single peer, which is leaf01)</li></ul><li>leaf01 is configured to advertise the best path learned from each AS to BGP neighbor leaf02</li><li>leaf03 generates a loopback IP address (10.10.10.3/32) into BGP with a network statement</li></ul>|
-
-When you run the `net show bgp 10.10.10.3/32` command on leaf02, the command output shows the leaf03 loopback IP address and that two BGP paths are learned, both from leaf01:
+<!-- vale on -->
+When you run the `net show bgp 10.10.10.3/32` command on leaf02, the command output shows the leaf03 loopback IP address and two BGP paths, both from leaf01:
 
 ```
 cumulus@leaf02:mgmt:~$ net show bgp 10.10.10.3/32
@@ -1277,7 +1282,7 @@ Paths: (2 available, best #2, table default)
 
 Routes are typically propagated even if a different path exists. The BGP conditional advertisement feature lets you advertise certain routes only if other routes either do or do not exist.
 
-This feature is typically used in multihomed networks where some prefixes are advertised to one of the providers only if information from the other provider is not present. For example, a multihomed router can use conditional advertisement to choose which upstream provider learns about the routes it provides so that it can influence which provider handles traffic destined for the downstream router. This is useful for cost of service, latency, or other policy requirements that are not natively accounted for in BGP.
+This feature is typically used in multihomed networks where BGP advertises some prefixes to one of the providers only if information from the other provider is not present. For example, a multihomed router can use conditional advertisement to choose which upstream provider learns about the routes it provides so that it can influence which provider handles traffic destined for the downstream router. This is useful for cost of service, latency, or other policy requirements that are not natively accounted for in BGP.
 
 Conditional advertisement uses the `non-exist-map` or the `exist-map` and the `advertise-map` keywords to track routes by route prefix.
 You configure the BGP neighbors to use the route maps.
@@ -1358,11 +1363,11 @@ route-map EXISTMAP permit 10
 match ip address prefix-list EXIST
 ```
 
-Cumulus Linux scans the entire RIB table every 60 seconds. You can set the conditional advertisement timer to increase or decrease how often you want Cumulus Linux to scan the RIB table. A value between 5 and 240 seconds is allowed.
+Cumulus Linux scans the entire RIB table every 60 seconds. You can set the conditional advertisement timer to increase or decrease how often you want Cumulus Linux to scan the RIB table. You can set a value between 5 and 240 seconds.
 
 {{%notice note%}}
 - A lower value (such as 5) increases the amount of processing needed. Use caution when configuring conditional advertisement on a large number of BGP neighbors.
-- NVUE commands are not currently supported for the conditional advertisement timer. Only change the timer if you configured conditional advertisement with vtysh.
+- NVUE commands are not supported for the conditional advertisement timer. Only change the timer if you configured conditional advertisement with vtysh.
 {{%/notice%}}
 
 ```
@@ -1401,7 +1406,7 @@ BGP includes several timers that you can configure.
 
 ### Keepalive Interval and Hold Time
 
-By default, BGP exchanges periodic keepalive messages to measure and ensure that a peer is still alive and functioning. If a keepalive or update message is not received from the peer within the hold time, the peer is declared down and all routes received by this peer are withdrawn from the local BGP table. By default, the keepalive interval is set to 3 seconds and the hold time is set to 9 seconds. To decrease CPU load, especially in the presence of a lot of neighbors, you can increase the values of these timers or disable the exchange of keepalives entirely. When manually configuring new values, the keepalive interval can be less than or equal to one third of the hold time, but cannot be less than 1 second. Setting the keepalive and hold time values to 0 disables the exchange of keepalives.
+By default, BGP exchanges periodic keepalive messages to measure and ensure that a peer is still alive and functioning. If BGP does not receive a keepalive or update message from the peer within the hold time, it declares the peer down and withdraws all routes received by this peer from the local BGP table. By default, the keepalive interval is 3 seconds and the hold time is 9 seconds. To decrease CPU load when there are a lot of neighbors, you can increase the values of these timers or disable the exchange of keepalives. When manually configuring new values, the keepalive interval can be less than or equal to one third of the hold time, but cannot be less than 1 second. Setting the keepalive and hold time values to 0 disables the exchange of keepalives.
 
 The following example commands set the keepalive interval to 10 seconds and the hold time to 30 seconds.
 
@@ -1522,7 +1527,7 @@ router bgp 65101
 
 ### Advertisement Interval
 
-After making a new best path decision for a prefix, BGP can optionally insert a delay before advertising the new results to a peer. This delay is used to rate limit the amount of changes advertised to downstream peers and lowers processing requirements by slowing down convergence. By default, this interval is set to 0 seconds for both eBGP and iBGP sessions, which allows for very fast convergence. For more information about the advertisement interval, see {{<exlink url="http://tools.ietf.org/html/draft-jakma-mrai-02" text="this IETF draft">}}.
+After making a new best path decision for a prefix, BGP can insert a delay before advertising the new results to a peer. This delay rate limits the amount of changes advertised to downstream peers and lowers processing requirements by slowing down convergence. By default, this interval is 0 seconds for both eBGP and iBGP sessions, which allows for fast convergence. For more information about the advertisement interval, see {{<exlink url="http://tools.ietf.org/html/draft-jakma-mrai-02" text="this IETF draft">}}.
 
 The following example commands set the advertisement interval to 5 seconds:
 
@@ -1582,13 +1587,13 @@ router bgp 65101
 
 ## Route Reflectors
 
-iBGP rules state that a route learned from an iBGP peer can not be sent to another iBGP peer. In a data center spine and leaf network using iBGP, this prevents a spine from sending a route learned from a leaf to any other leaf. As a workaround, BGP introduced the concept of a *route reflector* that selectively ignores this rule so that when an iBGP speaker is configured as a route reflector, it *can* send iBGP learned routes to other iBGP peers.
+iBGP rules state that BGP cannot send a route learned from an iBGP peer to another iBGP peer. In a data center spine and leaf network using iBGP, this prevents a spine from sending a route learned from a leaf to any other leaf. As a workaround, you can use a *route reflector*. When an iBGP speaker is a route reflector, it *can* send iBGP learned routes to other iBGP peers.
 
-In the following example, spine01 is acting as a route reflector. The leaf switches, leaf01, leaf02 and leaf03 are *route reflector clients*. Any route that spine01 learns from a route reflector client is sent to other route reflector clients.
+In the following example, spine01 is acting as a route reflector. The leaf switches, leaf01, leaf02 and leaf03 are *route reflector clients*. BGP sends any route that spine01 learns from a route reflector client to other route reflector clients.
 
 {{< img src = "/images/cumulus-linux/bgp-route-reflectors-example.png" >}}
 
-To configure the BGP node as a route reflector for a BGP peer, set the neighbor `route-reflector-client` option. The following example sets spine01 shown in the illustration above to be a route reflector for leaf01 (on swp1), which is a route reflector client. No configuration is required on the client.
+To configure the BGP node as a route reflector for a BGP peer, set the neighbor `route-reflector-client` option. The following example sets spine01 shown in the illustration above to be a route reflector for leaf01 (on swp1), which is a route reflector client. You do not have to configure the client.
 
 {{< tabs "1212 ">}}
 {{< tab "NCLU Commands ">}}
@@ -1656,7 +1661,7 @@ router bgp 65199
 {{< /tabs >}}
 
 {{%notice info%}}
-When configuring BGP for IPv6, you must run the `route-reflector-client` command **after** the `activate` command; otherwise, the `route-reflector-client` command is ignored.
+When you configure BGP for IPv6, you must run the `route-reflector-client` command **after** the `activate` command.
 {{%/notice%}}
 
 ## Administrative Distance
@@ -1774,7 +1779,7 @@ cumulus@leaf01:~$
 {{< /tab >}}
 {{< /tabs >}}
 
-When configured, the `graceful-shutdown` community is added to all paths from eBGP peers and the `local-pref` for that route is set to `0`. To see the configuration, run the NCLU command `net show bgp <route>` or the vtysh command `show ip bgp <route>`. For example:
+When you enable graceful BGP shutdown, Cumulus Linux adds the `graceful-shutdown` community to all paths from eBGP peers and sets the `local-pref` for that route to `0`. To see the configuration, run the NCLU command `net show bgp <route>` or the vtysh command `show ip bgp <route>`. For example:
 
 ```
 cumulus@leaf01:~$ net show bgp 10.10.10.0/24
@@ -1797,7 +1802,7 @@ Paths: (2 available, best #1, table Default-IP-Routing-Table)
       Last update: Mon Sep 18 17:01:18 2017
 ```
 
-As optional configuration, you can create a route map to do a prepend AS so that reduced preference using a longer AS path can be propagated to other parts of network.
+As optional configuration, you can create a route map to prepend the AS so that reduced preference using a longer AS path propagates to other parts of network.
 
 {{< expand "Example Configuration Using a Route Map" >}}
 
@@ -1843,22 +1848,22 @@ Last update: Sun Dec 20 03:04:53 2020
 
 When BGP restarts on a switch, all BGP peers detect that the session goes down and comes back up. This session transition results in a routing flap on BGP peers that causes BGP to recompute routes, generate route updates, and add unnecessary churn to the forwarding tables. The routing flaps can create transient forwarding blackholes and loops, and also consume resources on the switches affected by the flap, which can affect overall network performance.
 
-To help minimize the negative effects that occur when BGP restarts, you can enable the BGP graceful restart feature. This enables a BGP speaker to signal to its peers that it can preserve its forwarding state and continue data forwarding during a restart. It also enables a BGP speaker to continue to use routes previously announced by a peer even after the peer has gone down.
+To minimize the negative effects that occur when BGP restarts, you can enable the BGP graceful restart feature. This enables a BGP speaker to signal to its peers that it can preserve its forwarding state and continue data forwarding during a restart. It also enables a BGP speaker to continue to use routes announced by a peer even after the peer has gone down.
 
-When a BGP session is established, BGP peers use the BGP OPEN message to negotiate a graceful restart. If the BGP peer also supports graceful restart, it is activated for that neighbor session. If the BGP session is lost, the BGP peer (the restart helper) flags all routes associated with the device as stale but continues to forward packets to these routes for a certain period of time. The restarting device also continues to forward packets during the graceful restart. After it comes back up and re-establishes BGP sessions with its peers (restart helpers), it waits to learn all routes announced by these peers before doing a cumulative path selection; after which, it updates its forwarding tables and re-announces the appropriate routes to its peers. These procedures ensure that if there are any routing changes while the BGP speaker is restarting, they are considered post restart and the network converges.
+When BGP establishes a session, BGP peers use the BGP OPEN message to negotiate a graceful restart. If the BGP peer also supports graceful restart, it activates for that neighbor session. If the BGP session stops, the BGP peer (the restart helper) flags all routes associated with the device as stale but continues to forward packets to these routes for a certain period of time. The restarting device also continues to forward packets during the graceful restart. After the device comes back up and establishes BGP sessions again with its peers (restart helpers), it waits to learn all routes that these peers announce before selecting a cumulative path; after which, it updates its forwarding tables and re-announces the appropriate routes to its peers. These procedures ensure that if there are any routing changes while the BGP speaker is restarting, the network converges.
 
 {{%notice note%}}
-BGP graceful restart is supported for both IPv4 and IPv6.
+Cumulus Linux supports BGP graceful restart for both IPv4 and IPv6.
 {{%/notice%}}
 
-BGP graceful restart helper mode is enabled by default. You can enable restarting router mode in one of two ways:
+Cumulus Linux enables BGP graceful restart helper mode by default. You can enable restarting router mode in one of two ways:
 - Globally, where all BGP peers inherit the graceful restart capability.
 - Per BGP peer or peer group, which can be useful for misbehaving peers or when working with third party devices. You can also configure a peer or peer group to run in helper mode only, where routes originated and advertised from a BGP peer are not deleted.
 
 You must enable BGP graceful restart (restarting router mode) as described above to achieve a switch restart or switch software upgrade with minimal traffic loss in a BGP configuration. Refer to {{<link url="Smart-System-Manager" text="Smart System Manager">}} for more information.
 
 {{%notice note%}}
-BGP goes through a graceful restart (as a restarting router) only with a planned switch restart event initiated by the Smart System Manager. Any other restart of BGP, such as an autonomous restart of the BGP daemon due to a software exception or a user-initiated restart of the FRR service, results in BGP going through a regular restart where the BGP session with peers is  terminated explicitly and BGP learned routes are removed from the forwarding plane during restart.
+BGP goes through a graceful restart (as a restarting router) with a planned switch restart event that the Smart System Manager initiates. Any other time BGP restarts, such as when the BGP daemon restarts due to a software exception or you restart the FRR service, BGP goes through a regular restart where the BGP session with peers terminates and Cumulus Linux removes the learned routes from the forwarding plane.
 {{%/notice%}}
 
 The following example commands enable global graceful BGP restart:
@@ -1867,9 +1872,9 @@ The following example commands enable global graceful BGP restart:
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add routing bgp graceful-restart-mode helper-and-restarter
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add routing bgp graceful-restart-mode helper-and-restarter
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
@@ -1884,7 +1889,7 @@ cumulus@leaf01:~$ nv config apply
 {{< tab "vtysh Commands ">}}
 
 ```
-cumulus@eaf01:~$ sudo vtysh
+cumulus@leaf01:~$ sudo vtysh
 leaf01# configure terminal
 leaf01(config)# router bgp 65101
 leaf01(config-router)# bgp graceful-restart
@@ -1903,9 +1908,9 @@ The following example commands enable BGP graceful restart on the BGP peer conne
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp neighbor swp51 graceful-restart-mode helper-and-restarter
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add bgp neighbor swp51 graceful-restart-mode helper-and-restarter
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
@@ -1933,15 +1938,15 @@ cumulus@leaf01:~$
 {{< /tab >}}
 {{< /tabs >}}
 
-The following example commands enable helper mode only for the BGP peer connected on swp51. Routes originated and advertised from the peer are not deleted.
+The following example commands enable helper mode only for the BGP peer connected on swp51. Routes that the peer originates and advertises are not deleted.
 
 {{< tabs "TabID1506 ">}}
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp neighbor swp51 graceful-restart-mode helper
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add bgp neighbor swp51 graceful-restart-mode helper
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 The NCLU commands save the configuration in the `/etc/frr/frr.conf` file. For example:
@@ -1991,7 +1996,7 @@ router bgp 65199
 {{< /tab >}}
 {{< /tabs >}}
 
-You can configure the following graceful restart timers, which are set globally.
+You can configure the following graceful restart timers.
 
 |<div style="width:250px">Timer | Description |
 | ---- | ----------- |
@@ -2005,11 +2010,11 @@ The following example commands set the `restart-time` to 400 seconds, `pathselec
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add routing bgp graceful-restart restart-time 400
-cumulus@switch:~$ net add routing bgp graceful-restart pathselect-defer-time 300
-cumulus@switch:~$ net add routing bgp graceful-restart stalepath-time 400
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add routing bgp graceful-restart restart-time 400
+cumulus@leaf01:~$ net add routing bgp graceful-restart pathselect-defer-time 300
+cumulus@leaf01:~$ net add routing bgp graceful-restart stalepath-time 400
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 The NCLU commands save the configuration in the `/etc/frr/frr.conf` file. For example:
@@ -2073,9 +2078,9 @@ The following example commands disable global graceful restart:
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add routing bgp graceful-restart-mode disabled
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add routing bgp graceful-restart-mode disabled
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
@@ -2109,9 +2114,9 @@ The following example commands disable graceful BGP restart on a BGP peer:
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp neighbor swp51 graceful-restart-disable
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add bgp neighbor swp51 graceful-restart-disable
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
@@ -2171,12 +2176,12 @@ BGP neighbor on swp51: fe80::4638:39ff:fe00:2, remote AS 65199, local AS 65101, 
       Timers:
         Configured Stale Path Time(sec): 360
 ```
-
+<!-- vale off -->
 ## Enable Read-only Mode
+<!-- vale on -->
+Sometimes, as Cumulus Linux establishes BGP peers and receives updates, it installs prefixes in the RIB and advertises them to BGP peers before receiving and processing information from all the peers. Also, depending on the timing of the updates, Cumulus Linux sometimes installs prefixes, then withdraws and replaces them with new routing information. Read-only mode minimizes this BGP route churn in both the local RIB and with BGP peers.
 
-As BGP peers are established and updates are received, prefixes might be installed in the RIB and advertised to BGP peers even though the information from all peers is not yet received and processed. Depending on the timing of the updates, prefixes might be installed and propagated through BGP, and then immediately withdrawn and replaced with new routing information. Read-only mode minimizes this BGP route churn in both the local RIB and with BGP peers.
-
-Enable read-only mode to reduce CPU and network usage when restarting the BGP process. Because intermediate best paths are possible for the same prefix as peers get established and start receiving updates at different times, read-only mode is particularly useful in topologies where BGP learns a prefix from many peers and the network has a high number of prefixes.
+Enable read-only mode to reduce CPU and network usage when restarting the BGP process. Because intermediate best paths are possible for the same prefix as peers establish and start receiving updates at different times, read-only mode is useful in topologies where BGP learns a prefix from a large number of peers and the network has a high number of prefixes.
 
 {{%notice note%}}
 While in read-only mode, BGP does not run best-path or generate any updates to its peers.
@@ -2188,9 +2193,9 @@ The following example commands enable read-only mode:
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp update-delay 300 90
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add bgp update-delay 300 90
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 The NCLU commands save the configuration in the `/etc/frr/frr.conf` file. For example:
@@ -2261,13 +2266,13 @@ Total number of neighbors 1
 ...
 ```
 
-The last convergence event is retained in the output of the NCLU `net show bgp summary json` command or the vtysh `show ip bgp summary json` command.
+The NCLU `net show bgp summary json` and the vtysh `show ip bgp summary json` command show the last convergence event.
 
 ## BGP Community Lists
 
 You can use *{{<exlink url="http://docs.frrouting.org/en/latest/bgp.html#community-lists" text="community lists">}}* to define a BGP community to tag one or more routes. You can then use the communities to apply a route policy on either egress or ingress.
 
-The BGP community list can be either *standard* or *expanded.* The standard BGP community list is a pair of values (such as *100:100*) that can be tagged on a specific prefix and advertised to other neighbors or applied on route ingress. Or, it can be one of four BGP default communities:
+The BGP community list can be either *standard* or *expanded*. The standard BGP community list is a pair of values (such as *100:100*) that you can tag on a specific prefix and advertise to other neighbors or you can apply them on route ingress. Or, the standard BGP community list can be one of four BGP default communities:
 
 - *internet*: a BGP community that matches all routes
 - *local-AS*: a BGP community that restricts routes to your confederation's sub-AS
@@ -2284,9 +2289,9 @@ Here is an example of a standard community list filter:
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add routing community-list standard COMMUNITY1 permit 100:100
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add routing community-list standard COMMUNITY1 permit 100:100
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
@@ -2320,9 +2325,9 @@ You can apply the community list to a route map to define the routing policy:
 {{< tab "NCLU Commands ">}}
 
 ```
-cumulus@switch:~$ net add bgp table-map ROUTE-MAP1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
+cumulus@leaf01:~$ net add bgp table-map ROUTE-MAP1
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}

@@ -18,9 +18,9 @@ Per VLAN Spanning Tree (PVST) creates a spanning tree instance for a bridge. Rap
 {{%notice note%}}
 For maximum interoperability, when connected to a switch that has a native VLAN configuration, the native VLAN **must** be configured to be VLAN 1 only.
 {{%/notice%}}
-
+<!-- vale off -->
 ## STP for a VLAN-aware Bridge
-
+<!-- vale on -->
 VLAN-aware bridges operate in RSTP mode only. RSTP on VLAN-aware bridges works with other modes in the following ways:
 
 ### RSTP and STP
@@ -46,7 +46,7 @@ RSTP works with MST seamlessly, creating a single instance of spanning tree that
 
 RSTP treats the MST domain as one giant switch, whereas MST treats the RSTP domain as a different region. To enable proper communication between the regions, MST creates a Common Spanning Tree (CST) that connects all the boundary switches and forms the overall view of the MST domain. Because changes in the CST need to be reflected in all regions, the RSTP tree is included in the CST to ensure that changes on the RSTP domain are reflected in the CST domain. This does cause topology changes on the RSTP domain to impact the rest of the network but keeps the MST domain informed of every change occurring in the RSTP domain, ensuring a loop-free network.
 
-Configure the root bridge within the MST domain by changing the priority on the relevant MST switch. When MST detects an RSTP link, it falls back into RSTP mode. The MST domain choses the switch with the lowest cost to the CST root bridge as the CIST root bridge.
+Configure the root bridge within the MST domain by changing the priority on the relevant MST switch. When MST detects an RSTP link, it falls back into RSTP mode. The MST domain chooses the switch with the lowest cost to the CST root bridge as the CIST root bridge.
 
 ### RSTP with MLAG
 
@@ -54,7 +54,7 @@ More than one spanning tree instance enables switches to load balance and use di
 
 ## Configure STP
 
-There are a number of ways to customize STP in Cumulus Linux. Exercise caution when changing the settings below to prevent malfunctions in STP loop avoidance.
+There several ways to customize STP in Cumulus Linux. Exercise caution when changing the settings below to prevent malfunctions in STP loop avoidance.
 
 ### Spanning Tree Priority
 
@@ -230,7 +230,7 @@ cumulus@switch:~$ sudo ifreload -a
 {{< /tab >}}
 {{< /tabs >}}
 
-The following example commands re-enable PortAutoEdge on swp1:
+The following example commands reenable PortAutoEdge on swp1:
 
 {{< tabs "TabID383 ">}}
 {{< tab "NCLU Commands ">}}

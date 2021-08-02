@@ -1058,7 +1058,7 @@ router bgp 65101
 ...
 ```
 
-To re-enable BUM flooding, run the NCLU `net del bgp l2vpn evpn disable-flooding` command.
+To reenable BUM flooding, run the NCLU `net del bgp l2vpn evpn disable-flooding` command.
 
 {{< /tab >}}
 {{< tab "NVUE Commands ">}}
@@ -1074,7 +1074,7 @@ The NVUE Commands create the following configuration snippet in the `/etc/nvue.d
 cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
 ```
 
-To renable BUM flodding, run the `nv set nve vxlan flooding enable on` command.
+To reenable BUM flooding, run the `nv set nve vxlan flooding enable on` command.
 
 {{< /tab >}}
 {{< tab "vtysh Commands ">}}
@@ -1103,7 +1103,7 @@ router bgp 65101
 ...
 ```
 
-To re-enable BUM flooding, run the vtysh `flooding head-end-replication` command.
+To reenable BUM flooding, run the vtysh `flooding head-end-replication` command.
 
 ```
 cumulus@leaf01:~$ sudo vtysh
@@ -1139,7 +1139,7 @@ Flags: * - Kernel
 * 4001       L3   10.1.20.2:5           65101:4001                65101:4001               RED
 ```
 
-Run the NCLU `net show bgp l2vpn evpn route type multicast` command to make sure no locally-originated EVPN type-3 routes are listed.
+Run the NCLU `net show bgp l2vpn evpn route type multicast` command to make sure no locally originated EVPN type-3 routes are listed.
 
 ## Extended Mobility
 
@@ -1257,7 +1257,7 @@ Cumulus Linux provides a *freeze* option that takes action on a detected duplica
 
 When you enable the freeze option and a duplicate address is detected:
 
-- If the MAC or IP address is learned from a remote VTEP at the time it is frozen, the forwarding information in the kernel and hardware is not updated, leaving it in the prior state. Any future remote updates are processed but they are not reflected in the kernel entry. If the remote VTEP sends a MAC-IP route withdrawal, the local VTEP removes the frozen remote entry. Then, if the local VTEP has a locally-learned entry already present in its kernel, FRRouting will originate a corresponding MAC-IP route and advertise it to all remote VTEPs.
+- If the MAC or IP address is learned from a remote VTEP at the time it is frozen, the forwarding information in the kernel and hardware is not updated, leaving it in the prior state. Any future remote updates are processed but they are not reflected in the kernel entry. If the remote VTEP sends a MAC-IP route withdrawal, the local VTEP removes the frozen remote entry. Then, if the local VTEP has a locally learned entry already present in its kernel, FRRouting originates a corresponding MAC-IP route and advertises it to all remote VTEPs.
 - If the MAC or IP address is locally learned on this VTEP at the time it is frozen, the address is not advertised to remote VTEPs. Future local updates are processed but are not advertised to remote VTEPs. If FRR receives a local entry delete event, the frozen entry is removed from the FRR database. Any remote updates (from other VTEPs) change the state of the entry to remote but the entry is not installed in the kernel (until cleared).
 
 **To recover from a freeze**, shut down the faulty host or VM or fix any other misconfiguration in the network. If the address is frozen *permanently,* issue the {{<link url="#clear-duplicate-addresses" text="clear command">}} on the VTEP where the address is marked as duplicate. If the address is frozen for a defined period of time, it is cleared automatically after the timer expires (you can clear the duplicate address before the timer expires with the {{<link url="#clear-duplicate-addresses" text="clear command">}}).
@@ -1368,7 +1368,7 @@ cumulus@switch:~$ net commit
 {{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
-The NVUE Command is not curently supported.
+The NVUE Command is not currently supported.
 
 {{< /tab >}}
 {{< tab "vtysh Commands ">}}
@@ -1398,7 +1398,7 @@ cumulus@switch:~$ net commit
 {{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
-NVUE Command is not curently supported.
+NVUE Command is not currently supported.
 
 {{< /tab >}}
 {{< tab "vtysh Commands ">}}

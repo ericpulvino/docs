@@ -36,9 +36,9 @@ You configure two switches: one at the service provider edge that faces the cust
   - You cannot use the peerlink as a backup datapath in case one of the MLAG peers loses all uplinks.
 - When the bridge VLAN protocol is 802.1ad and is VXLAN-enabled, all bridge ports must be either access ports (except for the MLAG peerlink) or VLAN trunks.
 {{%/notice%}}
-
+<!-- vale off -->
 ### Public Cloud-facing Switch
-
+<!-- vale on -->
 For the switch facing the public cloud:
 
 - Configure the bridge with `vlan_protocol` set to *802.1ad*.
@@ -105,9 +105,9 @@ cumulus@switch:~$ ifreload -a
 
 {{< /tab >}}
 {{< /tabs >}}
-
+<!-- vale off -->
 ### Customer-facing Edge Switch
-
+<!-- vale on -->
 For the switch facing the customer:
 
 - Configure the bridge with `vlan_protocol` set to *802.1ad*.
@@ -208,9 +208,9 @@ swp4            200  PVID, Egress Untagged
 vni-1000        100  PVID, Egress Untagged  1000
 vni-3000        200  PVID, Egress Untagged  3000
 ```
-
+<!-- vale off -->
 To verify that the bridge is configured for QinQ, run the `ip -d link show bridge` commands and check for *vlan\_protocol 802.1ad* in the output:
-
+<!-- vale on -->
 ```
 cumulus@switch:~$ sudo ip -d link show bridge
 287: bridge: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default

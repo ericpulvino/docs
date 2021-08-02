@@ -14,7 +14,7 @@ You can use the `lldpcli` CLI tool to query the `lldpd` daemon for neighbors, st
 
 ## Configure LLDP Timers
 
-You can configure the frequency of LLDP updates (between 10-300 seconds) and the amount of time to hold the information before discarding it. The hold time interval is a multiple of the `tx-interval`.
+You can configure the frequency of LLDP updates (between 10 and 300 seconds) and the amount of time to hold the information before discarding it. The hold time interval is a multiple of the `tx-interval`.
 
 The following example commands configure the frequency of LLDP updates to 100 and the hold time to 3.
 
@@ -102,7 +102,7 @@ DAEMON_ARGS="-c -x -M 4"
 ```
 
 {{%notice note%}}
-The `-c` option enables backwards compatability with CDP and the `-M 4` option sends a field in discovery packets to indicate that the switch is a network device.
+The `-c` option enables backwards compatibility with CDP and the `-M 4` option sends a field in discovery packets to indicate that the switch is a network device.
 {{%/notice%}}
 
 ## Troubleshooting

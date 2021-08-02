@@ -12,10 +12,7 @@ Cumulus Linux does not support demand mode in BFD.
 
 ## BFD Multihop Routed Paths
 
-BFD multihop sessions are built over arbitrary paths between two systems, which results in some complexity that does not exist for single hop sessions. Here are some best practices for using multihop paths:
-
-- To avoid **spoofing** with multihop paths, configure the maximum hop count (`max_hop_cnt`*)* for each peer, which limits the number of hops for a BFD session. All BFD packets exceeding the maximum hop count are dropped.
-- Because multihop BFD sessions can take arbitrary paths, **demultiplex** the initial BFD packet based on the source/destination IP address pair. Use FRRouting, which monitors connectivity to the peer, to determine the source/destination IP address pairs.
+BFD multihop sessions are built over arbitrary paths between two systems, which results in some complexity that does not exist for single hop sessions. To avoid **spoofing** with multihop paths, configure the maximum hop count (`max_hop_cnt`) for each peer, which limits the number of hops for a BFD session. All BFD packets exceeding the maximum hop count are dropped.
 
   Cumulus Linux supports multihop BFD sessions for both IPv4 and IPv6 peers.
 
@@ -24,9 +21,9 @@ BFD multihop sessions are built over arbitrary paths between two systems, which 
 You can configure BFD by either using {{<link url="FRRouting" text="FRRouting">}} (with NCLU, NVUE, or vtysh commands) or by specifying the configuration in the {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM `topology.dot` file">}}. However, the topology file has some limitations:
 
 - The topology file supports BFD IPv4 and IPv6 *single* hop sessions only; you *cannot* specify IPv4 or IPv6 *multihop* sessions in the topology file.
-- The topology file supports BFD sessions for only linklocal IPv6 peers; BFD sessions for global IPv6 peers discovered on the link are not created.
+- The topology file supports BFD sessions for only link-local IPv6 peers; BFD sessions for global IPv6 peers discovered on the link are not created.
 
-Use FRRouting to register multihop peers with PTM and BFD as well as to monitor the connectivity to the remote BGP multihop peer. FRRouting can dynamically register and unregister both IPv4 and IPv6 peers with BFD when the BFD-enabled peer connectivity is established or de-established. Also, you can configure BFD parameters for each BGP or OSPF peer.
+Use FRRouting to register multihop peers with PTM and BFD as well as monitor the connectivity to the remote BGP multihop peer. FRRouting can dynamically register and unregister both IPv4 and IPv6 peers with BFD when the BFD-enabled peer connectivity is established or de-established. Also, you can configure BFD parameters for each BGP or OSPF peer.
 
 {{%notice note%}}
 The BFD parameter configured in the topology file is given higher precedence over the client-configured BFD parameters for a BFD session that has been created by both the topology file and FRRouting.
@@ -44,7 +41,7 @@ When you configure BFD, you can set the following parameters for both IPv4 and I
 
 ### BFD in BGP
 
-When you configure BFD in BGP, neighbors are registered and deregistered with {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM">}} dynamically.
+When you configure BFD in BGP, neighbors are registered and unregistered with {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM">}} dynamically.
 
 To configure BFD in BGP, run the following commands.
 
@@ -77,18 +74,18 @@ cumulus@switch:~$ net commit
 The following example configures BFD for swp51 and uses the default intervals.
 
 ```
-cumulus@leaf01:~$ nv set vrf default router bgp peer swp51 bfd enable on
-cumulus@leaf01:~$ nv config apply
+cumulus@switch:~$ nv set vrf default router bgp peer swp51 bfd enable on
+cumulus@switch:~$ nv config apply
 ```
 
 The following example configures BFD for the peer group `fabric` and sets the interval multiplier to 4, the minimum interval between received BFD control packets to 400, and the minimum interval for sending BFD control packets to 400.
 
 ```
-cumulus@leaf01:~$ nv set vrf default router bgp peer fabric bfd enable on
-cumulus@leaf01:~$ nv set vrf default router bgp peer fabric bfd detect-multiplier 4 
-cumulus@leaf01:~$ nv set vrf default router bgp peer fabric bfd min-rx-interval 400 
-cumulus@leaf01:~$ nv set vrf default router bgp peer fabric bfd min-tx-interval 400
-cumulus@leaf01:~$ nv config apply
+cumulus@switch:~$ nv set vrf default router bgp peer fabric bfd enable on
+cumulus@switch:~$ nv set vrf default router bgp peer fabric bfd detect-multiplier 4 
+cumulus@switch:~$ nv set vrf default router bgp peer fabric bfd min-rx-interval 400 
+cumulus@switch:~$ nv set vrf default router bgp peer fabric bfd min-tx-interval 400
+cumulus@switch:~$ nv config apply
 ```
 
 {{< /tab >}}
@@ -153,7 +150,7 @@ BFD: Type: single hop
 
 ### BFD in OSPF
 
-When you enable or disable BFD in OSPF, neighbors are registered and de-registered dynamically with {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM">}}. When BFD is enabled on the interface, a neighbor is registered with BFD when two-way adjacency is established and deregistered when adjacency goes down. The BFD configuration is per interface and any IPv4 and IPv6 neighbors discovered on that interface inherit the configuration.
+When you enable or disable BFD in OSPF, neighbors are registered and de-registered dynamically with {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM">}}. When BFD is enabled on the interface, a neighbor is registered with BFD when two-way adjacency is established and unregistered when adjacency goes down. The BFD configuration is per interface and any IPv4 and IPv6 neighbors discovered on that interface inherit the configuration.
 
 The following example configures BFD in OSPF for interface swp1 and sets interval multiplier to 4, the minimum interval between *received* BFD control packets to 400, and the minimum interval for *sending* BFD control packets to 400.
 
@@ -273,7 +270,7 @@ You can use more aggressive detection times for echo packets because the round-t
 ### About the Echo Packet
 
 BFD echo packets are encapsulated into UDP packets over destination and source UDP port number 3785. The BFD echo packet format is vendor-specific and has not been defined in the RFC. BFD echo packets that originate from Cumulus Linux are 8 bytes long and have the following format:
-
+<!-- vale off -->
 |0|1|2|3|
 |---|---|---|---|
 |Version|Length|Reserved|Reserved|
@@ -283,8 +280,8 @@ Where:
 
 - **Version** is the version of the BFD echo packet.
 - **Length** is the length of the BFD echo packet.
-- **My Discriminator** is a non-zero value that uniquely identifies a BFD session on the transmitting side. When the originating node receives the packet after being looped back by the receiving system, this value uniquely identifies the BFD session.
-
+- **My Discriminator**is a non-zero value that uniquely identifies a BFD session on the transmitting side. When the originating node receives the packet after being looped back by the receiving system, this value uniquely identifies the BFD session.
+<!-- vale on -->
 ### Transmit and Receive Echo Packets
 
 BFD echo packets are transmitted for a BFD session only when the peer has advertised a non-zero value for the required minimum echo Rx interval (the `echoMinRx` setting) in the BFD control packet when the BFD session starts. The transmit rate of the echo packets is based on the peer advertised echo receive value in the control packet.

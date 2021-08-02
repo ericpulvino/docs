@@ -9,6 +9,7 @@ Cumulus Linux supports both single and traditional VXLAN devices.
 {{%notice note%}}
 - Single VXLAN devices are supported in VLAN-aware bridge mode only.
 - A combination of single and traditional VXLAN devices is not supported.
+- A traditional VXLAN device configuration supports up to 2000 VNIs and a single VXLAN device configuration supports up to 4000 VNIs.
 {{%/notice%}}
 
 ## Traditional VXLAN Device
@@ -103,7 +104,9 @@ cumulus@leaf01:~$ ifreload -a
 With a single VXLAN device, a set of VNIs are included in a single device model. The single VXLAN device has a set of attributes that belong to the VXLAN construct. Individual VNIs are represented as a VLAN to VNI mapping and you can specify which VLANs map to the associated VNIs. Single VXLAN device simplifies the configuration and reduces the overhead by replacing multiple traditional VXLAN devices with a single VXLAN device.
 
 {{%notice note%}}
-Cumulus Linux supports multiple single VXLAN devices when configured with multiple VLAN-aware bridges.
+Cumulus Linux supports multiple single VXLAN devices when configured with multiple VLAN-aware bridges. You configure multiple single VXLAN devices in the same way you configure a single VXLAN device. Make sure *not* to duplicate VNIs across single VXLAN device configurations.
+
+The limitations listed for {{<link url="VLAN-aware-Bridge-Mode" text="multiple VLAN-aware bridges">}} also apply to multiple single VXLAN devices.
 {{%/notice%}}
 
 You can configure a single VXLAN device with NVUE or by manually editing the `/etc/network/interfaces` file.
@@ -137,7 +140,7 @@ cumulus@leaf01:~$ nv config apply
 The `nv config save` command creates the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
 
 ```
-cumulus@spine01:~$ sudo cat /etc/nvue.d/startup.yaml
+cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
 - set:
     bridge:
       domain:

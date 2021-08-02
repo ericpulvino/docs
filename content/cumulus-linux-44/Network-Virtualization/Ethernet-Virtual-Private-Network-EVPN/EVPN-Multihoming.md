@@ -8,7 +8,7 @@ toc: 4
 *EVPN multihoming* (EVPN-MH) provides support for all-active server redundancy. It is a standards-based replacement for MLAG in data centers deploying Clos topologies. Replacing MLAG provides these benefits:
 
 - Eliminates the need for peerlinks or inter-switch links between the top of rack switches
-- Allows more than two TOR switches to participate in a redundancy group
+- Allows more than two TOR switches a redundancy group
 - Provides a single BGP-EVPN control plane
 - Allows multi-vendor interoperability
 
@@ -25,7 +25,7 @@ To configure EVPN-MH, you set an Ethernet segment system MAC address and a local
 While you can specify a different system MAC address on different Ethernet segments attached to the same switch, the Ethernet segment system MAC address must be the same on the downlinks attached to the same server.
 
 {{%notice info%}}
-When using Spectrum 2 or Spectrum 3 switches, an Ethernet segment can span more than two switches. Each Ethernet segment is a distinct redundancy group. However, when using Spectrum A1 switches, a maximum of two switches can participate in a redundancy group or Ethernet segment.
+When using Spectrum 2 or Spectrum 3 switches, an Ethernet segment can span more than two switches. Each Ethernet segment is a distinct redundancy group. However, when using Spectrum A1 switches, you can include a maximum of two switches in a redundancy group or Ethernet segment.
 {{%/notice%}}
 
 ## Required and Supported Features
@@ -84,6 +84,7 @@ To configure EVPN-MH:
 1. Enable EVPN multihoming.
 2. Set the Ethernet segment ID.
 3. Set the Ethernet segment system MAC address.
+4. Configure multihoming uplinks.
 
 These settings are applied to interfaces, typically bonds.
 
@@ -93,16 +94,16 @@ An Ethernet segment configuration has these characteristics:
 - Each interface (bond) needs its own Ethernet segment ID.
 - Static and LACP bonds can be associated with an Ethernet segment ID.
 
-A *designated forwarder* (DF) is elected for each Ethernet segment. The DF is responsible for forwarding flooded traffic received through the VXLAN overlay to the locally attached Ethernet segment. Specify a preference on an Ethernet segment for the DF election, as this leads to predictable failure scenarios. The EVPN VTEP with the highest DF preference setting becomes the DF. The DF preference setting defaults to _32767_.
+A *designated forwarder* (DF) is elected for each Ethernet segment. The DF forwards flooded traffic received through the VXLAN overlay to the locally attached Ethernet segment. Specify a preference on an Ethernet segment for the DF election, as this leads to predictable failure scenarios. The EVPN VTEP with the highest DF preference setting becomes the DF. The DF preference setting defaults to _32767_.
 
 NCLU (and NVUE) generates the EVPN-MH configuration and reloads FRR and `ifupdown2`. The configuration appears in both the `/etc/network/interfaces` file and in `/etc/frr/frr.conf` file.
 
 {{%notice note%}}
 When EVPN-MH is enabled, all SVI MAC addresses are advertised as type 2 routes. You do not need to configure a unique SVI IP address or configure the BGP EVPN address family with `advertise-svi-ip`.
 {{%/notice%}}
-
+<!-- vale off -->
 ### Enable EVPN-MH
-
+<!-- vale on -->
 {{< tabs "TabID105 ">}}
 {{<tab "NCLU Commands">}}
 
@@ -134,12 +135,12 @@ cumulus@leaf01:~$ sudo systemctl restart switchd.service
 
 {{< /tab >}}
 {{< /tabs >}}
-
+<!-- vale off -->
 ### Configure the EVPN-MH Bonds
-
+<!-- vale on -->
 To configure bond interfaces for EVPN-MH, run commands similar to the following:
 
-{{<tabs "bond config">}}
+{{<tabs "bond configuration">}}
 {{<tab "NCLU Commands">}}
 
 ```
@@ -284,6 +285,114 @@ interface bond3
  evpn mh es-id 3
  evpn mh es-sys-mac 44:38:39:BE:EF:AA
 !
+```
+
+{{</tab>}}
+{{</tabs>}}
+
+### Enable uplink Tracking
+
+When all uplinks go down, the VTEP loses connectivity to the VXLAN overlay. To prevent traffic loss, Cumulus Linux tracks the operational state of the uplink. When all the uplinks are down, the Ethernet segment bonds on the switch are in a protodown or error-disabled state. An MH uplink is any routed interface where locally-encapsulated VXLAN traffic is routed (after encapsulation) or any routed interface receiving VXLAN traffic (before decapsulation) that is decapsulated by the local device.
+
+{{%notice info%}}
+Split-horizon and Designated-Forwarder filters are only applied to interfaces configured as MH uplinks.
+If you configure EVPN-MH without MH uplinks, BUM traffic might be duplicated or looped back to the same ES where it is received. This can cause MAC flaps or other issues on multihomed devices.
+{{%/notice%}}
+
+{{<tabs "uplink tracking">}}
+{{<tab "NCLU Commands">}}
+
+```
+cumulus@leaf01:~$ net add interface swp1-4 evpn mh uplink
+cumulus@leaf01:~$ net add interface swp1-4 pim
+cumulus@leaf01:~$ net pending
+cumulus@leaf01:~$ net commit
+```
+
+The NCLU commands create the following configuration in the `/etc/frr/frr.conf` file:
+
+```
+cumulus@leaf01:~$ sudo cat /etc/frr/frr.conf
+...
+!
+interface swp1
+ evpn mh uplink
+!
+interface swp2
+ evpn mh uplink
+!
+interface swp3
+ evpn mh uplink
+!
+interface swp4
+ evpn mh uplink
+!
+...
+```
+
+{{</tab>}}
+{{<tab "NVUE Commands">}}
+
+```
+cumulus@leaf01:~$ nv set interface swp51-54 evpn multihoming uplink on
+cumulus@leaf01:~$ nv config apply
+```
+
+If you are configuring EVPN multihoming with EVPN-PIM, be sure to configure PIM on the interfaces.
+
+The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
+
+```
+cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
+```
+
+{{</tab>}}
+{{<tab "vtysh Commands">}}
+
+```
+cumulus@leaf01:~$ sudo vtysh
+
+Hello, this is FRRouting (version 7.4+cl4u1).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+
+leaf01# configure terminal
+leaf01(config)# interface swp51
+leaf01(config-if)# evpn mh uplink
+leaf01(config-if)# exit
+leaf01(config)# interface swp52
+leaf01(config-if)# evpn mh uplink
+leaf01(config-if)# exit
+leaf01(config)# interface swp53
+leaf01(config-if)# evpn mh uplink
+leaf01(config-if)# exit
+leaf01(config)# interface swp54
+leaf01(config-if)# evpn mh uplink
+leaf01(config-if)# exit
+leaf01(config)# write memory
+leaf01(config)# exit
+leaf01# exit
+cumulus@leaf01:~$
+```
+
+The vtysh commands create the following configuration in the `/etc/frr/frr.conf` file:
+
+```
+cumulus@leaf01:~$ sudo cat /etc/frr/frr.conf
+...
+!
+interface swp1
+ evpn mh uplink
+!
+interface swp2
+ evpn mh uplink
+!
+interface swp3
+ evpn mh uplink
+!
+interface swp4
+ evpn mh uplink
+!
+...
 ```
 
 {{</tab>}}
@@ -464,109 +573,6 @@ evpn mh startup-delay 1800
 {{</tab>}}
 {{</tabs>}}
 
-### Enable Uplink Tracking
-
-When all the uplinks go down, the VTEP loses connectivity to the VXLAN overlay. To prevent traffic loss in this state, the uplinks' oper-state is tracked. When all the uplinks are down, the Ethernet segment bonds on the switch are put into a protodown or error-disabled state. You can configure a link as an MH uplink to enable this tracking.
-
-{{<tabs "upink tracking">}}
-{{<tab "NCLU Commands">}}
-
-```
-cumulus@leaf01:~$ net add interface swp1-4 evpn mh uplink
-cumulus@leaf01:~$ net add interface swp1-4 pim
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-The NCLU commands create the following configuration in the `/etc/frr/frr.conf` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/frr/frr.conf
-...
-!
-interface swp1
- evpn mh uplink
-!
-interface swp2
- evpn mh uplink
-!
-interface swp3
- evpn mh uplink
-!
-interface swp4
- evpn mh uplink
-!
-...
-```
-
-{{</tab>}}
-{{<tab "NVUE Commands">}}
-
-```
-cumulus@leaf01:~$ nv set interface swp51-54 evpn multihoming uplink on
-cumulus@leaf01:~$ nv config apply
-```
-
-If you are configuring EVPN multihoming with EVPN-PIM, be sure to configure PIM on the interfaces.
-
-The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
-```
-
-{{</tab>}}
-{{<tab "vtysh Commands">}}
-
-```
-cumulus@leaf01:~$ sudo vtysh
-
-Hello, this is FRRouting (version 7.4+cl4u1).
-Copyright 1996-2005 Kunihiro Ishiguro, et al.
-
-leaf01# configure terminal
-leaf01(config)# interface swp51
-leaf01(config-if)# evpn mh uplink
-leaf01(config-if)# exit
-leaf01(config)# interface swp52
-leaf01(config-if)# evpn mh uplink
-leaf01(config-if)# exit
-leaf01(config)# interface swp53
-leaf01(config-if)# evpn mh uplink
-leaf01(config-if)# exit
-leaf01(config)# interface swp54
-leaf01(config-if)# evpn mh uplink
-leaf01(config-if)# exit
-leaf01(config)# write memory
-leaf01(config)# exit
-leaf01# exit
-cumulus@leaf01:~$
-```
-
-The vtysh commands create the following configuration in the `/etc/frr/frr.conf` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/frr/frr.conf
-...
-!
-interface swp1
- evpn mh uplink
-!
-interface swp2
- evpn mh uplink
-!
-interface swp3
- evpn mh uplink
-!
-interface swp4
- evpn mh uplink
-!
-...
-```
-
-{{</tab>}}
-{{</tabs>}}
-
 ### Enable FRR Debugging
 
 You can add debug statements to the `/etc/frr/frr.conf` file to debug the Ethernet segments, routes, and routing protocols (via Zebra).
@@ -656,14 +662,14 @@ debug zebra vxlan
 {{</tab>}}
 {{</tabs>}}
 
-### Fast Failover
+### Fast failover
 
 When an Ethernet segment link goes down, the attached VTEP notifies all other VTEPs using a single EAD-ES withdraw. This is done by way of an Ethernet segment bond redirect.
 
 Fast failover also triggers:
 
 - When you reboot a leaf switch or VTEP.
-- When there is an uplink failure. When all uplinks are down, the Ethernet segment bonds on the switch are protodowned or error disabled.
+- When there is an uplink failure. When all uplinks are down, the Ethernet segment bonds on the switch are protodown or error disabled.
 
 ### Disable Next Hop Group Sharing in the ASIC
 
@@ -681,9 +687,9 @@ evpn.multihoming.shared_l3_groups = FALSE
 
 cumulus@switch:~$ sudo systemctl restart switchd.service
 ```
-
+<!-- vale off -->
 ### Disable EAD-per-EVI Route Advertisements
-
+<!-- vale on -->
 {{<exlink url="https://tools.ietf.org/html/rfc7432" text="RFC 7432">}} requires type-1/EAD (Ethernet Auto-discovery) routes to be advertised two ways:
 
 - As EAD-per-ES (Ethernet Auto-discovery per Ethernet segment) routes
@@ -878,9 +884,9 @@ Route Distinguisher: 10.10.10.3:2
 The following configuration examples use the topology illustrated below.
 
 {{<img src="/images/cumulus-linux/EVPN-MH-example-config-citc.png">}}
-
+<!-- vale off -->
 ### EVPN-MH with Head End Replication
-
+<!-- vale on -->
 The following example commands configure EVPN multihoming with head end replication using single VXLAN devices.
 
 {{< tabs "TabID688 ">}}
@@ -3576,7 +3582,7 @@ cumulus@spine02:~$ cat /etc/nvue.d/startup.yaml
 When you run the `nv set vrf RED evpn vni 4001` and the `nv set vrf BLUE evpn vni 4002` commands, NVUE creates the following in the `/etc/network/interfaces` file:
 - Creates a single VXLAN device (vxlan99)
 - Assigns two VLANs automatically from the reserved VLAN range and adds `_l3` (layer 3) at the end (for example vlan220_l3 and vlan297_l3)
-- Maps the VLANs to the VNIs (bridge-vlan-vni-map 220=4001 297=4002)
+- Maps the VLANs to the VNIs (`bridge-vlan-vni-map 220=4001 297=4002`)
 - Creates a layer 3 bridge called br_l3vni
 - Reserves and assigns a dedicated hardware address for the layer 3 bridge from the pool of MAC addresses available on the switch
 - Adds the VXLAN device to the br_l3vni bridge
@@ -3613,9 +3619,9 @@ bridge-vlan-aware yes
 ...
 ```
 {{%/notice%}}
-
+<!-- vale off -->
 ### EVPN-MH with EVPN-PIM
-
+<!-- vale on -->
 The following example commands configure EVPN multihoming with PIM using traditional VXLAN devices. NVUE commands are not supported currently for PIM.
 
 {{< tabs "TabID2213 ">}}
@@ -3643,7 +3649,7 @@ cumulus@leaf01:~$ net add bond bond1-3 stp bpduguard
 cumulus@leaf01:~$ net add bond bond1-3 stp portadminedge
 cumulus@leaf01:~$ net add bridge bridge ports bond1,bond2,bond3
 cumulus@leaf01:~$ net add loopback lo pim
-cumulus@leaf01:~$ net add pim rp 10.10.100.100 224.0.0.0/4
+cumulus@leaf01:~$ net add pim rp 10.10.100.100
 cumulus@leaf01:~$ net add pim ecmp
 cumulus@leaf01:~$ net add pim keep-alive-timer 3600
 cumulus@leaf01:~$ net add interface swp51-52 pim
@@ -3749,7 +3755,7 @@ cumulus@leaf02:~$ net add bond bond1-3 stp bpduguard
 cumulus@leaf02:~$ net add bond bond1-3 stp portadminedge
 cumulus@leaf02:~$ net add bridge bridge ports bond1,bond2,bond3
 cumulus@leaf02:~$ net add loopback lo pim
-cumulus@leaf02:~$ net add pim rp 10.10.100.100 224.0.0.0/4
+cumulus@leaf02:~$ net add pim rp 10.10.100.100
 cumulus@leaf02:~$ net add pim ecmp
 cumulus@leaf02:~$ net add pim keep-alive-timer 3600
 cumulus@leaf02:~$ net add interface swp51-52 pim
@@ -3855,7 +3861,7 @@ cumulus@leaf03:~$ net add bond bond1-3 stp bpduguard
 cumulus@leaf03:~$ net add bond bond1-3 stp portadminedge
 cumulus@leaf03:~$ net add bridge bridge ports bond1,bond2,bond3
 cumulus@leaf03:~$ net add loopback lo pim
-cumulus@leaf03:~$ net add pim rp 10.10.100.100 224.0.0.0/4
+cumulus@leaf03:~$ net add pim rp 10.10.100.100
 cumulus@leaf03:~$ net add pim ecmp
 cumulus@leaf03:~$ net add pim keep-alive-timer 3600
 cumulus@leaf03:~$ net add interface swp51-52 pim
@@ -3961,7 +3967,7 @@ cumulus@leaf04:~$ net add bond bond1-3 stp bpduguard
 cumulus@leaf04:~$ net add bond bond1-3 stp portadminedge
 cumulus@leaf04:~$ net add bridge bridge ports bond1,bond2,bond3
 cumulus@leaf04:~$ net add loopback lo pim
-cumulus@leaf04:~$ net add pim rp 10.10.100.100 224.0.0.0/4
+cumulus@leaf04:~$ net add pim rp 10.10.100.100
 cumulus@leaf04:~$ net add pim ecmp
 cumulus@leaf04:~$ net add pim keep-alive-timer 3600
 cumulus@leaf04:~$ net add interface swp51-52 pim
@@ -4053,7 +4059,7 @@ cumulus@spine01:~$ net add loopback lo pim
 cumulus@spine01:~$ net add loopback lo pim use-source 10.10.10.101
 cumulus@spine01:~$ net add interface swp1-4 pim
 cumulus@spine01:~$ net add interface swp1-4 alias to leaf
-cumulus@spine01:~$ net add pim rp 10.10.100.100 224.0.0.0/4
+cumulus@spine01:~$ net add pim rp 10.10.10.101/32 10.10.100.100/32
 cumulus@spine01:~$ net add pim ecmp
 cumulus@spine01:~$ net add pim keep-alive-timer 3600
 cumulus@spine01:~$ net add bgp autonomous-system 65100
@@ -4079,7 +4085,7 @@ cumulus@spine02:~$ net add loopback lo pim
 cumulus@spine02:~$ net add loopback lo pim use-source 10.10.10.101
 cumulus@spine02:~$ net add interface swp1-4 pim
 cumulus@spine02:~$ net add interface swp1-4 alias to leaf
-cumulus@spine02:~$ net add pim rp 10.10.100.100 224.0.0.0/4
+cumulus@spine02:~$ net add pim rp 10.10.10.102/32 10.10.100.100/32
 cumulus@spine02:~$ net add pim ecmp
 cumulus@spine02:~$ net add pim keep-alive-timer 3600
 cumulus@spine02:~$ net add bgp autonomous-system 65100
@@ -4910,7 +4916,7 @@ cumulus@leaf01:~$ sudo cat /etc/frr/frr.conf
 ...
 interface lo
  ip pim
-ip pim rp 10.10.100.100 224.0.0.0/4
+ip pim rp 10.10.100.100
 ip pim ecmp
 ip pim keep-alive-timer 3600
 interface swp51
@@ -4979,7 +4985,7 @@ cumulus@leaf02:~$ sudo cat /etc/frr/frr.conf
 ...
 interface lo
  ip pim
-ip pim rp 10.10.100.100 224.0.0.0/4
+ip pim rp 10.10.100.100
 ip pim ecmp
 ip pim keep-alive-timer 3600
 interface swp51
@@ -5048,7 +5054,7 @@ cumulus@leaf03:~$ sudo cat /etc/frr/frr.conf
 ...
 interface lo
  ip pim
-ip pim rp 10.10.100.100 224.0.0.0/4
+ip pim rp 10.10.100.100
 ip pim ecmp
 ip pim keep-alive-timer 3600
 interface swp51
@@ -5116,7 +5122,7 @@ cumulus@leaf03:~$ sudo cat /etc/frr/frr.conf
 ...
 interface lo
  ip pim
-ip pim rp 10.10.100.100 224.0.0.0/4
+ip pim rp 10.10.100.100
 ip pim ecmp
 ip pim keep-alive-timer 3600
 interface swp51
@@ -5192,7 +5198,7 @@ interface swp3
  ip pim
 interface swp4
  ip pim
-ip pim rp 10.10.100.100 224.0.0.0/4
+ip pim rp 10.10.10.101/32 10.10.100.100/32
 ip pim ecmp
 ip pim keep-alive-timer 3600
 router bgp 65100
@@ -5228,7 +5234,7 @@ interface swp3
  ip pim
 interface swp4
  ip pim
-ip pim rp 10.10.100.100 224.0.0.0/4
+ip pim rp 10.10.10.102/32 10.10.100.100/32
 ip pim ecmp
 ip pim keep-alive-timer 3600
 router bgp 65100

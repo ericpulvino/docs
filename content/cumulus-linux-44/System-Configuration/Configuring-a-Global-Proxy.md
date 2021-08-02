@@ -6,7 +6,7 @@ toc: 3
 ---
 You configure {{<exlink url="https://wiki.archlinux.org/index.php/proxy_settings" text="global HTTP and HTTPS proxies">}} in the `/etc/profile.d/` directory of Cumulus Linux. Set the `http_proxy` and `https_proxy` variables to configure the switch with the address of the proxy server you want to use to get URLs on the command line. This is useful for programs such as `apt`, `apt-get`, `curl` and `wget`, which can all use this proxy.
 
-1. In a terminal, create a new file in the `/etc/profile.d/` directory. In the example below, the file is called `proxy.sh`, and is created using the text editor `nano`.
+1. In a terminal, create a new file in the `/etc/profile.d/` directory.
 
     ```
     cumulus@switch:~$ sudo nano /etc/profile.d/proxy.sh
@@ -36,7 +36,7 @@ You configure {{<exlink url="https://wiki.archlinux.org/index.php/proxy_settings
     Acquire::https::Proxy "https://myproxy.domain.com:8080";
     ```
 
-4. Add the proxy addresses to the `/etc/wgetrc` file. Uncomment the `http_proxy` and `https_proxy` lines, if necessary:
+4. Add the proxy addresses to the `/etc/wgetrc` file, then uncomment the `http_proxy` and `https_proxy` lines, if necessary:
 
     ```
     cumulus@switch:~$ sudo nano /etc/wgetrc
@@ -52,7 +52,7 @@ You configure {{<exlink url="https://wiki.archlinux.org/index.php/proxy_settings
     cumulus@switch:~$ source /etc/profile.d/proxy.sh
     ```
 
-The proxy is now configured. You can use the `echo` command to confirm a proxy is set up correctly:
+Use the `echo` command to confirm the configuration:
 
 - HTTP proxy:
 
@@ -69,5 +69,6 @@ The proxy is now configured. You can use the `echo` command to confirm a proxy i
     ```
 
 ## Related Information
-
+<!-- vale off -->
 [Set up an apt package cache]({{<ref "/knowledge-base/Installing-and-Upgrading/Installation/Set-up-an-apt-Package-Cache.md" >}})
+<!-- vale on -->

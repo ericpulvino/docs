@@ -4,7 +4,7 @@ author: NVIDIA
 weight: 550
 toc: 4
 ---
-The following sections provide the basic configuration needed to use EVPN as the control plane for VXLAN in a BGP-EVPN-based layer 2 extension deployment. For layer 3 multi-tenancy configuration, see {{<link url="Inter-subnet-Routing" text="Inter-subnet Routing">}}. For addtional EVPN configuration, see {{<link url="EVPN-Enhancements" text="EVPN Enhancements">}}.
+The following sections provide the basic configuration needed to use EVPN as the control plane for VXLAN in a BGP-EVPN-based layer 2 extension deployment. For layer 3 multi-tenancy configuration, see {{<link url="Inter-subnet-Routing" text="Inter-subnet Routing">}}. For additional EVPN configuration, see {{<link url="EVPN-Enhancements" text="EVPN Enhancements">}}.
 
 ## Basic EVPN Configuration Commands
 
@@ -20,7 +20,7 @@ For a non-VTEP device that is only participating in EVPN route exchange, such as
 {{< tabs "TabID20 ">}}
 {{< tab "NCLU Commands ">}}
 
-1. Configure VXLAN Interfaces. The following example creates two VXLAN interfaces (vni10 and vni20), adds the VXLAN devices to the bridge, and sets the VXLAN local tunnel IP address to 10.10.10.1.
+1. Configure VXLAN Interfaces. The following example creates two VXLAN interfaces (vni10 and vni20), adds the VXLAN devices to the bridge, and sets the VXLAN local tunnel IP address to 10.10.10.1. For more information on how to configure VXLAN interfaces, see {{<link url="VXLAN-Devices" text="VXLAN Devices">}}.
 
    ```
    cumulus@leaf01:~$ net add vxlan vni10 vxlan id 10
@@ -409,9 +409,9 @@ The `advertise-all-vni` option is only needed on leaf switches that are VTEPs. E
 
 {{< /tab >}}
 {{< /tabs >}}
-
+<!-- vale off -->
 ## EVPN and VXLAN Active-active Mode
-
+<!-- vale on -->
 For EVPN in VXLAN active-active mode, both switches in the MLAG pair establish EVPN peering with other EVPN speakers (for example, with spine switches if using hop-by-hop eBGP) and inform about their locally known VNIs and MACs. When MLAG is active, both switches announce this information with the shared anycast IP address.
 
 For active-active configuration, make sure that:
@@ -430,7 +430,7 @@ For information about active-active VTEPs and anycast IP behavior, and for failu
 ## Considerations
 
 - When EVPN is enabled on a VTEP, all locally defined VNIs on that switch and other information (such as MAC addresses) are advertised to EVPN peers. There is no provision to only announce certain VNIs.
-- ND suppression only works with the Spectrum-A1 chip.
+- ND suppression is supported on Spectrum_A1 and above.
 - ARP suppression is enabled by default in Cumulus Linux. However, in a {{<link url="VXLAN-Active-active-Mode" text="VXLAN active-active">}} configuration, ARPs are sometimes *not* suppressed. This is because the neighbor entries are not synchronized between the two switches operating in active-active mode by a control plane. This has no impact on forwarding.
 - You must configure the overlay (tenants) in a specific VRF and separate from the underlay, which resides in the default VRF. Layer 3 VNI mapping for the default VRF is not supported.
 - EVPN is not supported when {{<link title="Redistribute Neighbor" >}} is also configured. Enabling both features simultaneously causes instability in IPv4 and IPv6 neighbor entries.
