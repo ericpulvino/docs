@@ -228,13 +228,13 @@ def build_foss_license_markdown_files(product, version_list):
         # Write out the markdown file.
         write_foss_licenses(version_output, product, version)
 
-def process_foss_tar(version):
+def process_foss_tar(product="netq", version="4.0"):
     '''
     Download the tar file containing the foss licenses.
 
     version - the version to capture foss tar files for
     '''
-    print("Downloading license file for {}".format(version))
+    print("Downloading license file for {} {}".format(product_string(product), version))
     url = "https://d2whzysjlaya8k.cloudfront.net/cl/{}/FOSS-{}.tgz".format(version, version)
 
     response = requests.get(url, stream=True)
@@ -245,8 +245,16 @@ def process_foss_tar(version):
 
     with open("temp.tgz", "wb") as f:
         f.write(response.raw.read())
-    license_dir = "content/cumulus-linux-{}/Whats-New/licenses/".format(version_string(version).replace(".", ""))
-    tar = tarfile.open("temp.tgz")
+
+    if product == "cl":
+        license_dir = "content/cumulus-linux-{}/Whats-New/licenses/".format(version_string(version).replace(".", ""))
+    elif product == "netq":
+        license_dir = "content/cumulus-netq-{}/More-Documents/licenses/".format(version_string(version).replace(".", ""))
+    else:
+        print("Unknown product {}. Exiting".format(product))
+        exit(1)
+
+    tar = tarfile.open("/Users/plumbis/Downloads/NETQ-FOSS-4.1.0-SNAPSHOT.tgz")
     tar.extractall(path=license_dir)
 
     for file in listdir(license_dir):
@@ -307,8 +315,8 @@ def main():
 
     cvs_file_list = []
     for product in products:
-        for value in products[product]:
-            cvs_file_list.append(process_foss_tar(value))
+        for version in products[product]:
+            cvs_file_list.append(process_foss_tar(product, version))
 
         build_foss_license_markdown_files(product, products[product])
 
