@@ -48,6 +48,10 @@ Params:
   # Used for 'Last Modified' and 'Edit this page' links.
   BookRepo: "https://github.com/CumulusNetworks/docs"
 
+  # The URL to reach a raw file
+  # Used by the Air team
+  BookRawFile: "https://raw.githubusercontent.com/CumulusNetworks/docs/master"
+
   # Enable "Edit this page" links for 'doc' page type.
   # Disabled by default. Uncomment to enable. Requires 'BookRepo' param.
   # Path must point to 'content' directory of repo.
