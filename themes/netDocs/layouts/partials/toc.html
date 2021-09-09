@@ -1,6 +1,7 @@
 {{ if not .Site.Params.pdfExport }}
 <aside class="book-toc fixed">
     <div class="toc">
+      {{ if $.File }}<a name="{{ $.Site.Params.BookRawFile }}/content/{{ $.File.Path }}" />{{ end }}
     {{ with .Site.Params.BookEditPath }}
       <button>
       {{ if $.File }}<a href="{{ $.Site.Params.BookRepo }}/{{ . }}/{{ $.File.Path }}" target="_blank" rel="noopener"><img src="{{ "svg/pencil-circle.svg" | relURL }}" alt="Edit" /> Edit this page</a>{{ end }}
