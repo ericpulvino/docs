@@ -48,6 +48,15 @@ cumulus@switch:~$ nv set router policy prefix-list prefixlist1 rule 1 action per
 cumulus@switch:~$ nv config apply
 ```
 
+For IPv6, you need to run an additional command to set the prefix list type to IPv6. For example:
+
+```
+cumulus@switch:~$ nv set router policy prefix-list prefixlistipv6 type ipv6
+cumulus@switch:~$ nv set router policy prefix-list prefixlistipv6 rule 1 match 2001:100::1/64
+cumulus@switch:~$ nv set router policy prefix-list prefixlistipv6 rule 1 action permit 
+cumulus@switch:~$ nv config apply
+```
+
 {{< /tab >}}
 {{< tab "vtysh Commands ">}}
 
@@ -245,7 +254,7 @@ ip protocol bgp route-map routemap1
 {{< /tab >}}
 {{< /tabs >}}
 
-For BGP, you can also apply a route map on route updates from BGP to Zebra. You can match on prefix, next hop, communities, and so on. You can set the metric and next hop only. Route maps do not affect the BGP internal RIB. You can use both IPv4 and IPv6 address families. Route maps work on multi-paths; however, the metric setting is based on the best path only.
+For BGP, you can also apply a route map on route updates from BGP to Zebra. You can match on prefix, next hop, communities, and so on. You can set the metric and next hop only. Route maps do not affect the BGP internal RIB. You can use both IPv4 and IPv6 address families. Route maps work on multi-paths; however, BGP bases the metric setting on the best path only.
 
 To apply a route map to filter route updates from BGP into Zebra, run the following command:
 

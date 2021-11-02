@@ -23,6 +23,7 @@ Displays the reason why an ACL has dropped packets.
 
 Displays the reason why the server buffer has dropped packets.
 
+<!-- vale off -->
 | Reason | Description|
 | --- | --- |
 | Tail drop | Tail drop is enabled, and buffer queue is filled to maximum capacity |
@@ -94,11 +95,13 @@ In addition to the reason, the information provided for these drops includes:
 | Protocol | ID of the communication protocol running on this link |
 | Ingress Port | Port accepting incoming traffic |
 | OPID | Operation identifier; used for internal purposes |
+<!-- vale on -->
 
 ## Router Drops
 
 Displays the reason why the server is unable to route a packet.
 
+<!-- vale off -->
 | Reason | Description|
 | --- | --- |
 | Non-routable packet |  Packet has no route in routing table |
@@ -119,7 +122,7 @@ Displays the reason why the server is unable to route a packet.
 | Source IP equals destination IP | Packet has a source IP address equal to the destination IP address |
 | IPv4 source IP is limited broadcast | Packet has broadcast source IP address |
 | IPv4 destination IP is local network (destination = 0.0.0.0/8) | Packet has IPv4 destination address that is a local network (destination=0.0.0.0/8) |
-| IPv4 destination IP is link-local | Packet has IPv4 destination address that is a local link |
+| IPv4 destination IP is link-local  (destination in 169.254.0.0/16) | Packet has IPv4 destination address that is a local link |
 | Ingress router interface is disabled | Packet destined to a different subnet cannot be routed because ingress router interface is disabled |
 | Egress router interface is disabled | Packet destined to a different subnet cannot be routed because egress router interface is disabled |
 | IPv4 routing table (LPM) unicast miss | No route available in routing table for packet |
@@ -127,6 +130,7 @@ Displays the reason why the server is unable to route a packet.
 | Router interface loopback | Packet has destination IP address that is local. For example, SIP = 1.1.1.1, DIP = 1.1.1.128. |
 | Packet size is larger than MTU | Packet has larger MTU configured than the VLAN |
 | TTL value is too small | Packet has TTL value of 1 |
+<!-- vale on -->
 
 ## Tunnel Drops
 

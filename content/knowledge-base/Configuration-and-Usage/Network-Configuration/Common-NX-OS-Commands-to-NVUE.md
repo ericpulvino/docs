@@ -3,14 +3,14 @@ title: NX-OS to NVUE Common Commands
 weight: 300
 ---
 
-Cumulus Linux version 4.4 introduces a new CLI called {{<kb_link url="cumulus-linux-44/System-Configuration/NVIDIA-User-Experience-NVUE/" text="NVUE">}}. NVUE is a complete object model for Cumulus Linux, which makes translating configurations from one vendor to another much more reliable the first time you use Cumulus Linux and across Cumulus Linux versions.
+Cumulus Linux version 4.4 introduces a new CLI called {{<kb_link latest="cl" url="System-Configuration/NVIDIA-User-Experience-NVUE.md" text="NVUE">}}. NVUE is a complete object model for Cumulus Linux, which makes translating configurations from one vendor to another much more reliable the first time you use Cumulus Linux and across Cumulus Linux versions.
 
 This KB article describes how to translate common NX-OS configurations to NVUE commands.
 
 ## Feature Enablement
 
 {{<notice note >}}
-Unlike NX-OS, Cumulus Linux does not require specific features to be enabled.
+Unlike NX-OS, Cumulus Linux does not require the enabling of specific features.
 {{</notice >}}
 
 ## Hostname and System Commands
@@ -44,7 +44,7 @@ interface e1/1
 | `speed <speed>` | `nv set interface <interface> link speed <speed>` | |
 | `fec <mode>` | `nv set interface link fec <mode>` | |
 | `no shutdown` | `nv set interface <interface> link state up` | The default state for interfaces is `up`. To shut down an interface, use `link state down`. |
-| `interface loopback0` | `nv set interface lo` | The loopback interface on Cumulus Linux is called `lo`. |
+| `interface loopback0` | `nv set interface lo` | `lo` is the name of the loopback interface on Cumulus Linux. |
 <!-- | `description <text>` | `nv set interface <interface> alias <text>` | | -->
 
 ## Layer 2 and VLANs
@@ -65,7 +65,7 @@ cumulus@switch:~$ nv set interface <interface> bridge domain br_default
 | `spanning-tree port type network` | `nv set interface <interface> bridge domain br_default stp network on` | |
 | `spanning-tree bpduguard enable` | `nv set interface <interface> bridge domain br_default stp bpdu-guard on` | |
 | `spanning-tree bpdufilter enable` | `nv set interface <interface> bridge domain br_default stp bpdu-filter on` | |
-| `spanning-tree vlan 1 priority <priority>` | `nv set bridge domain br_default stp priority <priority>` | Cumulus Linux only supports {{<kb_link url="cumulus-linux-44/Layer-2/Spanning-Tree-and-Rapid-Spanning-Tree/#stp-for-a-vlan-aware-bridge" text="RSTP." >}} |
+| `spanning-tree vlan 1 priority <priority>` | `nv set bridge domain br_default stp priority <priority>` | Cumulus Linux only supports {{<kb_link latest="cl" url="Layer-2/Spanning-Tree-and-Rapid-Spanning-Tree.md" text="RSTP." >}} |
 
 ## Bonds and Port Channels
 
@@ -84,18 +84,18 @@ Cumulus Linux uses `MLAG` (Multi-chassis Link Aggregation) to describe the featu
 
 In MLAG configuration, Cumulus Linux also uses the concept of a vPC *peer link*. To keep MLAG pairs in sync when a direct connection fails, Cumulus Linux uses *mlag backup IP* instead of the vPC *peer-keepalive link*.
 
-For more information about MLAG, refer to the {{<kb_link url="cumulus-linux-44/Layer-2/Multi-Chassis-Link-Aggregation-MLAG/" text="Multi-Chassis Link Aggregation - MLAG" >}} section of the Cumulus Linux User Guide.
+For more information about MLAG, refer to the s section of the Cumulus Linux User Guide.
 
 | NX-OS Command | NVUE Command | Comments |
 | -----         | -----        | -----    |
 | `peer-keepalive destination <IP>` | `nv set mlag backup <IP>` | |
 | `system-mac <mac>` | `nv set mlag mac-address <mac>` | NVUE also supports `auto` MAC address generation. |
 | `interface port-channel <number>`<br />&nbsp;&nbsp;&nbsp;`vpc peer-link` | `nv set interface peerlink bond member <interface>`<br />`nv set mlag peer-ip linklocal` | Cumulus Linux requires a unique bond for the peerlink and an associated `peer-ip` definition. |
-| `interface port-channel <number>`<br />&nbsp;&nbsp;&nbsp;`vpc <number>` | `nv set interface <bond-name> bond mlag id auto` | The `mlag id` must match the bond interface on both MLAG peers connected to the same host. Using `auto` determines the ID based on the the MAC address of the end host. |
+| `interface port-channel <number>`<br />&nbsp;&nbsp;&nbsp;`vpc <number>` | `nv set interface <bond-name> bond mlag id auto` | The `mlag id` must match the bond interface on both MLAG peers connected to the same host. Using `auto` determines the ID based on the MAC address of the end host. |
 
 ## Layer 3 Routing Protocols
 
-Most BGP commands require the VRF to be included in the command. This includes the `default` VRF.
+Most BGP commands require the inclusion of the VRF in the command. This includes the `default` VRF.
 
 | NX-OS Command | NVUE Command | Comments |
 | -----         | -----        | -----    |
@@ -112,11 +112,12 @@ Most BGP commands require the VRF to be included in the command. This includes t
 
 ## Access Control Lists (ACLs)
 
-ACLs in Cumulus Linux are based on Linux iptables and behave differently from NX-OS in the following ways:
-- There is no implicit deny. ACLs must end in a `match any` and `action deny` rule to drop all unmatched traffic.
-- There is no support for wildcard masks. You must list subnets individually.
+ACLs in Cumulus Linux derive from Linux `iptables` and behave differently from NX-OS in the following ways:
 
-For more information, refer to the {{<kb_link url="cumulus-linux-44/System-Configuration/Netfilter-ACLs/" text="Netfilter - ACLs" >}} section of the Cumulus Linux User Guide.
+- No implicit deny. ACLs must end in a `match any` and `action deny` rule to drop all unmatched traffic.
+- No support for wildcard masks. You must list subnets individually.
+
+For more information, refer to the {{<kb_link latest="cl" url="System-Configuration/Netfilter-ACLs/_index.md" text="Netfilter - ACLs" >}} section of the Cumulus Linux User Guide.
 
 | NX-OS Command | NVUE Command | Comments |
 | -----         | -----        | -----    |

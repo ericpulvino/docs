@@ -4,7 +4,8 @@ author: NVIDIA
 weight: 812
 toc: 4
 ---
-This reference lists the threshold-based events that NetQ supports for ACL resources, digital optics, forwarding resources, interface errors and statistics, link flaps, resource utilization, sensors, and What Just Happened. These messages can be viewed through third-party notification applications. For details about configuring notifications for these events, refer to {{<link title="Configure Threshold-Based Event Notifications">}}.
+
+This reference lists the threshold-based events that NetQ supports for ACL resources, digital optics, forwarding resources, interface errors and statistics, link flaps, resource utilization, sensors, and What Just Happened. You can view these messages through third-party notification applications. For details about configuring notifications for these events, refer to {{<link title="Configure Threshold-Based Event Notifications">}}.
 
 ## ACL Resources
 
@@ -80,7 +81,7 @@ Some of the event IDs have changed. If you have TCA rules configured for digital
 | Undersize Errors | TCA_HW_IF_UNDERSIZE_ERRORS | Number of times a frame shorter than minimum size (64 Bytes) exceeded user-defined threshold |
 | Alignment Errors | TCA_HW_IF_ALIGNMENT_ERRORS | Number of times a frame with an uneven byte count and a CRC error exceeded user-defined threshold |
 | Jabber Errors | TCA_HW_IF_JABBER_ERRORS | Number of times a frame longer than maximum size (1518 bytes) and with a CRC error exceeded user-defined threshold |
-| Symbol Errors | TCA_HW_IF_SYMBOL_ERRORS | Number of times undefined or invalid symbols have been detected exceeded user-defined threshold |
+| Symbol Errors | TCA_HW_IF_SYMBOL_ERRORS | Number of times that detected undefined or invalid symbols exceeded user-defined threshold |
 
 ## Interface Statistics
 
@@ -173,7 +174,7 @@ Some of the event IDs have changed. If you have TCA rules configured for digital
 | Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | Destination IP is loopback address | Cannot read packet as destination IP address is a loopback address (dip=>127.0.0.0/8) |
 | Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | Egress router interface is disabled | Packet destined to a different subnet cannot be routed because egress router interface is disabled |
 | Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | Ingress router interface is disabled | Packet destined to a different subnet cannot be routed because ingress router interface is disabled |
-| Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | IPv4 destination IP is link local | Packet has IPv4 destination address that is a local link |
+| Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | IPv4 destination IP is link local | Packet has IPv4 destination address that is a local link (destination in 169.254.0.0/16) |
 | Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | IPv4 destination IP is local network (destination=0.0.0.0/8) | Packet has IPv4 destination address that is a local network (destination=0.0.0.0/8) |
 | Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | IPv4 routing table (LPM) unicast miss | No route available in routing table for packet |
 | Drop Aggregate Upper | TCA_WJH_DROP_AGG_UPPER | Router | IPv4 source IP is limited broadcast | Packet has broadcast source IP address |

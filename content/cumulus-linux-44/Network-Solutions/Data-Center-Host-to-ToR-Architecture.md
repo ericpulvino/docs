@@ -87,7 +87,7 @@ iface br-20 inet manual
 <!-- vale off -->
 | Active-Active Mode | Active-Passive Mode | Layer 2 to layer 3 Demarcation| More Information|
 |---------------------|--------------------|---------------------|-----------------|
-| {{<link url="Virtual-Router-Redundancy-VRR-and-VRRP" text="VRR">}}| None | <ul><li>ToR layer (recommended)</li><li>Spine layer</li><li>Core/edge/exit</li><ul>|<ul><li>Can be done with either the {{<link url="Traditional-Bridge-Mode" text="traditional">}} or {{<link url="VLAN-aware-Bridge-Mode" text="VLAN-aware">}} bridge driver depending on overall STP needs.</li><li>There are a few different solutions including Cisco VPC and Arista MLAG, but none of them interoperate and are very vendor specific.</li><li>{{<exlink url=https://resource.nvidia.com/en-us-ethernet-switching/bgp-evpn-for-vxlan-techincal-overview" text="Cumulus Networks Layer 2 HA validated design guide">}}.</li></ul>|
+| {{<link url="Virtual-Router-Redundancy-VRR-and-VRRP" text="VRR">}}| None | <ul><li>ToR layer (recommended)</li><li>Spine layer</li><li>Core/edge/exit</li><ul>|<ul><li>Can be done with either the {{<link url="Traditional-Bridge-Mode" text="traditional">}} or {{<link url="VLAN-aware-Bridge-Mode" text="VLAN-aware">}} bridge driver depending on overall STP needs.</li><li>There are a few different solutions including Cisco VPC and Arista MLAG, but none of them interoperate and are very vendor specific.</li><li>[Cumulus Networks Layer 2 HA validated design guide](https://resource.nvidia.com/en-us-ethernet-switching/bgp-evpn-for-vxlan-techincal-overview).</li></ul>|
 <!-- vale on -->
 **Example Configuration**
 
@@ -237,7 +237,7 @@ iface eth1 inet static
 
 | FHR (First Hop Redundancy) | More Information |
 | ---------------------------|------------------|
-|<ul><li>Equal cost route installed on server, host, or hypervisor to both ToRs to load balance evenly.</li><li>For host, VM, or container mobility, use the same default route on all hosts (such as x.x.x.1) but do not distribute or advertise the .1 on the ToR into the fabric. This allows the VM to use the same gateway no matter to which pair of leafs it is cabled.
+|<ul><li>Equal cost route installed on server, host, or hypervisor to both ToRs to load balance evenly.</li><li>For host, VM, or container mobility, use the same default route on all hosts (such as x.x.x.1) but do not distribute or advertise the .1 on the ToR into the fabric. This allows the VM to use the same gateway no matter to which pair of leafs attach with cables.
 
 ## Layer 3 - Routing on the Host
 
@@ -275,7 +275,7 @@ iface eth1 inet static
 
 | <div style="width:300px">Benefits | Considerations |
 |-----------------------------------| --------|
-|In addition to routing on a host:<ul><li>Multi-tenancy can work, where multiple customers share the same racks</li><li>The base OS does not need to be routing capable</li></ul>|<ul><li>{{<link url="Equal-Cost-Multipath-Load-Sharing-Hardware-ECMP" text="ECMP">}} might not work (load balancing to multiple ToRs); the Linux kernel in older versions is not capable of ECMP per flow (it does it per packet).</li><li>No layer 2 adjacency between servers without VXLAN.</li></ul>|
+|In addition to routing on a host:<ul><li>Multi-tenancy can work, where multiple customers share the same racks</li><li>The base OS does not need to be routing capable</li></ul>|<ul><li>Sometimes, {{<link url="Equal-Cost-Multipath-Load-Sharing-Hardware-ECMP" text="ECMP">}} does not work (load balancing to multiple ToRs); the Linux kernel in older versions is not capable of ECMP per flow (it does it per packet).</li><li>No layer 2 adjacency between servers without VXLAN.</li></ul>|
 
 | <div style="width:300px">FHR (First Hop Redundancy) | More Information |
 | ---------------------------|------------------|

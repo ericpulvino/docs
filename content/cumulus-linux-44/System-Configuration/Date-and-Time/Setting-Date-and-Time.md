@@ -18,7 +18,7 @@ You can use one of two methods to set the time zone on the switch:
 
 <!-- vale off -->
 ### Edit the /etc/timezone File
-<!-- vale on -->
+
 To see the current time zone, list the contents of `/etc/timezone`:
 
 ```
@@ -27,7 +27,7 @@ US/Eastern
 ```
 
 Edit the file to add your desired time zone. You can see a list of valid time zones {{<exlink url="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones" text="here">}}.
-
+<!-- vale on -->
 Use the following command to apply the new time zone:
 
 ```
@@ -54,7 +54,7 @@ For more information, see the Debian {{<exlink url="http://www.debian.org/doc/ma
 
 ## Set the Date and Time
 
-The switch contains a battery backed hardware clock that maintains the time while the switch is powered off and between reboots. When the switch is running, the Cumulus Linux operating system maintains its own software clock.
+The switch contains a battery backed hardware clock that maintains the time while the switch powers off and between reboots. When the switch is running, the Cumulus Linux operating system maintains its own software clock.
 
 During boot up, the switch copies the time from the hardware clock to the operating system software clock. The software clock takes care of all the timekeeping. During system shutdown, the switch copies the software clock back to the battery backed hardware clock.
 

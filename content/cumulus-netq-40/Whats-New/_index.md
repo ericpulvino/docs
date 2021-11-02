@@ -9,6 +9,13 @@ toc: 1
 {{<product>}} {{<version>}} eases your customers deployment and maintenance activities for their data center networks with new configuration, performance, and security features and improvements.
 
 <!-- vale off -->
+## What's New in NetQ 4.0.1
+<!-- vale on -->
+NetQ 4.0.1 is a maintenance release that contains {{<link title="NVIDIA Cumulus NetQ 4.0 Release Notes" text="several bug fixes">}} and one new feature:
+
+- Support for Cumulus Linux 4.4.
+
+<!-- vale off -->
 ## What's New in NetQ 4.0.0
 <!-- vale on -->
 
@@ -19,7 +26,7 @@ NetQ 4.0.0 includes the following new features and improvements:
 - {{<link url="Monitor-the-RoCE-Service" text="RoCE">}} (RDMA over Converged Ethernet) in Cumulus Linux now monitored.
 - Improvements to the {{<link url="Validate-Operations" text="validation flow">}}.
 - General user interface improvements.
-- License checks have been removed from network health and the CLI.
+- License checks <!-- vale off -->have been removed<!-- vale on --> from network health and the CLI.
 - You can {{<link title="Manage the NetQ UI#rename-a-premises" text="rename premises">}}.
 - The {{<link title="Integrate NetQ with Grafana" text="Grafana plugin">}} has new endpoints for:
   - Cloud: *plugin.prod.netq.cumulusnetworks.com*

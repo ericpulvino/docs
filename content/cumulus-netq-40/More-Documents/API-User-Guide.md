@@ -6,7 +6,7 @@ toc: 3
 ---
 The NetQ API provides access to key telemetry and system monitoring data gathered about the performance and operation of your network and devices so that you can view that data in your internal or third-party analytic tools. The API gives you access to the health of individual switches, network protocols and services, trace and validation results, and views of networkwide inventory and events.
 
-This guide provides an overview of the NetQ API framework, the basics of using Swagger UI 2.0 or `bash` plus `curl` to view and test the APIs. Descriptions of each endpoint and model parameter are contained in individual API .JSON files.
+This guide provides an overview of the NetQ API framework, the basics of using Swagger UI 2.0 or `bash` plus `curl` to view and test the APIs. Descriptions of each endpoint and model parameter are in individual API JSON files.
 
 For information regarding new features, improvements, bug fixes, and known issues present in this NetQ release, refer to the {{<link title="NVIDIA Cumulus NetQ 4.0 Release Notes" text="release notes">}}.
 
@@ -38,7 +38,9 @@ You can access the API gateway and execute requests from the Swagger UI or a ter
 
 {{<tab "Swagger UI">}}
 
+<!-- vale off -->
 The API is embedded in the NetQ software, making it easy to access from the Swagger UI application.
+<!-- vale on -->
 
 1. Open an Internet browser window.
 
@@ -148,7 +150,7 @@ You can use either the Swagger UI or a terminal window with `bash` and `curl` co
 
 {{<tab "Swagger UI" >}}
 
-API requests are easy to execute in the Swagger UI. Simply select the endpoint of interest and try it out.
+API requests are easy to execute in the Swagger UI. Just select the endpoint of interest and try it out.
 
 1. Select the endpoint from the definition dropdown at the top right of the application.
 
@@ -196,7 +198,7 @@ The following HTTP status codes might be presented in the API responses:
 | 200 | Success | Request was successfully processed. | Review response. |
 | 400  | Bad Request | Invalid input was detected in request. | Check the syntax of your request and make sure it matches the schema. |
 | 401  | Unauthorized | Authentication has failed or credentials were not provided. | Provide or verify your credentials, or request access from your administrator. |
-| 403  | Forbidden | Request was valid, but user may not have needed permissions. | Verify your credentials or request an account from your administrator. |
+| 403  | Forbidden | Request was valid, but user might not have the needed permissions. | Verify your credentials or request an account from your administrator. |
 | 404  | Not Found | Requested resource could not be found. | Try the request again after a period of time or verify status of resource. |
 | 409  | Conflict | Request cannot be processed due to conflict in current state of the resource. | Verify status of resource and remove conflict. |
 | 500  | Internal Server Error | Unexpected condition has occurred. | Perform general troubleshooting and try the request again. |
@@ -204,7 +206,7 @@ The following HTTP status codes might be presented in the API responses:
 
 ## Example Requests and Responses
 
-Some command requests and their responses are shown here, but feel free to run your own requests. To run a request, you will need your authorization token. When using the `curl` commands, the responses have been piped through a python tool to make them more readable. You may chose to do so as well.
+Some command requests and their responses are shown here, but feel free to run your own requests. To run a request, you will need your authorization token. When using the `curl` commands, the responses have been piped through a python tool to make them more readable. You can choose to do so as well.
 
 ### Validate Networkwide Status of the BGP Service
 
@@ -427,7 +429,9 @@ Make your request to the *interfaces* endpoint to view the status of all interfa
       },
     ...
 
+<!-- vale off -->
 ### Get a List of All Devices Being Monitored
+<!-- vale on -->
 
 Make your request to the *inventory* endpoint to get a listing of all monitored nodes and their configuration information, as follows:
 

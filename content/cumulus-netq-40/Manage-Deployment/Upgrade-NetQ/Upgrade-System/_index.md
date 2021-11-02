@@ -4,11 +4,12 @@ author: NVIDIA
 weight: 410
 toc: 4
 ---
+
 The first step in upgrading your NetQ installation to NetQ {{<version>}} is to upgrade your NetQ appliances or VMs. This topic describes how to upgrade this for both on-premises and remote deployments.
 
 ## Prepare for Upgrade
 
-Three important steps are required to prepare for upgrade of your NetQ Platform:
+You must complete the following three important steps to prepare to upgrade your NetQ Platform:
 
 - Download the necessary software tarballs
 - Update the Debian packages on physical server and VMs
@@ -66,11 +67,13 @@ To complete the preparation:
     Setting up netq-agent (4.0.0-ub18.04u33~1614767175.886b337) ...
     Processing triggers for rsyslog (8.32.0-1ubuntu4) ...
     Processing triggers for man-db (2.8.3-2ubuntu0.1) ...
-    ``````
+    ```
 
-6. If you are upgrading NetQ as a VM in the cloud from version 3.1.0 or earlier, you must increase the root volume disk image size for proper operation of the lifecycle management feature.
+<details>
+<summary> If upgrading from version 3.1.0 or earlier</summary>
+If you are upgrading NetQ as a VM in the cloud from version 3.1.0 or earlier, you must increase the root volume disk image size for proper operation of the lifecycle management feature.
 
-    {{<tabs "TabID89" >}}
+{{<tabs "TabID89" >}}
 
 {{<tab "VMware" >}}
 
@@ -133,7 +136,7 @@ To complete the preparation:
 
 2. Shutdown the VM.
 
-3. Check the size of the existing disk on the server hosting the VM to confirm it is 32 GB. In this example, the size is shown in the **virtual size** field.
+3. Check the size of the existing disk on the server hosting the VM to confirm it is 32 GB. In this example, the size appears in the **virtual size** field.
 
     ```
     root@server:/var/lib/libvirt/images# qemu-img info netq-3.1.0-ubuntu-18.04-tscloud-qemu.qcow2
@@ -200,6 +203,7 @@ Filesystem     1M-blocks  Used Available Use% Mounted on
 {{</tabs>}}
 
 You can now upgrade your appliance using the NetQ Admin UI, in the next section. Alternately, you can upgrade using the CLI here: {{<link title="#Upgrade Your Platform Using the NetQ CLI" text="Upgrade Your Platform Using the NetQ CLI">}}.
+</details>
 
 ## Run the Upgrade
 

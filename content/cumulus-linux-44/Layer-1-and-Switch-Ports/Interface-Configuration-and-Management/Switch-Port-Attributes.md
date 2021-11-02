@@ -118,14 +118,14 @@ iface bridge
 
 For a *bridge* to have an MTU of 9000, set the MTU for each of the member interfaces (bond1 to bond 4, and peer5) to 9000 at minimum.
 
-When configuring MTU for a bond, configure the MTU value directly under the bond interface; the configured value is inherited by member links or slave interfaces. If you need a different MTU on the bond, set it on the bond interface, as this ensures the slave interfaces pick it up. You are not required to specify an MTU on the slave interfaces.
+When configuring MTU for a bond, configure the MTU value directly under the bond interface; the member links or slave interfaces inherit the configured value. If you need a different MTU on the bond, set it on the bond interface, as this ensures the slave interfaces pick it up. You do not have to specify an MTU on the slave interfaces.
 
 VLAN interfaces inherit their MTU settings from their physical devices or their lower interface; for example, swp1.100 inherits its MTU setting from swp1. Therefore, specifying an MTU on swp1 ensures that swp1.100 inherits the MTU setting for swp1.
 
-If you are working with {{<link url="Network-Virtualization" text="VXLANs">}}, the MTU for a virtual network interface (VNI must be 50 bytes smaller than the MTU of the physical interfaces on the switch, as those 50 bytes are required for various headers and other data. Also, consider setting the MTU much higher than 1500.
+If you are working with {{<link url="Network-Virtualization" text="VXLANs">}}, the MTU for a virtual network interface (VNI must be 50 bytes smaller than the MTU of the physical interfaces on the switch, as various headers and other data require those 50 bytes. Also, consider setting the MTU much higher than 1500.
 
 {{%notice note%}}
-The MTU for an SVI interface, such as vlan10, is derived from the bridge. When you use NCLU to change the MTU for an SVI and the MTU setting is higher than it is for the other bridge member interfaces, the MTU for all bridge member interfaces changes to the new setting. If you need to use a mixed MTU configuration for SVIs, (if some SVIs have a higher MTU and some lower), set the MTU for all member interfaces to the maximum value, then set the MTU on the specific SVIs that need to run at a lower MTU.
+The MTU for an SVI interface, such as vlan10, comes from the bridge. When you use NCLU to change the MTU for an SVI and the MTU setting is higher than it is for the other bridge member interfaces, the MTU for all bridge member interfaces changes to the new setting. If you need to use a mixed MTU configuration for SVIs, (if some SVIs have a higher MTU and some lower), set the MTU for all member interfaces to the maximum value, then set the MTU on the specific SVIs that need to run at a lower MTU.
 {{%/notice%}}
 
 To show the MTU setting for an interface:
@@ -159,24 +159,47 @@ cumulus@switch:~$ ip link show dev swp1
 {{< /tab >}}
 {{< /tabs >}}
 
+### Drop Packets that Exceed the Egress Layer 3 MTU
+
+The switch forwards all packets that are within the MTU value set for the egress layer 3 interface. However, when packets are larger in size than the MTU value, the switch fragments the packets that do *not* have the [DF](## "Don’t Fragment") bit set and drops the packets that *do* have the [DF](## "Don’t Fragment") bit set.
+
+In Cumulus Linux 4.4.1 and later, run the following command to drop **all** IP packets that are larger in size than the MTU value for the egress layer 3 interface instead of fragmenting packets:
+
+{{< tabs "TabID166 ">}}
+{{< tab "NCLU Command ">}}
+
+```
+cumulus@switch:~$ net add trap l3-mtu-err action off
+cumulus@switch:~$ net commit
+```
+
+{{< /tab >}}
+{{< tab "Linux Command ">}}
+
+```
+cumulus@switch:~$ echo "0 >" /cumulus/switchd/config/trap/l3-mtu-err/enable
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
 ## FEC
 
-{{<exlink url="https://en.wikipedia.org/wiki/Forward_error_correction" text="Forward Error Correction (FEC)">}} is an encoding and decoding layer that enables the switch to detect and correct bit errors introduced over the cable between two interfaces. The target IEEE bit error rate (BER) on high speed Ethernet links is 10<sup>-12</sup>. Because 25G transmission speeds can introduce a higher than acceptable BER on a link, FEC is often required to correct errors to achieve the target BER at 25G, 4x25G, 100G, and higher link speeds. The type and grade of a cable or module and the medium of transmission determine which FEC setting is needed.
+{{<exlink url="https://en.wikipedia.org/wiki/Forward_error_correction" text="Forward Error Correction (FEC)">}} is an encoding and decoding layer that enables the switch to detect and correct bit errors introduced over the cable between two interfaces. The target IEEE bit error rate (BER) on high speed Ethernet links is 10<sup>-12</sup>. Because 25G transmission speeds can introduce a higher than acceptable BER on a link, FEC is often required to correct errors to achieve the target BER at 25G, 4x25G, 100G, and higher link speeds. The type and grade of a cable or module and the medium of transmission determine which FEC setting is necessary.
 
 For the link to come up, the two interfaces on each end must use the same FEC setting.
 
 {{%notice note%}}
-There is a very small latency overhead required for FEC. For most applications, this small amount of latency is preferable to error packet retransmission latency.
+FEC requires small latency overhead. For most applications, this small amount of latency is preferable to error packet retransmission latency.
 {{%/notice%}}
 
-There are two FEC types:
-
+The two FEC types are:
 - Reed Solomon (**RS**), IEEE 802.3 Clause 108 (CL108) on individual 25G channels and Clause 91 on 100G (4channels). This is the highest FEC algorithm, providing the best bit-error correction.
 - Base-R (**BaseR**), Fire Code (FC), IEEE 802.3 Clause 74 (CL74). Base-R provides less protection from bit errors than RS FEC but adds less latency.
 
 Cumulus Linux includes additional FEC options:
-- *Auto* FEC instructs the hardware to select the best FEC. For copper DAC, FEC can be negotiated with the remote end. However, optical modules do not have auto-negotiation capability; if the device chooses a preferred mode, it might not match the remote end. This is the current default on the NVIDIA Spectrum switch.
-- *No* FEC (no error correction is done).
+- *Auto* FEC instructs the hardware to select the best FEC. For copper DAC, the remote end can negotiate FEC. However, optical modules do not have auto-negotiation capability; if the device chooses a preferred mode, it might not match the remote end. This is the current default on the NVIDIA Spectrum switch.
+- *No* FEC (no error correction).
 
 {{%notice info%}}
 While *Auto* FEC is the default setting on the NVIDIA Spectrum switch, do *not* explicitly configure the `fec auto` option on the switch as this leads to a link flap whenever you run `net commit` or `ifreload -a`.
@@ -188,21 +211,21 @@ For **25G DAC, 4x25G Breakouts DAC and 100G DAC cables**, the IEEE 802.3by speci
 - CA-25G-S (Short cable) - Requires Base-R FEC - Achievable cable length of at least 3m.  dB loss less or equal to 16.48.  Expected BER of 10<sup>-8</sup> or better without Base-R FEC enabled.
 - CA-25G-N (No FEC) - Does not require FEC - Achievable cable length of at least 3m.  dB loss less or equal to 12.98. Expected BER 10<sup>-12</sup> or better with no FEC enabled.
 
-The IEEE classification is based on various dB loss measurements and minimum achievable cable length. You can build longer and shorter cables if they comply to the dB loss and BER requirements.
+The IEEE classification specifies various dB loss measurements and minimum achievable cable length. You can build longer and shorter cables if they comply to the dB loss and BER requirements.
 
-If a cable is manufactured to CA-25G-S classification and FEC is not enabled, the BER might be unacceptable in a production network. It is important to set the FEC according to the cable class (or better) to have acceptable bit error rates. See
+If a cable has a CA-25G-S classification and FEC is not on, the BER might be unacceptable in a production network. It is important to set the FEC according to the cable class (or better) to have acceptable bit error rates. See
 {{<link url="#determine-cable-class-of-100g-and-25g-dacs" text="Determining Cable Class">}} below.
 
-You can check bit errors using `cl-netstat` (`RX_ERR` column) or `ethtool -S` (`HwIfInErrors` counter) after a large amount of traffic has passed through the link. A non-zero value indicates bit errors.
+You can check bit errors using `cl-netstat` (`RX_ERR` column) or `ethtool -S` (`HwIfInErrors` counter) after a large amount of traffic passes through the link. A non-zero value indicates bit errors.
 Expect error packets to be zero or extremely low compared to good packets. If a cable has an unacceptable rate of errors with FEC enabled, replace the cable.
 
-For **25G, 4x25G Breakout, and 100G Fiber modules and AOCs**, there is no classification of 25G cable types for dB loss, BER or length. FEC is recommended but might not be required if the BER is low enough.
+For **25G, 4x25G Breakout, and 100G Fiber modules and AOCs**, there is no classification of 25G cable types for dB loss, BER or length. Use FEC if the BER is low enough.
 
 ### Cable Class of 100G and 25G DACs
 
 You can determine the cable class for 100G and 25G DACs from the Extended Specification Compliance Code field (SFP28: 0Ah, byte 35, QSFP28: Page 0, byte 192) in the cable EEPROM programming.
 
-For 100G DACs, most manufacturers use the 0x0Bh *100GBASE-CR4 or 25GBASE-CR CA-L* value (the 100G DAC specification predates the IEEE 802.3by 25G DAC specification). RS FEC is the expected setting for 100G DAC but might not be required with shorter or better cables.
+For 100G DACs, most manufacturers use the 0x0Bh *100GBASE-CR4 or 25GBASE-CR CA-L* value (the 100G DAC specification predates the IEEE 802.3by 25G DAC specification). Use RS FEC for 100G DAC; shorter or better cables might not need this setting.
 
 {{%notice note%}}
 A manufacturer's EEPROM setting might not match the dB loss on a cable or the actual bit error rates that a particular cable introduces. Use the designation as a guide, but set FEC according to the bit error rate tolerance in the design criteria for the network. For most applications, the highest mutual FEC ability of both end devices is the best choice.
@@ -236,7 +259,7 @@ The values at 0x00c0 are:
 - 0x0c : CA-S (short cable - Base-R or better FEC required)
 - 0x0d : CA-N (no FEC required)
 
-In each example below, the *Compliance* field is derived using the method described above and is not visible in the `ethool -m` output.
+In each example below, the *Compliance* field comes from the method described above; the `ethool -m` output does not show it.
 
 ```
 3meter cable that does not require FEC
@@ -277,7 +300,7 @@ When linking to a non-Spectrum peer, the firmware lets the peer decide. The Spec
 
 | Cable Type | <div style="width:300px">FEC Mode |
 |------------|----------|
-| 25G pptical cables | Let peer decide|
+| 25G optical cables | Let peer decide|
 | 25G 1,2 meters: CA-N, loss <13db | Let peer decide|
 | 25G 2.5,3 meters: CA-S, loss <16db | Let peer decide|
 | 25G 2.5,3,4,5 meters: CA-L, loss > 16db | Let peer decide|
@@ -287,13 +310,13 @@ When linking to a non-Spectrum peer, the firmware lets the peer decide. The Spec
 
 A Spectrum switch enables FEC automatically when it powers up. The port firmware tests and determines the correct FEC mode to bring the link up with the neighbor. It is possible to get a link up to a switch without enabling FEC on the remote device as the switch eventually finds a working combination to the neighbor without FEC.
 
-The following sections describe how to show the current FEC mode, and to enable and disable FEC.
+The following sections describe how to show the current FEC mode, and how to enable and disable FEC.
 
 ### Show the Current FEC Mode
 
-On a Spectrum switch, the `--show-fec` output tells you the current active state of FEC **only if the link is up**; that is, if the FEC modes matches that of the neighbor. If the link is not up, the value displays *None*, which is not valid.
+On a Spectrum switch, the `--show-fec` output shows you the current active state of FEC **only if the link is up**; if the FEC modes matches that of the neighbor. If the link is not up, the value displays *None*, which is not valid.
 
-To show the FEC mode currently enabled on a given switch port, run the `ethtool --show-fec <interface>` command.
+To show the FEC mode on a switch port, run the `ethtool --show-fec <interface>` command.
 
 ```
 cumulus@switch:~$ sudo ethtool --show-fec swp1
@@ -413,7 +436,7 @@ A runtime configuration is non-persistent. The configuration you create does not
 To enable FEC with Auto-negotiation:
 
 {{%notice note%}}
-FEC with auto-negotiation is supported on DACs only.
+You can use FEC with auto-negotiation on DACs only.
 {{%/notice%}}
 
 {{< tabs "TabID423 ">}}
@@ -578,7 +601,7 @@ Cumulus Linux supports the following ports breakout options:
 {{< tabs "Platforms ">}}
 {{< tab "SN2010">}}
 
-18x SFP+ 25G and 4x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+18x SFP+ 25G and 4x QSFP28 100G interfaces only support NRZ encoding. You can set all speeds down to 1G.
 
 All 4x QSFP28 ports can break out into 4x SFP28 or 2x QSFP28.
 
@@ -625,7 +648,7 @@ Maximum 100G ports: 4
 {{< /tabs >}}
 {{< tab "SN2100">}}
 
-16x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+16x QSFP28 100G interfaces only support NRZ encoding. You can set all speeds down to 1G.
 
 All QSFP28 ports can break out into 4x SFP28 or 2x QSFP28.
 
@@ -670,9 +693,9 @@ Maximum 100G ports: 16
 {{< /tabs >}}
 {{< tab "SN2410">}}
 
-48x SFP28 25G and 8x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+48x SFP28 25G and 8x QSFP28 100G interfaces only support NRZ encoding. You can set all speeds down to 1G.
 
-The top 4x QSFP28 ports can break out into 4x SFP28. The lower 4x QSFP28 ports are disabled and can not be used.
+The top 4x QSFP28 ports can break out into 4x SFP28. You cannot use the lower 4x QSFP28 disabled ports.
 
 All 8x QSFP28 ports can break out into 2x QSFP28 without disabling ports.
 
@@ -719,9 +742,9 @@ Maximum 100G ports: 8
 {{< /tabs >}}
 {{< tab "SN2700">}}
 
-32x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+32x QSFP28 100G interfaces only support NRZ encoding. You can set all speeds down to 1G.
 
-The top 16x QSFP28 ports can break out into 4x SFP28. The lower 4x QSFP28 ports are disabled and can not be used.
+The top 16x QSFP28 ports can break out into 4x SFP28. You cannot use the lower 4x QSFP28 disabled ports.
 
 All 32x QSFP28 ports can break out into 2x QSFP28 without disabling ports.
 
@@ -766,7 +789,7 @@ Maximum 100G ports: 32
 {{< /tabs >}}
 {{< tab "SN3420">}}
 
-48x SFP28 25G and 12x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+48x SFP28 25G and 12x QSFP28 100G interfaces only support NRZ encoding.
 
 All 12x QSFP28 ports can break out into 4x SFP28 or 2x QSFP28.
 
@@ -882,7 +905,7 @@ Maximum 400G ports: 6
 
 {{< tab "SN3700C">}}
 
-32x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+32x QSFP28 100G interfaces only support NRZ encoding.
 
 All 32x QSFP28 ports can break out into 4x SFP28 or 2x QSFP28.
 
@@ -927,7 +950,7 @@ Maximum 100G ports: 32
 {{< /tabs >}}
 {{< tab "SN3700">}}
 
-32x QSFP56 200G interfaces support both PAM4 and NRZ encodings. All speeds down to 1G are supported.
+32x QSFP56 200G interfaces support both PAM4 and NRZ encodings.
 
 For lower speed interface configurations, PAM4 is automatically converted to NRZ encoding.
 
@@ -1060,9 +1083,9 @@ Maximum 400G ports: 8
 -->
 {{< tab "SN4600C">}}
 
-64x QSFP28 100G interfaces only support NRZ encoding. All speeds down to 1G are supported.
+64x QSFP28 100G interfaces only support NRZ encoding.
 
-Only 32x QSFP28 ports can break out into 4x SFP28. The adjacent QSFP28 port is disabled. Only the first and third or second and forth rows can break out into 4xSFP28.
+Only 32x QSFP28 ports can break out into 4x SFP28. You must disable the adjacent QSFP28 port. Only the first and third or second and forth rows can break out into 4xSFP28.
 
 All 64x QSFP28 ports can break out into 2x QSFP28 without disabling ports.
 
@@ -1099,7 +1122,7 @@ Maximum 50G ports: 128
 
 64x 100G - 64x QSFP28 (native speed)
 
-Maximum 100G ports: 80
+Maximum 100G ports: 64
 
 {{< /tab >}}
 {{< /tab >}}
@@ -1166,11 +1189,11 @@ Maximum 200G ports: 64
 -->
 {{< tab "SN4700">}}
 
-SN4700 32x QSFP-DD 400GbE interfaces support both PAM4 and NRZ encodings. All speeds down to 1G are supported.
+SN4700 32x QSFP-DD 400GbE interfaces support both PAM4 and NRZ encodings.
 
 For lower speed interface configurations, PAM4 is automatically converted to NRZ encoding.
 
-Only the top or the bottom 16x QSFP-DD ports can break out into 8x SFP56. The adjacent QSFP-DD port are disabled.
+Only the top or the bottom 16x QSFP-DD ports can break out into 8x SFP56. You must disable the adjacent QSFP-DD port.
 
 All 32x QSFP-DD ports can break out into 2x QSFP56 at 2x200G or 4x QSFP56 at 4x 100G without disabling ports.
 
@@ -1181,7 +1204,7 @@ All 32x QSFP-DD ports can break out into 2x QSFP56 at 2x200G or 4x QSFP56 at 4x 
 
 Maximum 10G ports: 128
 
-*Other QSFP-DD breakout combinations are supported up to maximum of 128x 10G ports.
+*Cumulus Linux supports other QSFP-DD breakout combinations up to maximum of 128x 10G ports.
 
 {{< /tab >}}
 {{< tab "25G ">}}
@@ -1190,7 +1213,7 @@ Maximum 10G ports: 128
 
 Maximum 25G ports: 128
 
-*Other QSFP-DD breakout combinations are supported up to maximum of 128x 25G ports.
+*Cumulus Linux supports other QSFP-DD breakout combinations up to maximum of 128x 25G ports.
 
 {{< /tab >}}
 {{< tab "40G ">}}
@@ -1206,7 +1229,7 @@ Maximum 40G ports: 32
 
 Maximum 50G ports: 128
 
-*Other QSFP-DD breakout combinations are supported up to maximum of 128x 50G ports.
+*Cumulus Linux supports other QSFP-DD breakout combinations up to maximum of 128x 50G ports.
 
 {{< /tab >}}
 {{< tab "100G ">}}
@@ -1307,8 +1330,9 @@ Maximum 400G ports: 32
 {{< /tabs >}}
 
 {{%notice note%}}
-- If you break out a port, then reload the `switchd` service on a switch running in *nonatomic* ACL mode, temporary disruption to traffic occurs while the ACLs are reinstalled.
-- Port ganging is not supported.
+- You can use a single SFP (10/25/50G) transceiver in a QSFP (100/200/400G) port with *QSFP-to-SFP Adapter* (QSA). Set the port speed to the SFP speed with the `nv set interface <interface> link speed <speed>` command. Do not configure this port as a breakout port.
+- If you break out a port, then reload the `switchd` service on a switch running in *nonatomic* ACL mode, temporary disruption to traffic occurs while the ACLs reinstall.
+- Cumulus Linux does not support port ganging.
 - Switches with the Spectrum 1 ASIC have a limit of 64 logical ports. If you want to break ports out to 4x25G or 4x10G:
   - You can only break out odd-numbered ports into four logical ports.
   - You must disable the next even numbered port. For example, if you break out port 11 into four logical ports, you must disable port 12.
@@ -1322,7 +1346,7 @@ Maximum 400G ports: 32
 
    When you split a port into two interfaces, such as 2x50G, you do **not** have to disable the adjacent port.
 
-Valid port configuration and breakout guidance is provided in the `/etc/cumulus/ports.conf` file.
+For valid port configuration and breakout guidance, see the `/etc/cumulus/ports.conf` file.
 {{%/notice%}}
 
 ### Configure a Breakout Port
@@ -1381,7 +1405,7 @@ To break out a port into four 10G ports, you must **also** disable the next port
 
 ```
 cumulus@switch:~$ nv set interface swp1 link breakout 4x10G
-cumulus@switch:~$ nv set interface swp2 breakout disabled
+cumulus@switch:~$ nv set interface swp2 link breakout disabled
 cumulus@switch:~$ nv config apply
 ```
 
@@ -1597,7 +1621,7 @@ cumulus@switch:~$ sudo ethtool -m swp1 | egrep 'Vendor|type|power\s+:'
 <!-- Vale issue #253 -->
 ### Auto-negotiation and FEC
 <!-- vale on -->
-If auto-negotiation is disabled on 100G and 25G interfaces, you must set FEC to *OFF*, RS, or BaseR to match the neighbor. The FEC default setting of *auto* does not link up when auto-negotiation is disabled.
+If auto-negotiation is off on 100G and 25G interfaces, you must set FEC to *OFF*, RS, or BaseR to match the neighbor. The FEC default setting of *auto* does not link up when auto-negotiation is off.
 
 ### Port Speed and the ifreload -a Command
 
@@ -1607,27 +1631,27 @@ When configuring port speed or break outs in the `/etc/cumulus/ports.conf` file,
 <!-- acceptable use of "since" -->
 - If you configure, or configure then remove the port speed in the `/etc/cumulus/ports.conf` file and you also set or remove the speed on the same physical port or breakouts of that port in the `/etc/network/interfaces` file since the last time you restarted `switchd`.
 <!-- vale on -->
-- If you break out a switch port or remove a break out port and the port speed is set in both the `/etc/cumulus/ports.conf` file and the `/etc/network/interfaces` file.
+- If you break out a switch port or remove a break out port and you set the port speed in both the `/etc/cumulus/ports.conf` file and the `/etc/network/interfaces` file.
 
 ### Port Speed Configuration
 
-If you change the port speed in the `/etc/cumulus/ports.conf` file but the speed is also configured for that port in the `/etc/network/interfaces` file, after you edit the `/etc/cumulus/ports.conf` file and restart `switchd`, you must also run the `ifreload -a` command so that the `/etc/network/interfaces` file is also updated with your change.
+If you change the port speed in the `/etc/cumulus/ports.conf` file but the speed for that port is also in the `/etc/network/interfaces` file, after you edit the `/etc/cumulus/ports.conf` file and restart `switchd`, you must also run the `ifreload -a` command.
 
 <!-- vale off -->
 <!-- Vale issue #253 -->
 ### 1000BASE-T SFP Modules Supported Only on Certain 25G Platforms
 <!-- vale on -->
-1000BASE-T SFP modules are supported on the following 25G platforms:
+The following  25G switches support 1000BASE-T SFP modules:
 
 - NVIDIA SN2410
 - NVIDIA SN2010
 - NVIDIA SN3420
 
-1000BASE-T SFP modules are not supported on any 100G or faster platforms.
+100G or faster switches do not support 1000BASE-T SFP modules.
 
 ### NVIDIA SN2100 Switch and eth0 Link Speed
 
-After rebooting the Melllanox SN2100 switch, eth0 always has a speed of 100Mb/s. If you bring the interface down and then back up again, the interface negotiates 1000Mb. This only occurs the first time the interface comes up.
+After rebooting the NVIDIA SN2100 switch, eth0 always has a speed of 100Mb/s. If you bring the interface down and then back up again, the interface negotiates 1000Mb. This only occurs the first time the interface comes up.
 
 To work around this issue, add the following commands to the `/etc/rc.local` file to flap the interface automatically when the switch boots:
 

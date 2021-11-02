@@ -10,13 +10,15 @@ This topic describes how to configure DHCP relays for IPv4 and IPv6 using the fo
 
 {{< img src = "/images/cumulus-linux/dhcp-relay-topology-basic.png" >}}
 
-{{%notice note%}}
-If you intend to run the `dhcrelay` service within a {{<link url="Virtual-Routing-and-Forwarding-VRF" text="VRF">}}, including the {{<link url="Management-VRF" text="management VRF">}}, follow {{<link url="Management-VRF/#run-services-within-the-management-vrf" text="these steps">}}.
-{{%/notice%}}
-
 ## Basic Configuration
 
-To set up DHCP relay, you need to provide the IP address of the DHCP server and the interfaces participating in DHCP relay (facing the server and facing the client). You can specify as many server IP addresses that can fit in 255 octets.
+To set up DHCP relay, you need to provide the IP address of the DHCP server and the interfaces participating in DHCP relay (facing the server and facing the client). In an MLAG configuration, you must also specify the peerlink interface in case the local uplink interfaces fail.
+
+In the example commands below:
+- The DHCP server IPv4 address is 172.16.1.102
+- The DHCP server IPv6 address is 2001:db8:100::2
+- vlan10 is the SVI for VLAN 10 and the uplinks are swp51 and swp52
+- `peerlink.4094` is the MLAG interface
 
 {{< tabs "TabID21 ">}}
 {{< tab "NCLU Commands ">}}
@@ -24,12 +26,11 @@ To set up DHCP relay, you need to provide the IP address of the DHCP server and 
 {{< tabs "TabID24 ">}}
 {{< tab "IPv4 ">}}
 
-In the example commands below, the DHCP server IP address is 172.16.1.102, vlan10 is the SVI for VLAN 10 and the uplinks are swp51 and swp52.
-
 ```
 cumulus@leaf01:~$ net add dhcp relay interface swp51
 cumulus@leaf01:~$ net add dhcp relay interface swp52
 cumulus@leaf01:~$ net add dhcp relay interface vlan10
+cumulus@leaf01:~$ net add dhcp relay interface peerlink.4094
 cumulus@leaf01:~$ net add dhcp relay server 172.16.1.102
 cumulus@leaf01:~$ net pending
 cumulus@leaf01:~$ net commit
@@ -38,7 +39,7 @@ cumulus@leaf01:~$ net commit
 {{< /tab >}}
 {{< tab "IPv6 ">}}
 
-NCLU commands are not currently available to configure IPv6 relays. Use the Linux Commands.
+You cannot configure IPv6 relays with NCLU commands. Use the Linux Commands.
 
 {{< /tab >}}
 {{< /tabs >}}
@@ -49,16 +50,11 @@ NCLU commands are not currently available to configure IPv6 relays. Use the Linu
 {{< tabs "TabID49 ">}}
 {{< tab "IPv4 ">}}
 
-Specify the IP address of each DHCP server and both interfaces participating in DHCP relay (facing the server and facing the client).
-<!-- vale off -->
-<!-- acceptable use of once -->
-In the example commands below, the DHCP server IP address is 172.16.1.102, vlan10 is the SVI for VLAN 10, and the uplinks are swp51 and swp52. As per {{<exlink url="https://tools.ietf.org/html/rfc3046" text="RFC 3046">}}, you can specify as many server IP addresses that can fit in 255 octets. You can specify each address only once.
-<!-- vale on -->
-
 ```
 cumulus@leaf01:~$ nv set service dhcp-relay default interface swp51
 cumulus@leaf01:~$ nv set service dhcp-relay default interface swp52
 cumulus@leaf01:~$ nv set service dhcp-relay default interface vlan10
+cumulus@leaf01:~$ nv set service dhcp-relay default interface peerlink.4094
 cumulus@leaf01:~$ nv set service dhcp-relay default server 172.16.1.102
 cumulus@leaf01:~$ nv config apply
 ```
@@ -66,17 +62,11 @@ cumulus@leaf01:~$ nv config apply
 {{< /tab >}}
 {{< tab "IPv6 ">}}
 
-Specify the IP address of each DHCP server and both interfaces participating in DHCP relay (facing the server and facing the client).
-<!-- vale off -->
-<!-- acceptable use of once -->
-In the example commands below, the DHCP server IP address is 2001:db8:100::2, vlan10 is the SVI for VLAN 10, and the uplinks are swp51 and swp52. As per {{<exlink url="https://tools.ietf.org/html/rfc3046" text="RFC 3046">}}, you can specify as many server IP addresses that can fit in 255 octets. You can specify each address only once.
-<!-- vale on -->
-
 ```
-cumulus@leaf01:~$ nv set service dhcp-relay6 default interface swp51
-cumulus@leaf01:~$ nv set service dhcp-relay6 default interface swp52
-cumulus@leaf01:~$ nv set service dhcp-relay6 default interface vlan10
-cumulus@leaf01:~$ nv set service dhcp-relay6 default server 2001:db8:100::2
+cumulus@leaf01:~$ nv set service dhcp-relay6 default interface upstream swp51 address 2001:db8:100::2
+cumulus@leaf01:~$ nv set service dhcp-relay6 default interface upstream swp52 address 2001:db8:100::2
+cumulus@leaf01:~$ nv set service dhcp-relay6 default interface downstream vlan10
+cumulus@leaf01:~$ nv set service dhcp-relay6 default interface downstream peerlink.4094
 cumulus@leaf01:~$ nv config apply
 ```
 
@@ -89,12 +79,12 @@ cumulus@leaf01:~$ nv config apply
 {{< tabs "TabID89 ">}}
 {{< tab "IPv4 ">}}
 
-1. Edit the `/etc/default/isc-dhcp-relay` file to add the IP address of the DHCP server and the interfaces participating in DHCP relay. In the example below, the DHCP server IP address is 172.16.1.102, vlan10 is the SVI for VLAN 10, and the uplinks are swp51 and swp52.
+1. Edit the `/etc/default/isc-dhcp-relay` file to add the IP address of the DHCP server and the interfaces participating in DHCP relay.
 
    ```
    cumulus@leaf01:~$ sudo nano /etc/default/isc-dhcp-relay
    SERVERS="172.16.1.102"
-   INTF_CMD="-i vlan10 -i swp51 -i swp52"
+   INTF_CMD="-i vlan10 -i swp51 -i swp52 -i peerlink.4094"
    OPTIONS=""
    ```
 
@@ -108,12 +98,12 @@ cumulus@leaf01:~$ nv config apply
 {{< /tab >}}
 {{< tab "IPv6 ">}}
 
-1. Edit the `/etc/default/isc-dhcp-relay6` file to add the IP address of the DHCP server and the interfaces participating in DHCP relay. In the example below, the DHCP server IP address is 2001:db8:100::2, vlan10 is the SVI for VLAN 10, and the uplinks are swp51 and swp52.
+1. Edit the `/etc/default/isc-dhcp-relay6` file to add the IP address of the DHCP server and the interfaces participating in DHCP relay.
 
    ```
    cumulus@leaf01:$ sudo nano /etc/default/isc-dhcp-relay6
    SERVERS=" -u 2001:db8:100::2%swp51 -u 2001:db8:100::2%swp52"
-   INTF_CMD="-l vlan10"
+   INTF_CMD="-l vlan10 -l peerlink.4094"
    ```
 
 2. Enable, then restart the `dhcrelay6` service so that the configuration persists between reboots:
@@ -132,6 +122,8 @@ cumulus@leaf01:~$ nv config apply
 {{%notice note%}}
 - You configure a DHCP relay on a per-VLAN basis, specifying the SVI, not the parent bridge. In the example above, you specify *vlan10* as the SVI for VLAN 10 but you do not specify the bridge named *bridge*.
 - When you configure DHCP relay with VRR, the DHCP relay client must run on the SVI; not on the -v0 interface.
+- If you intend to run the `dhcrelay` service within a {{<link url="Virtual-Routing-and-Forwarding-VRF" text="VRF">}}, including the {{<link url="Management-VRF" text="management VRF">}}, follow {{<link url="Management-VRF/#run-services-within-the-management-vrf" text="these steps">}}.
+- For every instance of a DHCP relay in a non-default VRF, you need to create a separate default file in the `/etc/default` directory. See {{<link url="Virtual-Routing-and-Forwarding-VRF/#dhcp-with-vrf" text="DHCP with VRF">}}.
 {{%/notice%}}
 
 ## Optional Configuration
@@ -140,16 +132,16 @@ This section describes optional DHCP relay configuration. The steps provided in 
 
 ### DHCP Agent Information Option (Option 82)
 
-Cumulus Linux supports DHCP Agent Information Option 82, which allows a DHCP relay to insert circuit or relay specific information into a request that is being forwarded to a DHCP server. The following options are provided:
+Cumulus Linux supports DHCP Agent Information Option 82, which allows a DHCP relay to insert circuit or relay specific information into a request that the switch forwards to a DHCP server. You can use the following options:
 
-- *Circuit ID* includes information about the circuit on which the request comes in, such as the SVI or physical port. By default, this is the printable name of the interface on which the client request is received.
+- *Circuit ID* includes information about the circuit on which the request comes in, such as the SVI or physical port. By default, this is the printable name of the interface that receives the client request.
 - *Remote ID* includes information that identifies the relay agent, such as the MAC address. By default, this is the system MAC address of the device on which DHCP relay is running.
 
 To configure DHCP Agent Information Option 82:
 
 1. Edit the `/etc/default/isc-dhcp-relay` file and add one of the following options:
 
-   To inject the ingress *SVI interface* against which the relayed DHCP discover packet is processed, add `-a` to the `OPTIONS` line:
+   To inject the ingress *SVI interface* against which DHCP processes the relayed DHCP discover packet, add `-a` to the `OPTIONS` line:
 
    ```
    cumulus@leaf01:~$ sudo nano /etc/default/isc-dhcp-relay
@@ -184,14 +176,14 @@ To configure DHCP Agent Information Option 82:
 
 ### Control the Gateway IP Address with RFC 3527
 
-When DHCP relay is required in an environment that relies on an anycast gateway (such as EVPN), a unique IP address is necessary on each device for return traffic. By default, in a BGP unnumbered environment with DHCP relay, the source IP address is set to the loopback IP address and the gateway IP address (giaddr) is set to the SVI IP address. However with anycast traffic, the SVI IP address is not unique to each rack; it is typically shared between racks. Most EVPN ToR deployments only use a single unique IP address, which is the loopback IP address.
+When you need DHCP relay in an environment that relies on an anycast gateway (such as EVPN), a unique IP address is necessary on each device for return traffic. By default, in a BGP unnumbered environment with DHCP relay, the source IP address is the loopback IP address and the gateway IP address (giaddr) is the SVI IP address. However with anycast traffic, the SVI IP address is not unique to each rack; it is typically shared between racks. Most EVPN ToR deployments only use a single unique IP address, which is the loopback IP address.
 
-{{<exlink url="https://tools.ietf.org/html/rfc3527" text="RFC 3527">}} enables the DHCP server to react to these environments by introducing a new parameter to the DHCP header called the link selection sub-option, which is built by the DHCP relay agent. The link selection sub-option takes on the normal role of the giaddr in relaying to the DHCP server which subnet is correlated to the DHCP request. When using this sub-option, the giaddr continues to be present but only relays the return IP address that is to be used by the DHCP server; the giaddr becomes the unique loopback IP address.
+{{<exlink url="https://tools.ietf.org/html/rfc3527" text="RFC 3527">}} enables the DHCP server to react to these environments by introducing a new parameter to the DHCP header called the link selection sub-option, which the DHCP relay agent builds. The link selection sub-option takes on the normal role of the giaddr in relaying to the DHCP server which subnet correlates to the DHCP request. When using this sub-option, the giaddr continues to be present but only relays the return IP address that the DHCP server uses; the giaddr becomes the unique loopback IP address.
 
-When enabling RFC 3527 support, you can specify an interface, such as the loopback interface or a switch port interface to be used as the giaddr. The relay picks the first IP address on that interface. If the interface has multiple IP addresses, you can specify a specific IP address for the interface.
+When enabling RFC 3527 support, you can specify an interface, such as the loopback interface or a switch port interface to use as the giaddr. The relay picks the first IP address on that interface. If the interface has multiple IP addresses, you can specify a specific IP address for the interface.
 
 {{%notice note%}}
-RFC 3527 is supported for IPv4 DHCP relays only.
+RFC 3527 supports IPv4 DHCP relays only.
 {{%/notice%}}
 
 <!--The following illustration demonstrates how you can control the giaddr with RFC 3527.
@@ -336,7 +328,7 @@ cumulus@leaf01:~$ nv config apply
 {{< /tab >}}
 {{< tab "Linux Commands ">}}
 
-1. Edit the `/etc/default/isc-dhcp-relay` file to add `--giaddr-src` to the `OPTIONS` line. An example is shown below.
+1. Edit the `/etc/default/isc-dhcp-relay` file to add `--giaddr-src` to the `OPTIONS` line.
 
    ```
    cumulus@leaf01:~$ sudo nano /etc/default/isc-dhcp-relay
@@ -360,7 +352,7 @@ Cumulus Linux supports multiple DHCP relay daemons on a switch to enable relayin
 
 To configure multiple DHCP relay daemons on a switch:
 
-1. In the `/etc/default` directory, create a configuration file for each DHCP relay daemon. Use the naming scheme `isc-dhcp-relay-<dhcp-name>` for IPv4 or `isc-dhcp-relay6-<dhcp-name>` for IPv6. An example configuration file for IPv4 is shown below:
+1. In the `/etc/default` directory, create a configuration file for each DHCP relay daemon. Use the naming scheme `isc-dhcp-relay-<dhcp-name>` for IPv4 or `isc-dhcp-relay6-<dhcp-name>` for IPv6. This is an example configuration file for IPv4:
 
    ```
    # Defaults for isc-dhcp-relay initscript
@@ -475,9 +467,9 @@ Dec 05 21:08:55 leaf01 dhcrelay[6152]: sending upstream swp51
 
 ### Configuration Errors
 
-If you configure DHCP relays by editing the `/etc/default/isc-dhcp-relay` file manually, you might introduce configuration errors that can cause the switch to crash.
+If you configure DHCP relays by editing the `/etc/default/isc-dhcp-relay` file manually, you can introduce configuration errors that cause the switch to crash.
 
-For example, if you see an error similar to the following, there might be a space between the DHCP server address and the interface used as the uplink.
+For example, if you see an error similar to the following, check that there is no space between the DHCP server address and the interface you use as the uplink.
 
 ```
 Core was generated by /usr/sbin/dhcrelay --nl -d -i vx-40 -i vlan10 10.0.0.4 -U 10.0.1.2  %vlan20.

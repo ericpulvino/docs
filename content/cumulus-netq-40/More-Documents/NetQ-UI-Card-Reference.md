@@ -4,18 +4,21 @@ author: NVIDIA
 weight: 1120
 toc: 3
 ---
-This reference describes the cards available with the NetQ {{<version>}} graphical user interface (NetQ UI). Each item and field on the four sizes of cards is shown. You can open cards using one of two methods:
+
+This reference describes the cards available with the NetQ {{<version>}} graphical user interface (NetQ UI), including each item and field on the four sizes of cards. You can open cards using one of two methods:
 
 - Search for the card by name in the Global Search field in the application header
 - Click {{<img src="https://icons.cumulusnetworks.com/44-Entertainment-Events-Hobbies/02-Card-Games/card-game-diamond.svg" height="18" width="18">}}. Select a card category or scroll down. Click the desired card. Click **Open Cards**.
 
 Cards opened on the default NetQ Workbench are not saved. Create a new workbench and open cards there to save and view the cards at a later time.
 
+<!-- vale off -->
 Cards are listed in alphabetical order by name.
+<!-- vale on -->
 
 ## Event Cards
 
-The event cards are located on the default NetQ Workbench. They can also be added to user-created workbenches.
+The event cards appear on the default NetQ Workbench. You can also add them to user-created workbenches.
 
 ### Events|Alarms Card
 
@@ -47,7 +50,7 @@ The small Alarms card displays:
 <ul>
 <li><strong>Pointing upward and <strong>bright pink</strong></strong>: alarm count is higher than the last two time periods, an increasing trend</li>
 <li><strong>Pointing downward and <strong>green</strong></strong>: alarm count is lower than the last two time periods, a decreasing trend</li>
-<li><strong>No arrow</strong>: alarm count is unchanged over the last two time periods, trend is steady</li>
+<li><strong>No arrow</strong>: alarm count did not change over the last two time periods, trend is steady</li>
 </ul></td>
 </tr>
 <tr class="odd">
@@ -89,7 +92,9 @@ The medium Alarms card displays:
 <tbody>
 <tr class="odd">
 <td>Time period</td>
+<!-- vale off -->
 <td>Range of time in which the displayed data was collected; applies to all card sizes.</td>
+<!-- vale on -->
 </tr>
 <tr class="even">
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/20-Alert/alarm-bell.svg", height="18", width="18"/></td>
@@ -130,7 +135,9 @@ The *Alarm Summary* tab displays:
 <tbody>
 <tr class="odd">
 <td>Time period</td>
+<!-- vale off -->
 <td>Range of time in which the displayed data was collected; applies to all card sizes.</td>
+<!-- vale on -->
 </tr>
 <tr class="even">
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/20-Alert/alarm-clock.svg", height="18", width="18"/></td>
@@ -140,15 +147,15 @@ The *Alarm Summary* tab displays:
 <td>Alarm Distribution</td>
 <td><p><strong>Chart</strong>: Distribution of all alarms received from each category during the designated time period:
 <ul><li>NetQ Agent</li><li>BTRFS Information</li><li>CL Support</li><li>Config Diff</li><li>Installed Packages</li><li>Link</li><li>LLDP</li><li>MTU</li><li>Node</li><li>Port</li><li>Resource</li><li>Running Config Diff</li><li>Sensor</li><li>Services</li><li>SSD Utilization</li><li>TCA Interface Stats</li><li>TCA Resource Utilization</li><li>TCA Sensors</li></ul>  
-The categories are displayed in descending order based on total count of alarms, with the largest number of alarms is shown at the top, followed by the next most, down to the chart with the fewest alarms.</p>
+The categories sort in descending order based on total count of alarms, with the largest number of alarms appearing at the top, followed by the next most, down to the chart with the fewest alarms.</p>
 <p><strong>Count</strong>: Total number of alarms received from each category during the designated time period.</p></td>
 </tr>
 <tr class="even">
 <td>Table</td>
 <td>Listing of items that match the filter selection for the selected alarm categories:
 <ul>
-<li><strong>Events by Most Recent</strong>: Most recent event are listed at the top</li>
-<li><strong>Devices by Event Count</strong>: Devices with the most events are listed at the top</li>
+<li><strong>Events by Most Recent</strong>: Most recent event appear at the top</li>
+<li><strong>Devices by Event Count</strong>: Devices with the most events appear at the top</li>
 </ul></td>
 </tr>
 <tr class="odd">
@@ -184,7 +191,9 @@ The full screen Alarms card provides tabs for all events.
 </tr>
 <tr class="odd">
 <td>Default Time</td>
+<!-- vale off -->
 <td>Range of time in which the displayed data was collected.</td>
+<!-- vale on -->
 </tr>
 <tr class="odd">
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/42-Multimedia-Controls/button-pause.svg" height="18" width="18"/></td>
@@ -196,7 +205,7 @@ The full screen Alarms card provides tabs for all events.
 </tr>
 <tr class="odd">
 <td>All Alarms</td>
-<td>Displays all alarms received in the time period. By default, the requests list is sorted by the date and time that the event occurred (<strong>Time</strong>). This tab provides the following additional data about each request:
+<td>Displays all alarms received in the time period. By default, the requests list sorts by the date and time that the event occurred (<strong>Time</strong>). This tab provides the following additional data about each request:
 <ul>
 <li><strong>Source</strong>: Hostname of the given event</li>
 <li><strong>Message</strong>: Text describing the alarm or info event that occurred</li>
@@ -376,7 +385,7 @@ The full screen Info card provides tabs for all events.
 </tr>
 <tr class="odd">
 <td>Default Time</td>
-<td>Range of time in which the displayed data was collected.</td>
+<td><!-- vale off -->Range of time in which the displayed data was collected.<!-- vale on --></td>
 </tr>
 <tr class="odd">
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/42-Multimedia-Controls/button-pause.svg" height="18" width="18"/></td>
@@ -1137,7 +1146,7 @@ The full screen Network Health card displays all events in the network.
 </tr>
 <tr class="odd">
 <td>Default Time</td>
-<td>Range of time in which the displayed data was collected.</td>
+<td><!-- vale off -->Range of time in which the displayed data was collected.<!-- vale on --></td>
 </tr>
 <tr class="odd">
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/42-Multimedia-Controls/button-pause.svg" height="18" width="18"/></td>
@@ -1280,17 +1289,17 @@ The medium BGP Service card displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the BGP service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running BGP last week or last month might be more or less than the number of nodes running BGP currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running BGP last week or last month might be more or less than the number of nodes running BGP currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Open Alarms chart</td>
 <td><p>Distribution of BGP-related alarms received during the designated time period, and the total number of current BGP-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="even">
 <td>Total Nodes Not Est. chart</td>
 <td><p>Distribution of switches and hosts with unestablished BGP sessions during the designated time period, and the total number of unestablished sessions in the network currently.</p>
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1336,12 +1345,12 @@ The *Sessions Summary* tab displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the BGP service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running BGP last week or last month might be more or less than the number of nodes running BGP currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running BGP last week or last month might be more or less than the number of nodes running BGP currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Nodes Not Est. chart</td>
 <td><p>Distribution of switches and hosts with unestablished BGP sessions during the designated time period, and the total number of unestablished sessions in the network currently.</p>
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
 </tr>
 <tr class="even">
 <td>Table/Filter options</td>
@@ -1394,7 +1403,7 @@ The *Alarms* tab displays:
 <tr class="even">
 <td>Total Alarms chart</td>
 <td><p>Distribution of BGP-related alarms received during the designated time period, and the total number of current BGP-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="odd">
 <td>Table/Filter options</td>
@@ -1850,7 +1859,7 @@ The full screen BGP Session card provides tabs for all BGP sessions and all even
 </tbody>
 </table>
 
-With NetQ, you can monitor the number of nodes running the EVPN service, view switches with the sessions, total number of VNIs, and alarms triggered by the EVPN service. For an overview and how to configure EVPN in your data center network, refer to {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Network-Virtualization/Ethernet-Virtual-Private-Network-EVPN/" text="Ethernet Virtual Private Network-EVPN">}}.
+With NetQ, you can monitor the number of nodes running the EVPN service, view switches with the sessions, total number of VNIs, and alarms triggered by the EVPN service. For an overview and how to configure EVPN in your data center network, refer to {{<kb_link latest="cl" url="Network-Virtualization/Ethernet-Virtual-Private-Network-EVPN/_index.md" text="Ethernet Virtual Private Network-EVPN">}}.
 
 ### All EVPN Sessions Card
 
@@ -1934,12 +1943,12 @@ The medium EVPN Service card displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the EVPN service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running EVPN last week or last month might be more or less than the number of nodes running EVPN currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running EVPN last week or last month might be more or less than the number of nodes running EVPN currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Open Alarms chart</td>
 <td><p>Distribution of EVPN-related alarms received during the designated time period, and the total number of current EVPN-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="even">
 <td>Total Sessions chart</td>
@@ -1989,7 +1998,7 @@ The *Sessions Summary* tab which displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the EVPN service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running EVPN last week or last month might be more or less than the number of nodes running EVPN currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running EVPN last week or last month might be more or less than the number of nodes running EVPN currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Sessions chart</td>
@@ -2051,7 +2060,7 @@ The *Alarms* tab which displays:
 <tr class="even">
 <td>Total Alarms chart</td>
 <td><p>Distribution of EVPN-related alarms received during the designated time period, and the total number of current BGP-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="odd">
 <td>Table/Filter options</td>
@@ -2440,7 +2449,7 @@ and all events.
 
 This card displays performance and status information for all LLDP sessions across all nodes in your network.
 
-With NetQ, you can monitor the number of nodes running the LLDP service, view nodes with the most LLDP neighbor nodes, those nodes with the least neighbor nodes, and view alarms triggered by the LLDP service. For an overview and how to configure LLDP in your data center network, refer to {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Layer-2/Link-Layer-Discovery-Protocol/" text="Link Layer Discovery Protocol">}}.
+With NetQ, you can monitor the number of nodes running the LLDP service, view nodes with the most LLDP neighbor nodes, those nodes with the least neighbor nodes, and view alarms triggered by the LLDP service. For an overview and how to configure LLDP in your data center network, refer to {{<kb_link latest="cl" url="Layer-2/Link-Layer-Discovery-Protocol.md" text="Link Layer Discovery Protocol">}}.
 
 The small LLDP Service card displays:
 
@@ -2520,12 +2529,12 @@ The medium LLDP Service card displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the LLDP service enabled during the designated time period, and a total number of nodes running the service currently.</p>
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running LLDP last week or last month might be more or less than the number of nodes running LLDP currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running LLDP last week or last month might be more or less than the number of nodes running LLDP currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Open Alarms chart</td>
 <td><p>Distribution of LLDP-related alarms received during the designated time period, and the total number of current LLDP-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="even">
 <td>Total Sessions chart</td>
@@ -2575,7 +2584,7 @@ The *Sessions Summary* tab which displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the LLDP service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running LLDP last week or last month might be more or less than the number of nodes running LLDP currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running LLDP last week or last month might be more or less than the number of nodes running LLDP currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Sessions chart</td>
@@ -2636,7 +2645,7 @@ The *Alarms* tab which displays:
 <tr class="even">
 <td>Total Alarms chart</td>
 <td><p>Distribution of LLDP-related alarms received during the designated time period, and the total number of current LLDP-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="odd">
 <td>Table/Filter options</td>
@@ -2824,7 +2833,7 @@ The medium LLDP Session card displays:
 <tbody>
 <tr class="odd">
 <td>Time period</td>
-<td>Range of time in which the displayed data was collected.</td>
+<td><!-- vale off -->Range of time in which the displayed data was collected.<!-- vale on --></td>
 </tr>
 <tr class="even">
 <td><img src="https://icons.cumulusnetworks.com/05-Internet-Networks-Servers/05-Network/signal-loading.svg" height="22" width="22"/></td>
@@ -2889,7 +2898,7 @@ The *Session Summary* tab displays:
 <tbody>
 <tr class="odd">
 <td>Time period</td>
-<td>Range of time in which the displayed data was collected.</td>
+<td><!-- vale off -->Range of time in which the displayed data was collected.<!-- vale on --></td>
 </tr>
 <tr class="even">
 <td><img src="https://icons.cumulusnetworks.com/05-Internet-Networks-Servers/05-Network/signal-loading.svg" height="22" width="22"/></td>
@@ -3146,12 +3155,12 @@ The medium MLAG Service card displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the MLAG service enabled during the designated time period, and a total number of nodes running the service currently.</p>
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running MLAG last week or last month might be more or less than the number of nodes running MLAG currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running MLAG last week or last month might be more or less than the number of nodes running MLAG currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Open Alarms chart</td>
 <td><p>Distribution of MLAG-related alarms received during the designated time period, and the total number of current MLAG-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="even">
 <td>Total Sessions chart</td>
@@ -3201,7 +3210,7 @@ The *All MLAG Sessions* summary tab which displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the MLAG service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running MLAG last week or last month might be more or less than the number of nodes running MLAG currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running MLAG last week or last month might be more or less than the number of nodes running MLAG currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Sessions chart</td>
@@ -3262,7 +3271,7 @@ The *All MLAG Alarms* tab which displays:
 <tr class="even">
 <td>Total Alarms chart</td>
 <td><p>Distribution of MLAG-related alarms received during the designated time period, and the total number of current MLAG-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="odd">
 <td>Table/Filter options</td>
@@ -3796,12 +3805,12 @@ The medium OSPF Service card displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the OSPF service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running OSPF last week or last month might be more or less than the number of nodes running OSPF currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running OSPF last week or last month might be more or less than the number of nodes running OSPF currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Sessions Not Established chart</td>
 <td><p>Distribution of unestablished OSPF sessions during the designated time period, and the total number of unestablished sessions in the network currently.</p>
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
 </tr>
 <tr class="even">
 <td>Total Sessions chart</td>
@@ -3851,7 +3860,7 @@ The *Sessions Summary* tab displays:
 <tr class="even">
 <td>Total Nodes Running chart</td>
 <td><p>Distribution of switches and hosts with the OSPF service enabled during the designated time period, and a total number of nodes running the service currently.
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of nodes running OSPF last week or last month might be more or less than the number of nodes running OSPF currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of nodes running OSPF last week or last month might be more or less than the number of nodes running OSPF currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Total Sessions chart</td>
@@ -3860,7 +3869,7 @@ The *Sessions Summary* tab displays:
 <tr class="even">
 <td>Total Sessions Not Established chart</td>
 <td><p>Distribution of unestablished OSPF sessions during the designated time period, and the total number of unestablished sessions in the network currently.</p>
-<p><strong>Note</strong>: The node count here may be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
+<p><strong>Note</strong>: The node count here might be different than the count in the summary bar. For example, the number of unestablished session last week or last month might be more of less than the number of nodes with unestablished sessions currently.</p></td>
 </tr>
 <tr class="odd">
 <td>Table/Filter options</td>
@@ -3913,7 +3922,7 @@ The *Alarms* tab displays:
 <tr class="even">
 <td>Total Alarms chart</td>
 <td><p>Distribution of OSPF-related alarms received during the designated time period, and the total number of current OSPF-related alarms in the network.</p>
-<p><strong>Note</strong>: The alarm count here may be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
+<p><strong>Note</strong>: The alarm count here might be different than the count in the summary bar. For example, the number of new alarms received in this time period does not take into account alarms that have already been received and are still active. You might have no new alarms, but still have a total number of alarms present on the network of 10.</p></td>
 </tr>
 <tr class="odd">
 <td>Table/Filter options</td>
@@ -5701,7 +5710,7 @@ The small Validation Request card displays:
 </tr>
 <tr class="even">
 <td>Validation</td>
-<td><p>Select a scheduled request to run that request on-demand. A default validation is provided for each supported network protocol and service, which runs a network-wide validation check. These validations run every 60 minutes, but you may run them on-demand at any time.</p>
+<td><p>Select a scheduled request to run that request on-demand. A default validation is provided for each supported network protocol and service, which runs a network-wide validation check. These validations run every 60 minutes, but you can run them on-demand at any time.</p>
 <p><strong>Note</strong>: No new requests can be configured from this size card.</p></td>
 </tr>
 <tr class="odd">
@@ -5737,7 +5746,7 @@ The medium Validation Request card displays:
 </tr>
 <tr class="odd">
 <td>Validation</td>
-<td><p>Select a scheduled request to run that request on-demand. A default validation is provided for each supported network protocol and service, which runs a network-wide validation check. These validations run every 60 minutes, but you may run them on-demand at any time.</p>
+<td><p>Select a scheduled request to run that request on-demand. A default validation is provided for each supported network protocol and service, which runs a network-wide validation check. These validations run every 60 minutes, but you can run them on-demand at any time.</p>
 <p><strong>Note</strong>: No new requests can be configured from this size card.</p></td>
 </tr>
 <tr class="even">
@@ -5775,7 +5784,7 @@ The large Validation Request card displays:
 <td>Validation</td>
 <td>Depending on user intent, this field is used to:
 <ul>
-<li>Select a scheduled request to run that request on-demand. A default validation is provided for each supported network protocol and service, which runs a network-wide validation check. These validations run every 60 minutes, but you may run them on-demand at any time.</li>
+<li>Select a scheduled request to run that request on-demand. A default validation is provided for each supported network protocol and service, which runs a network-wide validation check. These validations run every 60 minutes, but you can run them on-demand at any time.</li>
 <li>Leave as is to create a new scheduled validation request.</li>
 <li>Select a scheduled request to modify.</li>
 </ul></td>
@@ -5907,7 +5916,7 @@ The small Validation Result card displays:
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/check-circle-1.svg" height="18" width="18"/>, <img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/remove-shield.svg" height="18" width="18"/></td>
 <td>Status of the validation job, where:
 <ul>
-<li><strong>Good</strong>: Job ran successfully. One or more warnings may have occurred during the run.</li>
+<li><strong>Good</strong>: Job ran successfully. One or more warnings might have occurred during the run.</li>
 <li><strong>Failed</strong>: Job encountered errors which prevented the job from completing, or job ran successfully, but errors occurred during the run.</li>
 </ul></td>
 </tr>
@@ -6204,7 +6213,7 @@ The small Scheduled Validation Result card displays:
 <td><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/check-circle-1.svg" height="18" width="18"/>, <img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/remove-shield.svg" height="18" width="18"/></td>
 <td>Status of the validation job, where:
 <ul>
-<li><strong>Pass</strong>: Job ran successfully. One or more warnings may have occurred during the run.</li>
+<li><strong>Pass</strong>: Job ran successfully. One or more warnings might have occurred during the run.</li>
 <li><strong>Failed</strong>: Job encountered errors which prevented the job from completing, or job ran successfully, but errors occurred during the run.</li>
 </ul></td>
 </tr>
@@ -6246,7 +6255,7 @@ The medium Scheduled Validation Result card displays:
 <li>Name of scheduled validation.</li>
 <li>Status of the validation job, where:
 <ul>
-<li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/check-circle-1.svg" height="18" width="18"/> <strong>Pass</strong>: Job ran successfully. One or more warnings may have occurred during the run.</li>
+<li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/check-circle-1.svg" height="18" width="18"/> <strong>Pass</strong>: Job ran successfully. One or more warnings might have occurred during the run.</li>
 <li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/remove-shield.svg" height="18" width="18"/> <strong>Failed</strong>: Job encountered errors which prevented the job from completing, or job ran successfully, but errors occurred during the run.</li>
 </ul></li>
 </ul></td>
@@ -6299,7 +6308,7 @@ The large Scheduled Validation Result card contains two tabs.
 <li>Name of scheduled validation.</li>
 <li>Status of the validation job, where:
 <ul>
-<li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/check-circle-1.svg" height="18" width="18"/> <strong>Pass</strong>: Job ran successfully. One or more warnings may have occurred during the run.</li>
+<li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/check-circle-1.svg" height="18" width="18"/> <strong>Pass</strong>: Job ran successfully. One or more warnings might have occurred during the run.</li>
 <li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/33-Form-Validation/remove-shield.svg" height="18" width="18"/> <strong>Failed</strong>: Job encountered errors which prevented the job from completing, or job ran successfully, but errors occurred during the run.</li>
 </ul></li>
 <li><img src="https://icons.cumulusnetworks.com/01-Interface-Essential/53-Resize/expand-horizontal-3.svg" height="18" width="18"/> <strong>Expand/Collapse</strong>: Expand the heat map to full width of card, collapse the heat map to the left.</li>

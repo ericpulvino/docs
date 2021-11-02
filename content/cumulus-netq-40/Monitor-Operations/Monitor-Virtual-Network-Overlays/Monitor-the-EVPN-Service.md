@@ -4,9 +4,9 @@ author: NVIDIA
 weight: 980
 toc: 4
 ---
-EVPN (Ethernet Virtual Private Network) enables network administrators in the data center to deploy a virtual layer 2 bridge overlay on top of a layer 3 IP network, creating access, or a tunnel, between two locations. This connects devices in different layer 2 domains or sites running VXLANs and their associated underlays. For an overview and how to configure EVPN in your data center network, refer to {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Network-Virtualization/Ethernet-Virtual-Private-Network-EVPN/" text="Ethernet Virtual Private Network-EVPN">}}.
+EVPN (Ethernet Virtual Private Network) enables network administrators in the data center to deploy a virtual layer 2 bridge overlay on top of a layer 3 IP network, creating access, or a tunnel, between two locations. This connects devices in different layer 2 domains or sites running VXLANs and their associated underlays. For an overview and how to configure EVPN in your data center network, refer to {{<kb_link latest="cl" url="Network-Virtualization/Ethernet-Virtual-Private-Network-EVPN/_index.md" text="Ethernet Virtual Private Network-EVPN">}}.
 
-NetQ enables operators to view the health of the EVPN service on a networkwide and a per session basis, giving greater insight into all aspects of the service. This is accomplished through two card workflows, one for the service and one for the session, and in the NetQ CLI with the `netq show evpn` command.
+NetQ enables operators to view the health of the EVPN service on a networkwide and a per session basis, giving greater insight into all aspects of the service. You accomplish this through two card workflows, one for the service and one for the session, and in the NetQ CLI with the `netq show evpn` command.
 
 ## Monitor the EVPN Service Networkwide
 
@@ -17,7 +17,7 @@ With NetQ, you can monitor EVPN performance across the network:
     - Medium: view number of nodes running EVPN service, number of sessions, and number of alarms
     - Large: view number of nodes running EVPN service, number of sessions, number of VNIs, switches with the most sessions, and alarms
     - Full-screen: view all switches, all sessions, and all alarms
-- `netq show evpn` command: view configuration and status for all devices, including associated VNI, VTEP address, import and export route (showing BGP ASN and VNI path), and last time a change was made for each device running EVPN
+- `netq show evpn` command: view configuration and status for all devices, including associated VNI, VTEP address, import and export route (showing BGP ASN and VNI path), and last time a change occurred for each device running EVPN
 
 {{%notice note%}}
 
@@ -30,13 +30,13 @@ When entering a time value in the `netq show evpn` command, you must include a n
 - **s**: seconds
 - **now**
 
-When using the `between` option, the start time (`text-time`) and end time (`text-endtime`) values can be entered as most recent first and least recent second, or vice versa. The values do not have to have the same unit of measure.
+When using the `between` option, you can enter the start time (`text-time`) and end time (`text-endtime`) values as most recent first and least recent second, or vice versa. The values do not have to have the same unit of measure.
 
 {{%/notice%}}
 
 ### View the EVPN Service Status
 
-You can view the configuration and status of your EVPN overlay across your network or for a particular device from the NetQ UI or the NetQ CLI. The example below shows the configuration and status for all devices, including the associated VNI, VTEP address, the import and export route (showing the BGP ASN and VNI path), and the last time a change was made for each device running EVPN. Use the `hostname` option to view the configuration and status for a single device.
+You can view the configuration and status of your EVPN overlay across your network or for a particular device from the NetQ UI or the NetQ CLI. The example below shows the configuration and status for all devices, including the associated VNI, VTEP address, the import and export route (showing the BGP ASN and VNI path), and the last time a change occurred for each device running EVPN. Use the `hostname` option to view the configuration and status for a single device.
 
 {{<tabs "EVPN summary">}}
 
@@ -219,7 +219,7 @@ leaf04            30         10.0.1.2         L2               Vlan 30        ye
 
 ### View Devices with the Most EVPN Sessions
 
-You can view the load from EVPN on your switches and hosts using the large Network Services|All EVPN Sessions card or the NetQ CLI. This data enables you to see which switches are handling the most EVPN traffic currently, validate that is what is expected based on your network design, and compare that with data from an earlier time to look for any differences.
+You can view the load from EVPN on your switches and hosts using the large Network Services|All EVPN Sessions card or the NetQ CLI. This data enables you to see which switches are handling the most EVPN traffic currently, validate that is what you expect based on your network design, and compare that with data from an earlier time to look for any differences.
 
 {{<tabs "TabID211" >}}
 
@@ -231,7 +231,7 @@ To view switches and hosts with the most EVPN sessions:
 
 2. Select **Top Switches with Most Sessions** from the filter above the table.
 
-    The table content is sorted by this characteristic, listing nodes running the most EVPN sessions at the top. Scroll down to view those with the fewest sessions.
+    The table content sorts by this characteristic, listing nodes running the most EVPN sessions at the top. Scroll down to view those with the fewest sessions.
 
     {{<figure src="/images/netq/ntwk-svcs-all-evpn-large-summary-tab-top-sessions-300.png" width="500">}}
 
@@ -251,7 +251,7 @@ To compare this data with the same data at a previous time:
 
     {{<figure src="/images/netq/ntwk-svcs-all-evpn-large-summary-tab-past-week-230.png" width="500" >}}
 
-You can now see whether there are significant differences between this time and the original time. If the changes are unexpected, you can investigate further by looking at another time frame, determining if more nodes are now running EVPN than previously, looking for changes in the topology, and so forth.
+You can now see whether there are significant differences between this time and the original time. If the changes are unexpected, you can investigate further by looking at another timeframe, determining if more nodes are now running EVPN than previously, looking for changes in the topology, and so forth.
 
 {{</tab>}}
 
@@ -339,7 +339,7 @@ leaf04            30010      10.0.1.2         L2               -              no
 
 ### View Devices with the Most Layer 2 EVPN Sessions
 
-You can view the number layer 2 EVPN sessions on your switches and hosts using the large Network Services|All EVPN Sessions card and the NetQ CLI. This data enables you to see which switches are handling the most EVPN traffic currently, validate that is what is expected based on your network design, and compare that with data from an earlier time to look for any differences.
+You can view the number layer 2 EVPN sessions on your switches and hosts using the large Network Services|All EVPN Sessions card and the NetQ CLI. This data enables you to see which switches are handling the most EVPN traffic currently, validate that is what you expect based on your network design, and compare that with data from an earlier time to look for any differences.
 
 {{<tabs "TabID332" >}}
 
@@ -373,7 +373,7 @@ To compare this data with the same data at a previous time:
 
     {{<figure src="/images/netq/ntwk-svcs-all-evpn-large-summary-tab-most-l2-pst-mo-300.png" width="500">}}
 
-If the changes are unexpected, you can investigate further by looking at another time frame, determining if more nodes are now running EVPN than previously, looking for changes in the topology, and so forth.
+If the changes are unexpected, you can investigate further by looking at another timeframe, determining if more nodes are now running EVPN than previously, looking for changes in the topology, and so forth.
 
 {{</tab>}}
 
@@ -461,7 +461,7 @@ leaf04            30010      10.0.1.2         L2               -              no
 
 ### View Devices with the Most Layer 3 EVPN Sessions
 
-You can view the number layer 3 EVPN sessions on your switches and hosts using the large Network Services|All EVPN Sessions card and the NetQ CLI. This data enables you to see which switches are handling the most EVPN traffic currently, validate that is what is expected based on your network design, and compare that with data from an earlier time to look for any differences.
+You can view the number layer 3 EVPN sessions on your switches and hosts using the large Network Services|All EVPN Sessions card and the NetQ CLI. This data enables you to see which switches are handling the most EVPN traffic currently, validate that is what you expect based on your network design, and compare that with data from an earlier time to look for any differences.
 
 {{<tabs "TabID453" >}}
 
@@ -495,7 +495,7 @@ To compare this data with the same data at a previous time:
 
     {{< figure src="/images/netq/ntwk-svcs-all-evpn-large-summary-tab-most-l3-pst-wk-230.png" width="500" >}}
 
-If the changes are unexpected, you can investigate further by looking at another time frame, determining if more nodes are now running EVPN than previously, looking for changes in the topology, and so forth.
+If the changes are unexpected, you can investigate further by looking at another timeframe, determining if more nodes are now running EVPN than previously, looking for changes in the topology, and so forth.
 
 {{</tab>}}
 
@@ -626,7 +626,7 @@ leaf04            4001       10.0.1.2         L3               Vrf RED        ye
 ### View Devices with the Most EVPN-related Alarms
 <!-- vale on -->
 
-Switches experiencing a large number of EVPN alarms may indicate a configuration or performance issue that needs further investigation. You can view the switches sorted by the number of EVPN alarms and then use the Switches card workflow or the Events|Alarms card workflow to gather more information about possible causes for the alarms.
+Switches experiencing a large number of EVPN alarms can indicate a configuration or performance issue that needs further investigation. You can view the switches sorted by the number of EVPN alarms and then use the Switches card workflow or the Events|Alarms card workflow to gather more information about possible causes for the alarms.
 
 {{<tabs "View EVPN events">}}
 
@@ -642,7 +642,7 @@ To view switches with the most EVPN alarms:
 
 3. Select **Events by Most Active Device** from the filter above the table.
 
-    The table content is sorted by this characteristic, listing nodes with the most EVPN alarms at the top. Scroll down to view those with the fewest alarms.
+    The table content sorts by this characteristic, listing nodes with the most EVPN alarms at the top. Scroll down to view those with the fewest alarms.
 
     {{<figure src="/images/netq/ntwk-svcs-all-evpn-large-alarms-tab-230.png" width="500" >}}
 
@@ -696,12 +696,11 @@ To view all EVPN events:
 
 1. Open the full screen Network Services|All EVPN Sessions card.
 
-2. Click **All Alarms** tab in the navigation panel. By default, events are sorted by Time, with most recent events listed first.
+2. Click **All Alarms** tab in the navigation panel. By default, events sort by time, with most recent events listed first.
 
     {{<figure src="/images/netq/ntwk-svcs-all-evpn-fullscr-alarms-tab-241.png" width="700">}}
 
-Where to go next depends on what data you see, but a few options
-include:
+Where to go next depends on what data you see, but a few options include:
 
 - Open one of the other full screen tabs in this flow to focus on devices or sessions.
 - Sort by the **Message** or **Severity** to narrow your focus.
@@ -808,9 +807,9 @@ With NetQ, you can monitor the performance of a single EVPN session using the Ne
     - Medium: view associated VNI name and type, total number and distribution of nodes with VNIs configured
     - Large: view total number and distribution of nodes with VNIs configured, total alarm and informational events, and associated VRF/VLAN
     - Full-screen: view details of sessions-import/export route, type, origin IP address, VNI, VNI/gateway advertisement, and so forth
-- `netq <hostname> show evpn vni` command: view configuration and status for session (hostname, VNI), VTEP address, import and export route, and last time a change was made
+- `netq <hostname> show evpn vni` command: view configuration and status for session (hostname, VNI), VTEP address, import and export route, and last time a change occurred
 
-For an overview and how to configure EVPN in your data center network, refer to {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Network-Virtualization/Ethernet-Virtual-Private-Network-EVPN/" text="Ethernet Virtual Private Network - EVPN">}}.
+For an overview and how to configure EVPN in your data center network, refer to {{<kb_link latest="cl" url="Network-Virtualization/Ethernet-Virtual-Private-Network-EVPN/_index.md" text="Ethernet Virtual Private Network - EVPN">}}.
 
 {{<notice note>}}
 To access the single session cards, you must open the full-screen Network Services|All EVPN Sessions card, click the <strong>All Sessions</strong> tab, select the desired session, then click <img src="https://icons.cumulusnetworks.com/44-Entertainment-Events-Hobbies/02-Card-Games/card-game-diamond.svg"  height="18" width="18"/> (Open Card).

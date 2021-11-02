@@ -103,9 +103,9 @@ iface eth0
 {{< /tab >}}
 {{< /tabs >}}
 
-### Configure the Hostname and Time zone
+### Configure the Hostname
 
-Configure the hostname and time zone for your switch. The hostname identifies the switch; make sure you configure the hostname to be unique and descriptive.
+The hostname identifies the switch; make sure you configure the hostname to be unique and descriptive.
 
 {{%notice note%}}
 Do not use an underscore (_), apostrophe ('), or non-ASCII characters in the hostname.
@@ -154,6 +154,8 @@ cumulus@switch:~$ nv config apply
 The command prompt in the terminal does not reflect the new hostname until you either log out of the switch or start a new shell.
 {{%/notice%}}
 
+### Configure the Time Zone
+
 The default time zone on the switch is UTC (Coordinated Universal Time). Change the time zone on your switch to be the time zone for your location.
 
 To update the time zone, use NTP interactive mode:
@@ -184,7 +186,7 @@ If you are using 4x10G DAC or AOC cables, or you want to break out 100G or 40G s
 
 ## Test Cable Connectivity
 
-By default, all data plane ports (every Ethernet port except the management interface, eth0) are disabled. To test cable connectivity, administratively enable physical ports.
+By default, Cumulus Linux disables all data plane ports (every Ethernet port except the management interface, eth0). To test cable connectivity, administratively enable physical ports.
 
 {{< tabs "TabID260 ">}}
 {{< tab "NCLU Commands ">}}
@@ -213,14 +215,14 @@ To view link status, run the `net show interface all` command.
 To administratively enable a port:
 
 ```
-cumulus@switch:~$ nv set interface swp1 link state up
+cumulus@switch:~$ nv set interface swp1
 cumulus@switch:~$ nv config apply
 ```
 
 To administratively enable all physical ports on a switch that has ports numbered from swp1 to swp52:
 
 ```
-cumulus@switch:~$ nv set interface swp1-52 link state up
+cumulus@switch:~$ nv set interface swp1-52
 cumulus@switch:~$ nv config apply
 ```
 

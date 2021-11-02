@@ -7,14 +7,17 @@ toc: 3
 The Network Command Line Utility (NCLU) is a command line interface that simplifies the networking configuration process for all users.
 
 NCLU resides in the Linux user space and provides consistent access to networking commands directly through bash, making configuration and troubleshooting simple and easy; no need to edit files or enter modes and sub-modes. NCLU provides these benefits:
-
 - Embeds help, examples, and automatic command checking with suggestions in case you enter a typo.
-- Runs directly from and integrates with bash, while being interoperable with the regular way of accessing underlying configuration files and automation.
+- Runs directly from and integrates with bash, while being interoperable with the regular way of accessing underlying configuration files.
 - Configures dependent features automatically so that you do not have to.
 
 {{<img src = "/images/cumulus-linux/nclu-architecture.png">}}
 
 The NCLU wrapper utility called `net` is capable of configuring layer 2 and layer 3 features of the networking stack, installing ACLs and VXLANs, restoring configuration files, as well as providing monitoring and troubleshooting functionality for these features. You can configure both the `/etc/network/interfaces` and `/etc/frr/frr.conf` files with `net`, in addition to running show and clear commands related to `ifupdown2` and FRRouting.
+
+{{%notice warning%}}
+If you use automation to configure your switches, NVIDIA recommends that you do **not** use NCLU. Edit configuration files directly or use NVUE.
+{{%/notice%}}
 
 ## NCLU Basics
 
@@ -37,9 +40,11 @@ When you have a running configuration, you can review and update the configurati
 - `net show` is a series of commands for viewing various parts of the network configuration. For example, use `net show configuration` to view the complete network configuration, `net show commit history` to view a history of commits using NCLU, and `net show bgp` to view BGP status.
 - `net clear` provides a way to clear `net show` counters, BGP and OSPF neighbor content, and more.
 - `net rollback` provides a mechanism to revert back to an earlier configuration.
-- `net commit confirm` requires you to press *Enter* to commit changes using NCLU. If you run `net commit confirm` but do not press *Enter* within 10 seconds, the commit automatically reverts and no changes are made.
+<!-- vale off -->
+- `net commit confirm` requires you to press *Enter* to commit changes using NCLU. If you run `net commit confirm` but do not press *Enter* within 10 seconds, the commit automatically reverts and makes no changes.
+<!-- vale on -->
 - `net commit description <description>` enables you to provide a descriptive summary of the changes you are about to commit.
-- `net commit permanent` retains the {{<link url="Back-up-and-Restore" text="backup file">}} taken when committing the change. Otherwise, the backup files created from NCLU commands are cleaned up periodically.
+- `net commit permanent` keeps the backup file you create when you commit the change. Otherwise, NCLU periodically cleans up the backup files that the commands create.
 - `net del all` deletes all configurations.
 
     {{%notice note%}}
@@ -190,7 +195,7 @@ cumulus@leaf01:mgmt:~$ net help verbose | grep clag
 
 ### Add ? (Question Mark) Ability to NCLU
 
-While tab completion is enabled by default, you can also configure NCLU to use the **?** (question mark character) to look at available commands. To enable this feature for the *cumulus* user, open the following file:
+Cumulus Linux enables tab completion by default. You can also configure NCLU to use the **?** (question mark character) to look at available commands. To enable this feature for the *cumulus* user, open the following file:
 
 ```
 cumulus@switch:~$ sudo nano ~/.inputrc
@@ -228,7 +233,7 @@ cumulus@switch:~$ net
 
 {{%notice note%}}
 
-When the question mark is typed, NCLU autocompletes and shows all available options, but the question mark does not actually appear on the terminal. This is expected behavior.
+When you type the question mark, NCLU shows all available options, but the question mark does not actually appear on the terminal.
 
 {{%/notice%}}
 <!-- vale off -->
@@ -400,7 +405,7 @@ cumulus@switch:~$ sudo systemctl restart netd.service
 
 ## Back Up the Configuration to a Single File
 
-You can easily back up your NCLU configuration to a file by outputting the results of `net show configuration commands` to a file, then retrieving the contents of the file using the `source` command. You can then view the configuration at any time or copy it to other switches and use the `source` command to apply that configuration to those switches.
+You can back up your NCLU configuration to a file by outputting the results of `net show configuration commands` to a file, then retrieving the contents of the file using the `source` command. You can then view the configuration at any time or copy it to other switches and use the `source` command to apply that configuration to those switches.
 
 For example, to copy the configuration of a leaf switch called leaf01, run the following command:
 
@@ -438,7 +443,7 @@ cumulus@switch:~$ sudo systemctl restart netd.service
 <!-- vale on -->
 {{%notice info%}}
 
-`net` provides an environment variable to set where the `net` output is directed. To only use `stdout`, set the `NCLU_TAB_STDOUT` environment variable to *true*. The value is not case sensitive.
+`net` provides an environment variable to set the location of the `net` output. To only use `stdout`, set the `NCLU_TAB_STDOUT` environment variable to *true*. The value is not case sensitive.
 
 {{%/notice%}}
 
@@ -450,8 +455,8 @@ NCLU does not support interfaces named `dev`.
 
 ### Bonds With No Configured Members
 
-If a bond interface is configured and contains no members, NCLU reports that the interface does not exist.
+If you configure a bond interface that contains no members, NCLU reports that the interface does not exist.
 
 ### Large NCLU Inputs
 
-Each NCLU command must be parsed by the system. Large inputs, such as a large paste of NCLU commands can take some time, sometimes minutes, to process.
+The system must parse each NCLU command. Large inputs, such as a large paste of NCLU commands can take some time, sometimes minutes, to process.

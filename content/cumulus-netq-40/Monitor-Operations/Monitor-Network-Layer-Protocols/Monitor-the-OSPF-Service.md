@@ -4,11 +4,14 @@ author: NVIDIA
 weight: 960
 toc: 4
 ---
-OSPF maintains the view of the network topology conceptually as a directed graph. Each router represents a vertex in the graph. Each link between neighboring routers represents a unidirectional edge and has an associated weight (called cost) that is either automatically derived from its bandwidth or administratively assigned. Using the weighted topology graph, each router computes a shortest path tree (SPT) with itself as the root, and applies the results to build its forwarding table. For more information about OSPF operation and how to configure OSPF to run in your data center network, refer to {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Layer-3/Open-Shortest-Path-First-OSPF/" text="Open Shortest Path First - OSPF">}} or {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Layer-3/Open-Shortest-Path-First-v3-OSPFv3/" text="Open Shortest Path First v3 - OSPFv3">}}.
+
+<!-- vale off -->
+OSPF maintains the view of the network topology conceptually as a directed graph. Each router represents a vertex in the graph. Each link between neighboring routers represents a unidirectional edge and has an associated weight (called cost) that is either automatically derived from its bandwidth or administratively assigned. Using the weighted topology graph, each router computes a shortest path tree (SPT) with itself as the root, and applies the results to build its forwarding table. For more information about OSPF operation and how to configure OSPF to run in your data center network, refer to {{<kb_link latest="cl" url="Layer-3/OSPF/Open-Shortest-Path-First-v2-OSPFv2.md" text="Open Shortest Path First - OSPF">}} or {{<kb_link latest="cl" url="Layer-3/OSPF/Open-Shortest-Path-First-v3-OSPFv3.md" text="Open Shortest Path First v3 - OSPFv3">}}.
+<!-- vale on -->
 
 If you have OSPF running on your switches and hosts, NetQ enables you to view the health of the OSPF service on a networkwide and a per session basis, giving greater insight into all aspects of the service. For each device, you can view its associated interfaces, areas, peers, state, and type of OSPF running (numbered or unnumbered). Additionally, you can view the information at an earlier point in time and filter against a particular device, interface, or area.
 
-This is accomplished in the NetQ UI through two card workflows, one for the service and one for the session, and in the NetQ CLI with the `netq show ospf` command.
+You accomplish this in the NetQ UI through two card workflows, one for the service and one for the session, and in the NetQ CLI with the `netq show ospf` command.
 
 ## Monitor the OSPF Service Networkwide
 
@@ -19,7 +22,7 @@ With NetQ, you can monitor OSPF performance across the network:
     - Medium: view number and distribution of nodes running OSPF service, total sessions, unestablished sessions, and alarms
     - Large: view number and distribution of nodes running OSPF service, total sessions, unestablished sessions, and alarms, switches with the most established sessions/alarms
     - Full-screen: view and filter configuration and status for all switches, all sessions, and all alarms
-- `netq show evpn` command: view configuration and status for all devices, including interface, area, type, state, peer hostname and interface, and last time a change was made for each device
+- `netq show evpn` command: view configuration and status for all devices, including interface, area, type, state, peer hostname and interface, and last time each device changed
 
 {{%notice note%}}
 When entering a time value, you must include a numeric value *and* the unit of measure:
@@ -31,7 +34,7 @@ When entering a time value, you must include a numeric value *and* the unit of m
 - **s**: seconds
 - **now**
 
-For the `between` option, the start (`text-time`) and end time (`text-endtime`) values can be entered as most recent first and least recent second, or vice versa. The values do not have to have the same unit of measure.
+For the `between` option, you can enter the start (`text-time`) and end time (`text-endtime`) values as most recent first and least recent second, or vice versa. The values do not have to have the same unit of measure.
 {{%/notice%}}
 
 ### View Service Status Summary
@@ -56,7 +59,7 @@ To view OSPF service status, run:
 netq show ospf
 ```
 
-This example shows all devices included in OSPF unnumbered routing, the assigned areas, state, peer and interface, and the last time this information was changed.
+This example shows all devices included in OSPF unnumbered routing, the assigned areas, state, peer and interface, and the last time this information changed.
 
 ```
 cumulus@switch:~$ netq show ospf
@@ -142,7 +145,7 @@ To compare this count with the count at another time, run the `netq show ospf` c
 
 ### View Devices with the Most OSPF Sessions
 
-You can view the load from OSPF on your switches and hosts using the large Network Services card. This data enables you to see which switches are handling the most OSPF traffic currently, validate that is what is expected based on your network design, and compare that with data from an earlier time to look for any differences.
+You can view the load from OSPF on your switches and hosts using the large Network Services card. This data enables you to see which switches are handling the most OSPF traffic currently, validate that is what you expect based on your network design, and compare that with data from an earlier time to look for any differences.
 
 {{<tabs "TabID211" >}}
 
@@ -154,7 +157,7 @@ To view switches and hosts with the most OSPF sessions:
 
 2. Select **Switches with Most Sessions** from the filter above the table.
 
-    The table content is sorted by this characteristic, listing nodes running the most OSPF sessions at the top. Scroll down to view those with the fewest sessions.
+    The table content sorts by this characteristic, listing nodes running the most OSPF sessions at the top. Scroll down to view those with the fewest sessions.
 
     {{<figure src="/images/netq/ntwk-svcs-all-ospf-large-summary-tab-300.png" width="500">}}
 
@@ -172,7 +175,7 @@ To compare this data with the same data at a previous time:
 
     {{<figure src="/images/netq/ntwk-svcs-all-ospf-large-summary-tab-past-week-300.png" width="500">}}
 
-<div style="padding-left: 18px;">You can now see whether there are significant differences between this time and the original time. If the changes are unexpected, you can investigate further by looking at another time frame, determining if more nodes are now running OSPF than previously, looking for changes in the topology, and so forth.</div>
+<div style="padding-left: 18px;">You can now see whether there are significant differences between this time and the original time. If the changes are unexpected, you can investigate further by looking at another timeframe, determining if more nodes are now running OSPF than previously, looking for changes in the topology, and so forth.</div>
 
 {{</tab>}}
 
@@ -219,7 +222,7 @@ To view switches with the most unestablished OSPF sessions:
 
 2. Select **Switches with Most Unestablished Sessions** from the filter above the table.
 
-    The table content is sorted by this characteristic, listing nodes with the most unestablished OSPF sessions at the top. Scroll down to view those with the fewest unestablished sessions.
+    The table content sorts by this characteristic, listing nodes with the most unestablished OSPF sessions at the top. Scroll down to view those with the fewest unestablished sessions.
 
     {{<figure src="/images/netq/ntwk-svcs-all-ospf-large-summary-tab-most-unestab-230.png" width="500">}}
 
@@ -235,7 +238,7 @@ Where to go next depends on what data you see, but a couple of options include:
 
 ### View Devices with the Most OSPF-related Alarms
 
-Switches or hosts experiencing a large number of OSPF alarms may indicate a configuration or performance issue that needs further investigation. You can view the devices sorted by the number of OSPF alarms and then use the Switches card workflow or the Alarms card workflow to gather more information about possible causes for the alarms. compare the number of nodes running OSPF with unestablished sessions with the alarms present at the same time to determine if there is any correlation between the issues and the ability to establish an OSPF session.
+Switches or hosts experiencing a large number of OSPF alarms might indicate a configuration or performance issue that needs further investigation. You can view the devices sorted by the number of OSPF alarms and then use the Switches card workflow or the Alarms card workflow to gather more information about possible causes for the alarms. compare the number of nodes running OSPF with unestablished sessions with the alarms present at the same time to determine if there is any correlation between the issues and the ability to establish an OSPF session.
 
 To view switches with the most OSPF alarms:
 
@@ -367,7 +370,9 @@ With NetQ, you can monitor the performance of a single OSPF session using the Ne
     - Full-screen: view all session attributes and all events
 - `netq <hostname> show ospf` command: view configuration and status for session by hostname, including interface, area, type, state, peer hostname, peer interface, and the last time this information changed
 
-For an overview and how to configure OSPF to run in your data center network, refer to {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Layer-3/Open-Shortest-Path-First-OSPF/" text="Open Shortest Path First - OSPF">}} or {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/Layer-3/Open-Shortest-Path-First-v3-OSPFv3/" text="Open Shortest Path First v3 - OSPFv3">}}.
+<!-- vale off -->
+For an overview and how to configure OSPF to run in your data center network, refer to {{<kb_link latest="cl" url="Layer-3/OSPF/Open-Shortest-Path-First-v2-OSPFv2.md" text="Open Shortest Path First - OSPF">}} or {{<kb_link latest="cl" url="Layer-3/OSPF/Open-Shortest-Path-First-v3-OSPFv3.md" text="Open Shortest Path First v3 - OSPFv3">}}.
+<!-- vale on -->
 
 {{<notice note>}}
 To access the single session cards, you must open the full screen Network Services|All OSPF Sessions card, click the <strong>All Sessions</strong> tab, select the desired session, then click <img src="https://icons.cumulusnetworks.com/44-Entertainment-Events-Hobbies/02-Card-Games/card-game-diamond.svg" height="18" width="18"/> (Open Card).
@@ -375,7 +380,9 @@ To access the single session cards, you must open the full screen Network Servic
 
 ### Granularity of Data Shown Based on Time Period
 
-On the medium and large single OSPF session cards, the status of the sessions is represented in heat maps stacked vertically; one for established sessions, and one for unestablished sessions. Depending on the time period of data on the card, the number of smaller time blocks used to indicate the status varies. A vertical stack of time blocks, one from each map, includes the results from all checks during that time. The results are shown by how saturated the color is for each block. If all sessions during that time period were established for the entire time block, then the top block is 100% saturated (white) and the not established block is zero percent saturated (gray). As sessions that are not established increase in saturation, the sessions that are established block is proportionally reduced in saturation. An example heat map for a time period of 24 hours is shown here with the most common time periods in the table showing the resulting time blocks.
+<!-- vale off -->
+On the medium and large single OSPF session cards, vertically stacked heat maps represent the status of the sessions; one for established sessions, and one for unestablished sessions. Depending on the time period of data on the card, the number of smaller time blocks used to indicate the status varies. A vertical stack of time blocks, one from each map, includes the results from all checks during that time. The results appear by how saturated the color is for each block. If all sessions during that time period were established for the entire time block, then the top block is 100% saturated (white) and the unestablished block is zero percent saturated (gray). As sessions that are not established increase in saturation, the sessions that are established block is proportionally reduced in saturation. The following example heat map is for a time period of 24 hours, with the most common time periods in the table showing the resulting time blocks.
+<!-- vale on -->
 
 {{<figure src="/images/netq/ntwk-svcs-single-ospf-result-granularity-230.png" width="300">}}
 
@@ -459,7 +466,9 @@ leaf04            swp51                     0.0.0.0      Unnumbered       Full  
 
 ### View OSPF Session State Changes
 
+<!-- vale off -->
 You can view the state of a given OSPF session from the medium and large Network Service|All OSPF Sessions card. For a given time period, you can determine the stability of the OSPF session between two devices. If you experienced connectivity issues at a particular time, you can use these cards to help verify the state of the session. If it was not established more than it was established, you can then investigate further into possible causes.
+<!-- vale on -->
 
 To view the state transitions for a given OSPF session, on the *medium* OSPF Session card:
 
@@ -505,7 +514,7 @@ To view the configuration file changes:
 
 6. Hover over the card and click <img src="https://icons.cumulusnetworks.com/16-Files-Folders/01-Common-Files/common-file-settings-1.svg" height="18" width="18"/> to open the **Configuration File Evolution** tab.
 
-7. Select the time of interest on the left; when a change may have impacted the performance. Scroll down if needed.
+7. Select the time of interest on the left; when a change might have impacted the performance. Scroll down if needed.
 
 8. Choose between the **File** view and the **Diff** view (selected option is dark; File by default).
 

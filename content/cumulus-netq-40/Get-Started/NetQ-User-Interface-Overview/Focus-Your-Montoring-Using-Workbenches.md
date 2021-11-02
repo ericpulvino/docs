@@ -8,8 +8,10 @@ Workbenches are an integral structure of the NetQ UI. They are where you collect
 
 Two types of workbenches are available:
 
-- **Default**: Provided by NVIDIA for use as they exist; changes made to these workbenches *cannot* be saved
-- **Custom**: Created by users when default workbenches need some adjustments to better meet your needs or a completely different collection of cards is wanted; changes made to these workbenches are saved automatically
+<!-- vale off -->
+- **Default**: Provided by NVIDIA for use as they exist; you *cannot* save changes you make to these workbenches
+- **Custom**: Created by users when default workbenches need some adjustments to better meet your needs or you want a completely different collection of cards; changes made to these workbenches are saved automatically
+<!-- vale on -->
 
 Both types of workbenches display a set of cards. Default workbenches are public (available for viewing by all users), whereas custom workbenches are private (only viewable by the user who created them).
 
@@ -93,7 +95,7 @@ By default, auto-refresh is enabled and configured to update every 30 seconds.
 
 To disable or pause auto-refresh of your workbenches, click the **Refresh** icon. This toggles between the two states, *Running* and *Paused*, where <img src="https://icons.cumulusnetworks.com/01-Interface-Essential/42-Multimedia-Controls/button-play-1.svg" width="18"/> indicates it is currently disabled and <img src="https://icons.cumulusnetworks.com/01-Interface-Essential/42-Multimedia-Controls/button-pause.svg" width="18"/> indicates it is currently enabled.
 
-While having the workbenches update regularly is good most of the time, you may find that you want to pause the auto-refresh feature when you are troubleshooting and you do not want the data to change on a given set of cards temporarily. In this case, you can disable the auto-refresh and then enable it again when you are finished.
+While having the workbenches update regularly is good most of the time, you might find that you want to pause the auto-refresh feature when you are troubleshooting and you do not want the data to change on a given set of cards temporarily. In this case, you can disable the auto-refresh and then enable it again when you are finished.
 
 ### View Current Settings
 

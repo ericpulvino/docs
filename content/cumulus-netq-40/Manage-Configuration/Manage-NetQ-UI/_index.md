@@ -6,11 +6,11 @@ toc: 2
 ---
 As an administrator, you can manage access to and various application-wide settings for the NetQ UI from a single location.
 
-Individual users have the ability to set preferences specific to their workspaces. This information is covered separately. Refer to {{<link title="Set User Preferences" text="Set User Preferences">}}.
+Individual users have the ability to set preferences specific to their workspaces. You can read about that in {{<link title="Set User Preferences" text="Set User Preferences">}}.
 
 ## NetQ Management Workbench
 
-The NetQ Management workbench is accessed from the main menu. For users responsible for maintaining the application, this is a good place to start each day.
+You access the NetQ Management workbench from the main menu. For users responsible for maintaining the application, this is a good place to start each day.
 
 To open the workbench, click <img src="https://icons.cumulusnetworks.com/01-Interface-Essential/03-Menu/navigation-menu.svg" height="18" width="18"/>, and select *Management* under **Admin**. The cards available vary slightly between the on-premises and cloud deployments. The on-premises management dashboard has an LDAP Server Info card, which the cloud version does not. The cloud management dashboard has an SSO Config card, which the on-premises version does not.
 
@@ -164,7 +164,7 @@ To configure these login policies:
 
     {{<figure src="/images/netq/netq-mgmt-login-mgmt-config-modal-330.png" width="400" >}}
 
-4. Select how long a user may be logged in before logging in again; 30 minutes, 1, 3, 5, 6, or 8 hours. Default for on-premises deployments is 6 hours. Default for cloud deployments is 30 minutes.
+4. Select how long a user can be logged in before logging in again; 30 minutes, 1, 3, 5, 6, or 8 hours. Default for on-premises deployments is 6 hours. Default for cloud deployments is 30 minutes.
 
 5. Indicate the amount of time in seconds the application can be refreshed before the user must log in again. Default is 1440 seconds (1 day).
 
