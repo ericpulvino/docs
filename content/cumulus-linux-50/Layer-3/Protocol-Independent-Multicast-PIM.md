@@ -293,6 +293,7 @@ cumulus@leaf01:~$ net add pim rp 10.10.10.102 224.10.2.0/24
 -->
 
 {{%notice note%}}
+- You can either configure RP mappings for different multicast groups (as shown above) or use a prefix list to specify the RP to group mapping. You cannot use both methods at the same time.
 - NVIDIA recommends that you do not use a spine switch as an RP when using eBGP in a Clos network. See the [PIM Overview knowledge-base article]({{<ref "/knowledge-base/Configuration-and-Usage/Network-Configuration/PIM-Overview" >}}).
 - zebra does not resolve the next hop for the RP through the default route. To prevent multicast forwarding from failing, either provide a specific route to the RP or run the vtysh `ip nht resolve-via-default` configuration command to resolve the next hop for the RP through the default route.
 {{%/notice%}}
@@ -776,8 +777,8 @@ cumulus@switch:~$ nv set vrf RED router bgp autonomous-system 65001
 cumulus@switch:~$ nv set vrf BLUE router bgp autonomous-system 65000
 cumulus@switch:~$ nv set vrf RED router bgp router-id 10.1.1.1
 cumulus@switch:~$ nv set vrf BLUE router bgp router-id 10.1.1.2
-cumulus@switch:~$ nv set vrf RED router bgp peer swp1 remote-as external
-cumulus@switch:~$ nv set vrf BLUE router bgp peer swp2 remote-as external
+cumulus@switch:~$ nv set vrf RED router bgp neighbor swp1 remote-as external
+cumulus@switch:~$ nv set vrf BLUE router bgp neighbor swp2 remote-as external
 cumulus@switch:~$ nv config apply
 ```
 
@@ -1118,28 +1119,67 @@ cumulus@switch:~$ net commit
 
 For large multicast environments, the default [CoPP](## "Control Plane Policing") policer might be too restrictive. You can adjust the policer to improve multicast convergence.
 
-- The default PIM forwarding rate is set to 2000 packets per second and the burst rate is set to 2000 packets.
-- The default IGMP forwarding rate is set to 300 packets per second and the burst rate is set to 100 packets.
+- The default PIM forwarding rate and burst rate is set to 2000 packets per second.
+- The default IGMP forwarding rate and burst rate is set to 1000 packets per second.
 
-To tune the PIM and IGMP forwarding and burst rate, edit the `/etc/cumulus/acl/policy.d/00control_plane.rules` file and change `--set-rate` and `--set-burst` in the PIM and IGMP policer lines.
+To adjust the policer:
+<!--
+{{< tabs "991 ">}}
+{{< tab "NVUE Commands ">}}
 
-The following example command changes the **PIM** forwarding rate to 2050 packets per second and the burst rate to 2050 packets.
-
-```
--A $INGRESS_CHAIN -p pim -j POLICE --set-mode pkt --set-rate 2050 --set-burst 2050
-```
-
-The following command example changes the **IGMP** forwarding rate to 400 packets per second and the burst rate to 200 packets.
+The following example commands set the PIM forwarding and burst rate to 400 packets per second:
 
 ```
--A $INGRESS_CHAIN -p igmp -j POLICE --set-mode pkt --set-rate 400 --set-burst 200
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
 ```
 
-To apply the rules, run the `sudo cl-acltool -i` command:
+The following example commands set the IGMP forwarding rate to 400 and the IGMP burst rate to 200 packets per second:
 
 ```
-cumulus@switch:~$ sudo cl-acltool -i
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
 ```
+
+{{< /tab >}}
+{{< tab "Edit /etc/cumulus/control-plane/policers.conf ">}}
+
+{{< /tab >}}
+{{< /tabs >}}
+-->
+1. Edit the `/etc/cumulus/control-plane/policers.conf` file:
+
+   - To tune the PIM forwarding and burst rate, change the `copp.pim_ospf_rip.rate` and `copp.pim_ospf_rip.burst` parameters.
+   - To tune the IGMP forwarding and burst rate, change the `copp.igmp.rate` and `copp.igmp.burst` parameters.
+
+      The following example changes the PIM forwarding rate and the PIM burst rate to 400 packets per second, the IGMP forwarding rate to 400 packets per second and the IGMP burst rate to 200 packets per second:
+
+      ```
+      cumulus@switch:~$ sudo nano /etc/cumulus/control-plane/policers.conf
+      ...
+      copp.pim_ospf_rip.enable = TRUE
+      copp.pim_ospf_rip.rate = 400
+      copp.pim_ospf_rip.burst = 400
+      ...
+      copp.igmp.enable = TRUE
+      copp.igmp.rate = 400
+      copp.igmp.burst = 200
+      ...
+      ```
+
+2. Run the following command:
+
+   ```
+   cumulus@switch:~$ switchdctl --load /etc/cumulus/control-plane/policers.conf
+   ```
 
 <!-- vale off -->
 <!-- vale.ai Issue #253 -->
@@ -1216,7 +1256,7 @@ cumulus@leaf01:~$ net commit
 ```
 -->
 
-To verify PIM active-active configuration, run the <!--NCLU `net show pim mlag summary` command or the -->vtysh `show ip pim mlag summary` command:
+To verify PIM active-active configuration, run the vtysh `show ip pim mlag summary` command or the `net show pim mlag summary` command:
 
 ```
 cumulus@leaf01:mgmt:~$ sudo vtysh
@@ -1244,7 +1284,7 @@ This section provides commands to examine your PIM configuration and provides tr
 
 ### PIM Show Commands
 
-To show the contents of the IP multicast routing table, run the <!--NCLU `net show mroute` command or the -->vtysh `show ip mroute` command. You can verify the (S,G) and (*,G) state entries from the flags and check that the incoming and outgoing interfaces are correct:
+To show the contents of the IP multicast routing table, run the vtysh `show ip mroute` command or the `net show mroute` command. You can verify the (S,G) and (*,G) state entries from the flags and check that the incoming and outgoing interfaces are correct:
 
 ```
 cumulus@fhr:~$ sudo vtysh
@@ -1258,7 +1298,7 @@ Source          Group           Flags    Proto  Input            Output         
 10.1.10.101     239.1.1.1       SFP      none   vlan10           none             0    --:--:-- 
 ```
 
-To see the active source on the switch, run the <!--NCLU `net show pim upstream` command or the -->vtysh `show ip pim upstream` command:
+To see the active source on the switch, run the vtysh `show ip pim upstream` command or the `net show pim upstream` command.
 
 ```
 cumulus@fhr:~$ sudo vtysh
@@ -1268,7 +1308,7 @@ Iif    Source        Group     State   Uptime    JoinTimer  RSTimer   KATimer   
 vlan10 10.1.10.101   239.1.1.1 Prune   00:07:40  --:--:--   00:00:36  00:02:50  1
 ```
 
-To show upstream information for S,Gs and the desire to join the multicast tree, run the <!--NCLU `net show pim upstream-join-desired` command or the -->vtysh `show ip pim upstream-join-desired` command:
+To show upstream information for S,Gs and the desire to join the multicast tree, run the vtysh `show ip pim upstream-join-desired` command or the `net show pim upstream-join-desired` command.
 
 ```
 cumulus@fhr:~$ sudo vtysh
@@ -1278,7 +1318,7 @@ Source          Group           EvalJD
 10.1.10.101     239.1.1.1       yes 
 ```
 
-To show the PIM interfaces on the switch, run the <!--NCLU `net show pim interface` command or the -->vtysh `show ip pim interface` command:
+To show the PIM interfaces on the switch, run the vtysh `show ip pim interface` command or the `net show pim interface` command.
 
 ```
 cumulus@fhr:mgmt:~$ sudo vtysh
@@ -1290,7 +1330,7 @@ swp51                up       10.10.10.1         1     10.10.10.101    0        
 vlan10               up        10.1.10.1         0            local    1          0
 ```
 
-The <!--`net show pim interface detail` or -->vtysh `show ip pim interface detail` command shows more detail about the PIM interfaces on the switch:
+The vtysh `show ip pim interface detail` command and the `net show pim interface detail` command shows more detail about the PIM interfaces on the switch:
 
 ```
 cumulus@fhr:~$ sudo vtysh
@@ -1316,7 +1356,7 @@ FHR - First Hop Router
 ...
 ```
 
-To show local membership information for a PIM interface, run the <!--NCLU `net show pim local-membership` or -->vtysh `show ip pim local-membership` command:
+To show local membership information for a PIM interface, run the vtysh `show ip pim local-membership` command or the  `net show pim local-membership`.
 
 ```
 cumulus@lhr:~$ sudo vtysh
@@ -1326,7 +1366,7 @@ Interface         Address          Source           Group            Membership
 vlan20            10.2.10.1        *                239.1.1.1        INCLUDE 
 ```
 
-To show information about known S,Gs, the [IIF](## "Incoming Interface") and the [OIL](## "Outgoing Interface"), run the <!--NCLU `net show pim state` command or the -->vtysh `show ip pim state` command:
+To show information about known S,Gs, the [IIF](## "Incoming Interface") and the [OIL](## "Outgoing Interface"), run the vtysh `show ip pim state` command or the `net show pim state` command.
 
 ```
 cumulus@fhr:~$ sudo vtysh
@@ -1337,7 +1377,7 @@ Active Source           Group            RPT  IIF               OIL
 1      10.1.10.101      239.1.1.1        n    vlan10 
 ```
 
-To verify that the receiver is sending IGMP reports (joins) for the group, run the <!--NCLU `net show igmp groups` or the -->vtysh `show ip igmp groups` command:
+To verify that the receiver is sending IGMP reports (joins) for the group, run the vtysh `show ip igmp groups` command or the `net show igmp groups` command.
 
 ```
 cumulus@lhr:~$ sudo vtysh
@@ -1349,7 +1389,7 @@ Interface   Address      Group        Mode Timer      Srcs V   Uptime
 vlan20      10.2.10.1    239.1.1.1    EXCL 00:02:18   1    3   05:27:33 
 ```
 
-To show IGMP source information, run the <!--NCLU `net show igmp sources` command or the -->vtysh `show ip igmp sources` command:
+To show IGMP source information, run the vtysh `show ip igmp sources` command or the `net show igmp sources` command.
 
 ```
 cumulus@lhr:~$ sudo vtysh
@@ -1497,7 +1537,7 @@ rp01# show ip mroute
 Source          Group           Flags    Proto  Input            Output           TTL  Uptime
 ```
 
-You can see the active source on the RP with either the <!--NCLU `net show pim upstream` command or the -->vtysh `show ip pim upstream` command:
+You can see the active source on the RP with either the vtysh `show ip pim upstream` command or the `net show pim upstream` command.
 
 ```
 cumulus@rp01:~$ sudo vtysh
@@ -1509,7 +1549,7 @@ vlan10          10.1.10.101     239.1.1.1       Prune       00:08:03 --:--:--  -
 
 ### No mroute Entry in Hardware
 
-Use the `cl-resource-query | grep Mcast` command <!--or the NCLU `net show system asic | grep Mcast` command -->to verify that the hardware IP multicast entry is the maximum value:
+To verify that the hardware IP multicast entry is the maximum value, run the `cl-resource-query | grep Mcast` command or the `net show system asic | grep Mcast` command.
 
 ```
 cumulus@switch:~$ cl-resource-query  | grep Mcast
@@ -1520,7 +1560,7 @@ Refer to {{<link url="Supported-Route-Table-Entries#tcam-resource-profiles-for-s
 
 ### Verify the MSDP Session State
 
-To verify the state of MSDP sessions, run the <!--NCLU `net show msdp mesh-group` command or the -->vtysh `show ip msdp mesh-group` command:
+To verify the state of MSDP sessions, run the vtysh `show ip msdp mesh-group` command or the `net show msdp mesh-group` command.
 
 ```
 cumulus@switch:~$ sudo vtysh
@@ -1541,7 +1581,7 @@ Peer                    Local         State     Uptime    SaCnt
 
 ### View the Active Sources
 
-To review the active sources that the switch learns locally (through PIM registers) and from MSDP peers, run the <!--NCLU `net show msdp sa` command or the -->vtysh `show ip msdp sa` command:
+To review the active sources that the switch learns locally (through PIM registers) and from MSDP peers, run the vtysh `show ip msdp sa` command or the `net show msdp sa` command.
 
 ```
 cumulus@switch:~$ sudo vtysh
@@ -1585,7 +1625,7 @@ cumulus@leaf01:~$ nv set bridge domain br_default vlan 10
 cumulus@leaf01:~$ nv set interface vlan10 ip address 10.1.10.1/24
 cumulus@leaf01:~$ nv set router bgp autonomous-system 65101
 cumulus@leaf01:~$ nv set router bgp router-id 10.10.10.1
-cumulus@leaf01:~$ nv set vrf default router bgp peer swp51 remote-as external
+cumulus@leaf01:~$ nv set vrf default router bgp neighbor swp51 remote-as external
 cumulus@leaf01:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.10.10.1/32
 cumulus@leaf01:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.1.10.0/24
 cumulus@leaf01:~$ nv set interface lo router pim
@@ -1608,7 +1648,7 @@ cumulus@leaf02:~$ nv set bridge domain br_default vlan 20
 cumulus@leaf02:~$ nv set interface vlan20 ip address 10.2.10.1/24
 cumulus@leaf02:~$ nv set router bgp autonomous-system 65102
 cumulus@leaf02:~$ nv set router bgp router-id 10.10.10.2
-cumulus@leaf02:~$ nv set vrf default router bgp peer swp51 remote-as external
+cumulus@leaf02:~$ nv set vrf default router bgp neighbor swp51 remote-as external
 cumulus@leaf02:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.10.10.2/32
 cumulus@leaf02:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.2.10.0/24
 cumulus@leaf02:~$ nv set interface lo router pim
@@ -1627,8 +1667,8 @@ cumulus@spine01:~$ nv set router pim enable on
 cumulus@spine01:~$ nv set interface lo ip address 10.10.10.101/32
 cumulus@spine01:~$ nv set router bgp autonomous-system 65199
 cumulus@spine01:~$ nv set router bgp router-id 10.10.10.101
-cumulus@spine01:~$ nv set vrf default router bgp peer swp1 remote-as external
-cumulus@spine01:~$ nv set vrf default router bgp peer swp2 remote-as external
+cumulus@spine01:~$ nv set vrf default router bgp neighbor swp1 remote-as external
+cumulus@spine01:~$ nv set vrf default router bgp neighbor swp2 remote-as external
 cumulus@spine01:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.10.10.101/32
 cumulus@spine01:~$ nv set interface lo router pim
 cumulus@spine01:~$ nv set interface swp1 router pim

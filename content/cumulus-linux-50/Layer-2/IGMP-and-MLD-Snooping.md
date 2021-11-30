@@ -166,41 +166,56 @@ OMF increases memory usage, which can impact scaling on Spectrum 1 switches.
 
 For large multicast environments, the default [CoPP](## "Control Plane Policing") policer might be too restrictive. You can adjust the policer to improve multicast convergence.
 
-For both IGMP and MLD, the default forwarding rate is set to 300 packets per second and the default burst rate is set to 100 packets. To tune the IGMP and MLD forwarding and burst rates, edit the `/etc/cumulus/acl/policy.d/00control_plane.rules` file and change `--set-rate` and `--set-burst` in the IGMP and MLD policer lines.
+- For IGMP, both the default forwarding rate and the default burst rate are set to 1000 packets per second.
+- For MLD, the default forwarding rate is set to 300 packets per second and the default burst rate is set to 100 packets per second.
 
-The following command example changes the **IGMP** forwarding rate to 400 packets per second and the burst rate to 200 packets.
+To tune the IGMP and MLD forwarding and burst rates:
+<!--
+{{< tabs "171 ">}}
+{{< tab "NVUE Commands ">}}
 
-```
--A $INGRESS_CHAIN -p igmp -j POLICE --set-mode pkt --set-rate 400 --set-burst 200
-```
-
-For **MLD**, you need to change several lines in the `/etc/cumulus/acl/policy.d/00control_plane.rules` file.
-
-{{%notice note%}}
-All the MLD packet types use same policer internally; you must set all the lines with the same rates.
-{{%/notice%}}
-
-The following command examples change the MLD forwarding rate to 400 packets per second and the burst rate to 200 packets.
+The following example commands set the IGMP forwarding rate to 400 and the IGMP burst rate to 200 packets per second:
 
 ```
-# link-local multicast receiver: Listener Query
--A $INGRESS_CHAIN --in-interface $INGRESS_INTF -p ipv6-icmp -m icmp6 --icmpv6-type 130 -j POLICE --set-mode pkt --set-rate 400 --set-burst 200 --set-class 6
-
-# link-local multicast receiver: Listener Report
--A $INGRESS_CHAIN --in-interface $INGRESS_INTF -p ipv6-icmp -m icmp6 --icmpv6-type 131 -j POLICE --set-mode pkt --set-rate 400 --set-burst 200 --set-class 6
-
-# link-local multicast receiver: Listener Done
--A $INGRESS_CHAIN --in-interface $INGRESS_INTF -p ipv6-icmp -m icmp6 --icmpv6-type 132 -j POLICE --set-mode pkt --set-rate 400 --set-burst 200 --set-class 6
-
-# link-local multicast receiver: Listener Report v2
--A $INGRESS_CHAIN --in-interface $INGRESS_INTF -p ipv6-icmp -m icmp6 --icmpv6-type 143 -j POLICE --set-mode pkt --set-rate 400 --set-burst 200 --set-class 6
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
+cumulus@switch:~$ 
 ```
 
-Apply the rules with the `sudo cl-acltool -i` command:
+{{< /tab >}}
+{{< tab "Edit /etc/cumulus/control-plane/policers.conf ">}}
 
-```
-cumulus@switch:~$ sudo cl-acltool -i
-```
+{{< /tab >}}
+{{< /tabs >}}
+-->
+1. Edit the `/etc/cumulus/control-plane/policers.conf` file. 
+
+   - For IGMP, change the `copp.igmp.rate` and `copp.igmp.burst` parameters.
+   - For MLD, change the `copp.icmp6_def_mld.rate` and `copp.icmp6_def_mld.burst` parameters.
+
+   The following example changes the IGMP and MLD forwarding rate to 400 packets per second and the burst rate to 200 packets per second:
+
+   ```
+   cumulus@switch:~$ sudo nano /etc/cumulus/control-plane/policers.conf
+   ...
+   copp.igmp.enable = TRUE
+   copp.igmp.rate = 400
+   copp.igmp.burst = 200
+   ...
+   copp.icmp6_def_mld.enable = TRUE
+   copp.icmp6_def_mld.rate = 400
+   copp.icmp6_def_mld.burst = 200
+   ...
+   ```
+
+2. Run the following command:
+
+   ```
+   cumulus@switch:~$ switchdctl --load /etc/cumulus/control-plane/policers.conf
+   ```
 
 ## Disable IGMP and MLD Snooping
 
@@ -302,7 +317,7 @@ swp3 (3)
   flags
 ```
 
-Cumulus Linux tracks multicast group and port state in the [MDB](## "multicast database"). To show the groups and bridge port state, run the NCLU `net show bridge mdb` command or the Linux `sudo bridge mdb show` command. To show detailed router ports and group information, run the `sudo bridge -d -s mdb show` command:
+Cumulus Linux tracks multicast group and port state in the [MDB](## "multicast database"). To show the groups and bridge port state, run the <!--NCLU `net show bridge mdb` command or the -->Linux `sudo bridge mdb show` command. To show detailed router ports and group information, run the `sudo bridge -d -s mdb show` command:
 
 ```
 cumulus@switch:~$ sudo bridge -d -s mdb show

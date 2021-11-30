@@ -18,7 +18,7 @@ Cumulus Linux supports multihop BFD sessions for both IPv4 and IPv6 peers.
 
 ## Configure BFD
 
-You can configure BFD by either using {{<link url="FRRouting" text="FRR">}} (with <!--NCLU, -->NVUE or vtysh commands) or by specifying the configuration in the {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM `topology.dot` file">}}. However, the topology file has some limitations:
+You can configure BFD with <!--NCLU, -->NVUE or vtysh commands or by specifying the configuration in the {{<link url="Prescriptive-Topology-Manager-PTM" text="PTM `topology.dot` file">}}. However, the topology file has some limitations:
 
 - The topology file supports BFD IPv4 and IPv6 *single* hop sessions only; you *cannot* specify IPv4 or IPv6 *multihop* sessions in the topology file.
 - The topology file supports BFD sessions for only link-local IPv6 peers; BFD sessions for global IPv6 peers discovered on the link are not created.
@@ -133,7 +133,7 @@ cumulus@switch:~$ net commit
 ```
 -->
 
-To see neighbor information in BGP, including BFD status, run the <!--NCLU `net show bgp neighbor <interface>` command or the -->vtysh `show ip bgp neighbor <interface>` command. For example:
+To see neighbor information in BGP, including BFD status, run the vtysh `show ip bgp neighbor <interface>` command or the `net show bgp neighbor <interface>` command. For example:
 
 ```
 cumulus@switch:~$ sudo vtysh 
@@ -294,10 +294,10 @@ You configure the echo function by setting the following parameters in the topol
 
 ## Troubleshooting
 
-<!--To troubleshoot BFD, run the NCLU `net show bfd sessions` or `net show bfd sessions detail` command.
+To troubleshoot BFD, run the `net show bfd detail` command or the Linux `ptmctl -b` command.
 
 ```
-cumulus@switch:~$ net show bfd sessions detail
+cumulus@switch:~$ net show bfd detail
 
 ----------------------------------------------------------------------------------------
 port  peer                 state  local  type       diag  det   tx_timeout  rx_timeout
@@ -314,8 +314,6 @@ tx_timeout  rx_timeout  hop_cnt
 0           0           N/A      187172   185986   0        0
 0           0           N/A      501      533      0        0
 ```
--->
-To troubleshoot BFD, run the Linux `ptmctl -b` command.
 
 ## Related Information
 

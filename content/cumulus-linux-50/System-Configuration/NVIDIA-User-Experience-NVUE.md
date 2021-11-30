@@ -10,9 +10,11 @@ NVUE follows a declarative model, removing context-specific commands and setting
 <!-- vale on -->
 {{<img src = "/images/cumulus-linux/nvue-architecture.png">}}
 
-## Start the NVUE Service
+## NVUE Service
 
-Cumulus Linux installs NVUE by default but disables the NVUE service. To run NVUE commands, you must enable and start the NVUE service (`nvued`):
+Cumulus Linux installs NVUE by default and enables the NVUE service `nvued`.
+<!--
+To run NVUE commands, you must enable and start the NVUE service (`nvued`):
 
 ```
 cumulus@switch:~$ sudo systemctl enable nvued
@@ -22,6 +24,7 @@ cumulus@switch:~$ sudo systemctl start nvued
 {{%notice info%}}
 Do not mix NVUE and NCLU commands to configure the switch; use either the NCLU CLI or the NVUE CLI.
 {{%/notice%}}
+-->
 
 ## NVUE REST API
 
@@ -62,6 +65,151 @@ cumulus@switch:~$ curl  -u 'cumulus:CumulusLinux!' --insecure https://127.0.0.1:
       }
 ...
 ```
+
+### Set a Configuration Change
+
+To make a configuration change with the NVUE API:
+
+1. Create a new revision ID using a POST:
+
+   ```
+   $ curl -u 'cumulus:cumulus' --insecure -X POST https://127.0.0.1:8765/nvue_v1/revision
+   {
+     "changeset/cumulus/2021-11-02_16.09.18_5Z1K": {
+       "state": "pending",
+       "transition": {
+         "issue": {},
+         "progress": ""
+       }
+     }
+   }
+
+   ```
+
+2. Record the revision ID. In the above example, the revision ID is `"changeset/cumulus/2021-11-02_16.09.18_5Z1K"`
+
+3. Make the change using a PATCH and link it to the revision ID:
+
+   ```
+   $ curl -u 'cumulus:cumulus' -d '{"99.99.99.99/32": {}}' -H 'Content-Type: application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/interface/lo/ip/address?rev=changeset/cumulus/2021-11-02_16.09.18_5Z1K
+   {
+     "99.99.99.99/32": {}
+   }
+   ```
+
+4. Apply the changes using a PATCH to the revision changeset. You must use the full key value for the revision and replace `/`​ with `%2F`​ in the list:
+
+   ```
+   $ curl -u 'cumulus:cumulus' -d '{"state":"apply"}' -H 'Content-Type:application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+   {
+     "state": "apply",
+     "transition": {
+       "issue": {},
+       "progress": ""
+     }
+   }
+   ```
+
+5. Review the status of the apply and the configuration:
+
+   ```
+   cumulus@leaf01:mgmt:~$ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+   {
+     "state": "applied",
+     "transition": {
+       "issue": {},
+       "progress": ""
+     }
+   }
+   ```
+
+   ```
+   $ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/interface/lo/ip/address
+   {
+     "127.0.0.1/8": {},
+     "99.99.99.99/32": {},
+     "::1/128": {}
+   }
+   ```
+
+### Unset a Configuration Change
+
+To unset a change, use the `null` value to the key. For example, to delete `vlan100` from a switch, use the following syntax:
+
+```
+$ curl -u 'cumulus:cumulus' -d '{"vlan100":null}' -H 'Content-Type: application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/interface?rev=changeset/cumulus/2021-11-29_11.46.23_6C7T
+```
+
+When you unset a change, you must still use the `PATCH` action. The value indicates removal of the entry. The data is `{"vlan100":null}` with the PATCH action.
+
+### Troubleshoot Configuration Changes
+
+When a configuration change fails, you see an error in the change request.
+
+#### Configuration Fails Because of a Dependency
+
+If you stage a configuration but it fails because of a dependency, the failure shows the reason. In the following example, the change fails because the BGP router ID is not set:
+
+```
+$ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_13.57.25_5Z1H
+{
+  "state": "invalid",
+  "transition": {
+    "issue": {
+      "0": {
+        "code": "config_invalid",
+        "data": {
+          "location": "router.bgp.enable",
+          "reason": "BGP requires router-id to be set globally or in the VRF.\n"
+        },
+        "message": "Config invalid at router.bgp.enable: BGP requires router-id to be set globally or in the VRF.\n",
+        "severity": "error"
+      }
+    },
+    "progress": "Invalid config"
+  }
+}
+```
+
+The staged configuration is missing `router-id`:
+
+```
+$ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/vrf/default/router/bgp?rev=changeset%2Fcumulus%2F2021-11-02_13.57.25_5Z1H
+{
+  "autonomous-system": 65999,
+  "enable": "on"
+}
+```
+
+#### Configuration Apply Fails with Warnings
+
+In some cases, such as the first push with NVUE or if you change a file manually instead of using NVUE, you see a warning prompt and the apply fails:
+
+```
+$ curl -u 'cumulus:cumulus' --insecure -X GET https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+{
+  "changeset/cumulus/2021-11-02_16.09.18_5Z1K": {
+    "state": "ays_fail",
+    "transition": {
+      "issue": {
+        "0": {
+          "code": "client_timeout",
+          "data": {},
+          "message": "Timeout while waiting for client response",
+          "severity": "error"
+        }
+      },
+      "progress": "Aborted apply after warnings"
+    }
+  }
+```
+
+To resolve this issue, include `"auto-prompt":{"ays": "ays_yes"}` to the configuration apply:
+
+```
+$ curl -u 'cumulus:cumulus' -d '{"state":"apply","auto-prompt":{"ays": "ays_yes"}}' -H 'Content-Type:application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+```
+
 For information about using the NVUE API, refer to the {{<mib_link url="cumulus-linux-44/api/index.html" text="NVUE API documentation.">}}
 
 ## NVUE CLI
@@ -132,7 +280,7 @@ The `nv set` and `nv unset` commands are in the following categories. Each comma
 | ------- | ----------- |
 | `nv set acl`<br>`nv unset acl` | Configures ACLs in Cumulus Linux.|
 | `nv set bridge`<br>`nv unset bridge` | Configures a bridge domain. This is where you configure the bridge type (such as VLAN-aware), 802.1Q encapsulation, the STP state and priority, and the VLANs in the bridge domain. |
-| `nv set evpn`<br>`nv unset evpn` | Configures EVPN. This is where you enable and disable the EVPN control plane, and set EVPN route advertise options, default gateway configuration for centralized routing, multihoming, and duplicate address detection options. |
+| `nv set evpn`<br>`nv unset evpn` | Configures EVPN. This is where you enable and disable the EVPN control plane, and set EVPN route advertise, multihoming, and duplicate address detection options. |
 | `nv set interface <interface-id>`<br>`nv unset interface <interface-id>` | Configures the switch interfaces. Use this command to configure bond interfaces, bridge interfaces, interface IP addresses, interface descriptions, VLAN IDs, and links (MTU, FEC, speed, duplex, and so on).|
 | `nv set mlag`<br>`nv unset mlag` | Configures MLAG. This is where you configure the backup IP address or interface, MLAG system MAC address, peer IP address, MLAG priority, and the delay before bonds come up. |
 | `nv set nve`<br>`nv unset nve` | Configures network virtualization (VXLAN) settings. This is where you configure the UDP port for VXLAN frames, control dynamic MAC learning over VXLAN tunnels, enable and disable ARP and ND suppression, and configure how Cumulus Linux handles BUM traffic in the overlay.|
@@ -140,8 +288,8 @@ The `nv set` and `nv unset` commands are in the following categories. Each comma
 | `nv set qos`<br>`nv unset qos` | Configures QoS RoCE. |
 | `nv set router`<br>`nv unset router` | Configures router policies (prefix list rules and route maps), sets global BGP options (enable and disable, ASN and router ID, BGP graceful restart and shutdown), global OSPF options (enable and disable, router ID, and OSPF timers) PIM, IGMP, PBR, VRR, and VRRP. |
 | `nv set service`<br>`nv unset service` | Configures DHCP relays and servers, NTP, PTP, LLDP, and syslog. |
-| `nv set system`<br>`nv unset system` | Configures global system settings, such as the hostname of the switch, the anycast ID, the system MAC address, and the anycast MAC address. This is also where you configure SPAN and ERSPAN sessions and set how configuration apply operations work (which files to ignore and which files to overwrite; see {{<link title="#configure-nvue-to-ignore-linux-files" text="Configure NVUE to Ignore Linux Files">}}).|
-| `nv set vrf  <vrf-id>`<br>`nv unset vrf <vrf-id>` | Configures VRFs. This is where you configure VRF-level router configuration including PTP, BGP, OSPF, and EVPN. |
+| `nv set system`<br>`nv unset system` | Configures the hostname of the switch, pre and post login messages, the time zone and global system settings, such as the anycast ID, the system MAC address, and the anycast MAC address. This is also where you configure SPAN and ERSPAN sessions and set how configuration apply operations work (which files to ignore and which files to overwrite; see {{<link title="#configure-nvue-to-ignore-linux-files" text="Configure NVUE to Ignore Linux Files">}}).|
+| `nv set vrf  <vrf-id>`<br>`nv unset vrf <vrf-id>` | Configures VRFs. This is where you configure VRF-level configuration for PTP, BGP, OSPF, and EVPN. |
 
 ### Monitoring Commands
 <!-- vale off -->
@@ -203,7 +351,8 @@ Additional options are available for the `nv show` commands. For example, you ca
 | `--paginate`      | Paginates the output. For example, `nv show --paginate on interface bond1`. |
 | `--pending`       | Shows configuration that is `set` and `unset` but not yet applied or saved. For example, `nv show --pending interface bond1`.|
 | `--rev <revision>`| Shows a detached pending configuration. See the `nv config detach` configuration management command below. For example, `nv show --rev changeset/cumulus/2021-06-11_16.16.41_FPKK interface bond1`. |
-| `--startup`       | Shows configuration saved with the `nv config save` command. This is the configuration after the switch boots. |
+| `--startup`  | Shows configuration saved with the `nv config save` command. This is the configuration after the switch boots. |
+| `--view` | Shows these different views: brief, lldp, mac, pluggables, and small. This option is available for the `nv show interface` command only. For example, the `nv show interface --view=small` command shows a list of the interfaces on the switch and the `nv show interface --view=brief` command shows information about each interface on the switch, such as the interface type, speed, remote host and port. |
 
 The following example shows *pending* BGP graceful restart configuration:
 
@@ -217,6 +366,55 @@ restart-time                  120                           Amount of time taken
 stale-routes-time             360                           Specifies an upper-bounds on how long we retain routes from a resta...
 ```
 
+### Net Show commands
+
+In addition to the `nv show` commands, Cumulus Linux continues to provide a subset of the NCLU `net show` commands. Use these commands to get additional views of various parts of your network configuration.
+
+```
+cumulus@leaf01:mgmt:~$ net show 
+    bfd            :  Bidirectional forwarding detection
+    bgp            :  Border Gateway Protocol
+    bridge         :  a layer2 bridge
+    clag           :  Multi-Chassis Link Aggregation
+    commit         :  apply the commit buffer to the system
+    configuration  :  settings, configuration state, etc
+    counters       :  net show counters
+    debugs         :  Debugs
+    dhcp-snoop     :  DHCP snooping for IPv4
+    dhcp-snoop6    :  DHCP snooping for IPv6
+    dot1x          :  Configure, Enable, Delete or Show IEEE 802.1X EAPOL
+    evpn           :  Ethernet VPN
+    hostname       :  local hostname
+    igmp           :  Internet Group Management Protocol
+    interface      :  An interface, such as swp1, swp2, etc.
+    ip             :  Internet Protocol version 4/6
+    ipv6           :  Internet Protocol version 6
+    lldp           :  Link Layer Discovery Protocol
+    mpls           :  Multiprotocol Label Switching
+    mroute         :  Static unicast routes in MRIB for multicast RPF lookup
+    msdp           :  Multicast Source Discovery Protocol
+    neighbor       :  A BGP, OSPF, PIM, etc neighbor
+    ospf           :  Open Shortest Path First (OSPFv2)
+    ospf6          :  Open Shortest Path First (OSPFv3)
+    package        :  A Cumulus Linux package name
+    pbr            :  Policy Based Routing
+    pim            :  Protocol Independent Multicast
+    port-mirror    :  port-mirror
+    port-security  :  Port security
+    ptp            :  Precision Time Protocol
+    roce           :  Enable RoCE on all interfaces, default mode is lossless
+    rollback       :  revert to a previous configuration state
+    route          :  EVPN route information
+    route-map      :  Route-map
+    snmp-server    :  Configure the SNMP server
+    system         :  System
+    time           :  Time
+    version        :  Version number
+    vrf            :  Virtual routing and forwarding
+    vrrp           :  Virtual Router Redundancy Protocol
+```
+
+<!--
 ### Show Legacy Commands
 
 Cumulus Linux includes show legacy commands that provide the same output as the NCLU show commands. To use the show legacy commands, the NCLU service (`netd`) must be running.
@@ -281,7 +479,6 @@ Origin codes:  i - IGP, e - EGP, ? - incomplete
 
 Displayed  1 routes and 1 total paths
 
-
 show bgp ipv6 unicast
 =====================
 No BGP prefixes displayed, 0 exist
@@ -291,7 +488,7 @@ No BGP prefixes displayed, 0 exist
 {{%notice note%}}
 Not all `net show` commands are available as `nv show --legacy` commands.
 {{%/notice%}}
-
+-->
 ### Configuration Management Commands
 
 The NVUE configuration management commands manage and apply configurations.

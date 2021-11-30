@@ -884,10 +884,9 @@ cumulus@switch:~$ net del vlan 20 acl ipv4 rflx_tcp_ingress inbound
 cumulus@switch:~$ net del vlan 20 acl ipv4 rflx_tcp_egress outbound
 cumulus@switch:~$ net commit
 ```
--->
 ## Match on ECN Bits in the TCP IP Header
 
-[ECN](## "Explicit Congestion Notification") allows end-to-end notification of network congestion without dropping packets. In Cumulus Linux 4.4.1 and later, you can add ECN rules to match on the [ECE](## "ECN-Echo"), [CWR](## "Congestion Window Received"), and [ECT](## "ECN Capable Transport") flags in the TCP IPv4 header.
+[ECN](## "Explicit Congestion Notification") allows end-to-end notification of network congestion without dropping packets. In Cumulus Linux 4.4.2 and later, you can add ECN rules to match on the [ECE](## "ECN-Echo"), [CWR](## "Congestion Window Received"), and [ECT](## "ECN Capable Transport") flags in the TCP IPv4 header.
 
 By default, ECN rules match a packet with the bit set. You can reverse the match by using an explanation point (!).
 
@@ -998,6 +997,7 @@ cumulus@switch:~$ sudo cl-acltool -i
 
 {{< /tab >}}
 {{< /tabs >}}
+-->
 
 ## Example Configuration
 
@@ -1163,7 +1163,7 @@ Cumulus Linux implements INPUT chain rules using a trap mechanism and assigns tr
 To work around this issue, create rules on the INPUT and FORWARD chains (INPUT,FORWARD).
 
 {{%notice note%}}
-FORWARD chain rules can drop packets being forwarded through the switch. Exercise caution when defining these rules and be as specific as possible.
+FORWARD chain rules can drop packets that forward through the switch. Exercise caution when defining these rules and be as specific as possible.
 {{%/notice%}}
 
 ### Hardware Policing of Packets in the Input Chain
@@ -1205,7 +1205,7 @@ To allow SSH traffic to the management VRF, use `-i mgmt`, not `-i eth0`. For ex
 <!-- vale off -->
 ### INPUT Chain Rules and swp+
 <!-- vale on -->
-In INPUT chain rules, the `--in-interface swp+` match works only if the packet is destined towards a layer 3 swp interface; the match does not work if the packet terminates at an SVI interface (for example, vlan10). To allow traffic towards specific SVIs, use rules without any interface match or rules with individual `--in-interface <SVI>` matches.
+In INPUT chain rules, the `--in-interface swp+` match works only if the destination of the packet is towards a layer 3 swp interface; the match does not work if the packet terminates at an SVI interface (for example, vlan10). To allow traffic towards specific SVIs, use rules without any interface match or rules with individual `--in-interface <SVI>` matches.
 
 ## Related Information
 

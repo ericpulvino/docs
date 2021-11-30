@@ -72,7 +72,7 @@ cumulus@switch:~$ nv config apply
 cumulus@switch:~$ net del roce
 cumulus@switch:~$ net commit
 ```
--->>
+-->
 
 ## Verify RoCE Configuration
 
@@ -190,7 +190,7 @@ RoCE Pool Status
     3   roce-reserved-egress   DYNAMIC  14       -                  3              inf       7.29 MB        13.47 MB
 ```
 
-To show detailed information about current buffer utilization as well as historic RoCE byte and packet counts, run the `nv show interface qos roce counters` command:
+To show detailed information about current buffer utilization as well as historic RoCE byte and packet counts, run the `nv show interface <interface> qos roce counters` command:
 
 ```
 cumulus@switch:mgmt:~$ nv show interface swp16 qos roce counters
@@ -239,6 +239,8 @@ tx-stats
     tc-usage                   7.29 MB                Current TC-buffer usage for RoCE traffic
     unicast-no-buffer-discard  663060754115           Tx buffer discards for RoCE traffic
 ```
+
+To reset the counters that the `nv show interface <interface> qos roce` command displays, run the `nv action clear interface <interface> qos roce counters` command.
 
 ## Related Information
 
