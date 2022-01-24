@@ -33,10 +33,10 @@ cumulus@switch:~$ sudo sed -i 's/listen localhost:8765 ssl;/listen \[::\]:8765 i
 cumulus@switch:~$ sudo systemctl restart nginx
 ```
 
-You can run the cURL commands from the command line. For example:
+You can run the cURL commands from the command line. Use the username and password for the switch. For example:
 
 ```
-cumulus@switch:~$ curl  -u 'cumulus:CumulusLinux!' --insecure https://127.0.0.1:8765/cue_v1/interface
+cumulus@switch:~$ curl  -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/cue_v1/interface
 {
   "eth0": {
     "ip": {
@@ -62,6 +62,155 @@ cumulus@switch:~$ curl  -u 'cumulus:CumulusLinux!' --insecure https://127.0.0.1:
       }
 ...
 ```
+
+### Set a Configuration Change
+
+To make a configuration change with the NVUE API:
+
+1. Create a new revision ID using a POST:
+
+   ```
+   $ curl -u 'cumulus:cumulus' --insecure -X POST https://127.0.0.1:8765/nvue_v1/revision
+   {
+     "changeset/cumulus/2021-11-02_16.09.18_5Z1K": {
+       "state": "pending",
+       "transition": {
+         "issue": {},
+         "progress": ""
+       }
+     }
+   }
+
+   ```
+
+   {{%notice note%}}
+To allow the `cumulus` user access to the NVUE API, you must change the default password for the `cumulus` user.
+{{%/notice%}}
+
+2. Record the revision ID. In the above example, the revision ID is `"changeset/cumulus/2021-11-02_16.09.18_5Z1K"`.
+
+3. Make the change using a PATCH and link it to the revision ID:
+
+   ```
+   $ curl -u 'cumulus:cumulus' -d '{"99.99.99.99/32": {}}' -H 'Content-Type: application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/interface/lo/ip/address?rev=changeset/cumulus/2021-11-02_16.09.18_5Z1K
+   {
+     "99.99.99.99/32": {}
+   }
+   ```
+
+4. Apply the changes using a PATCH to the revision changeset. You must use the full key value for the revision and replace `/`​ with `%2F`​ in the list:
+
+   ```
+   $ curl -u 'cumulus:cumulus' -d '{"state":"apply"}' -H 'Content-Type:application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+   {
+     "state": "apply",
+     "transition": {
+       "issue": {},
+       "progress": ""
+     }
+   }
+   ```
+
+5. Review the status of the apply and the configuration:
+
+   ```
+   cumulus@leaf01:mgmt:~$ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+   {
+     "state": "applied",
+     "transition": {
+       "issue": {},
+       "progress": ""
+     }
+   }
+   ```
+
+   ```
+   $ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/interface/lo/ip/address
+   {
+     "127.0.0.1/8": {},
+     "99.99.99.99/32": {},
+     "::1/128": {}
+   }
+   ```
+
+### Unset a Configuration Change
+
+To unset a change, use the `null` value to the key. For example, to delete `vlan100` from a switch, use the following syntax:
+
+```
+$ curl -u 'cumulus:cumulus' -d '{"vlan100":null}' -H 'Content-Type: application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/interface?rev=changeset/cumulus/2021-11-29_11.46.23_6C7T
+```
+
+When you unset a change, you must still use the `PATCH` action. The value indicates removal of the entry. The data is `{"vlan100":null}` with the PATCH action.
+
+### Troubleshoot Configuration Changes
+
+When a configuration change fails, you see an error in the change request.
+
+#### Configuration Fails Because of a Dependency
+
+If you stage a configuration but it fails because of a dependency, the failure shows the reason. In the following example, the configuration change fails because the BGP router ID is not set:
+
+```
+$ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_13.57.25_5Z1H
+{
+  "state": "invalid",
+  "transition": {
+    "issue": {
+      "0": {
+        "code": "config_invalid",
+        "data": {
+          "location": "router.bgp.enable",
+          "reason": "BGP requires router-id to be set globally or in the VRF.\n"
+        },
+        "message": "Config invalid at router.bgp.enable: BGP requires router-id to be set globally or in the VRF.\n",
+        "severity": "error"
+      }
+    },
+    "progress": "Invalid config"
+  }
+}
+```
+
+The staged configuration is missing `router-id`:
+
+```
+$ curl -u 'cumulus:cumulus' --insecure https://127.0.0.1:8765/nvue_v1/vrf/default/router/bgp?rev=changeset%2Fcumulus%2F2021-11-02_13.57.25_5Z1H
+{
+  "autonomous-system": 65999,
+  "enable": "on"
+}
+```
+
+#### Configuration Apply Fails with Warnings
+
+In some cases, such as the first push with NVUE or if you change a file manually instead of using NVUE, you see a warning prompt and the apply fails:
+
+```
+$ curl -u 'cumulus:cumulus' --insecure -X GET https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+{
+  "changeset/cumulus/2021-11-02_16.09.18_5Z1K": {
+    "state": "ays_fail",
+    "transition": {
+      "issue": {
+        "0": {
+          "code": "client_timeout",
+          "data": {},
+          "message": "Timeout while waiting for client response",
+          "severity": "error"
+        }
+      },
+      "progress": "Aborted apply after warnings"
+    }
+  }
+```
+
+To resolve this issue, include `"auto-prompt":{"ays": "ays_yes"}` to the configuration apply:
+
+```
+$ curl -u 'cumulus:cumulus' -d '{"state":"apply","auto-prompt":{"ays": "ays_yes"}}' -H 'Content-Type:application/json' --insecure -X PATCH https://127.0.0.1:8765/nvue_v1/revision/changeset%2Fcumulus%2F2021-11-02_16.09.18_5Z1K
+```
+
 For information about using the NVUE API, refer to the {{<mib_link url="cumulus-linux-44/api/index.html" text="NVUE API documentation.">}}
 
 ## NVUE CLI
@@ -85,8 +234,8 @@ As you enter commands, you can get help with the valid keywords or options using
 <!-- vale on -->
 ```
 cumulus@switch:~$ nv set <<press Tab>>
-acl        evpn       mlag       platform   router     system     
-bridge     interface  nve        qos        service    vrf 
+acl        evpn       mlag       platform   router     system
+bridge     interface  nve        qos        service    vrf
 
 cumulus@switch:~$ nv set
 ```
@@ -188,7 +337,7 @@ graceful-restart
   path-selection-deferral-time                        360          Used by the restarter as an upper-bounds for waiting for peering es...
   restart-time                                        120          Amount of time taken to restart by router. It is advertised to the...
   stale-routes-time                                   360          Specifies an upper-bounds on how long we retain routes from a resta...
-cumulus@leaf01:mgmt:~$ 
+cumulus@leaf01:mgmt:~$
 ```
 
 {{%notice note%}}
@@ -203,7 +352,7 @@ Additional options are available for the `nv show` commands. For example, you ca
 | `--color`         | Turns colored output on or off. For example, `nv show --color on interface bond1`|
 | `--help`          | Shows `help` for the NVUE commands. |
 | `--operational`   | Shows the running configuration (the actual system state). For example, `nv show --operational interface bond1` shows the running configuration for bond1. The running and applied configuration should be the same. If different, inspect the logs. |
-| `--output`        | Shows command output in table format (auto), `json` format or `yaml` format. For example:<br>`nv show --ouptut auto interface bond1`<br>`nv show --ouptut json interface bond1`<br>`nv show --ouptut yaml interface bond1` |
+| `--output`        | Shows command output in table format (auto), `json` format or `yaml` format. For example:<br>`nv show --ouptut auto interface bond1`<br>`nv show --output json interface bond1`<br>`nv show --ouptut yaml interface bond1` |
 | `--paginate`      | Paginates the output. For example, `nv show --paginate on interface bond1`. |
 | `--pending`       | Shows configuration that is `set` and `unset` but not yet applied or saved. For example, `nv show --pending interface bond1`.|
 | `--rev <revision>`| Shows a detached pending configuration. See the `nv config detach` configuration management command below. For example, `nv show --rev changeset/cumulus/2021-06-11_16.16.41_FPKK interface bond1`. |
@@ -357,7 +506,7 @@ Use the Tab key to get help for the command lists you want to see. For example, 
 <!-- vale on -->
 ```
 cumulus@switch:~$ nv list-commands interface swp1 <<press Tab>>
-acl     bond    bridge  evpn    ip      link    ptp     qos     router 
+acl     bond    bridge  evpn    ip      link    ptp     qos     router
 ```
 
 ## NVUE Configuration File
@@ -383,6 +532,7 @@ The following example configures NVUE to ignore the Linux `/etc/ptp4l.conf` file
 
 ```
 cumulus@switch:~$ nv set platform config apply ignore /etc/ptp4l.conf
+cumulus@switch:~$ nv config apply
 cumulus@switch:~$ nv config save
 ```
 
@@ -414,7 +564,7 @@ The example below shows the NVUE commands required to bring up swp1.
 
 ```
 cumulus@switch:~$ nv set interface swp1 link state up
-cumulus@switch:~$ nv config apply 
+cumulus@switch:~$ nv config apply
 ```
 
 ### Configure a Bond
@@ -453,7 +603,7 @@ cumulus@leaf01:~$ nv set interface bond1 bond member swp1
 cumulus@leaf01:~$ nv set interface bond2 bond member swp2
 cumulus@leaf01:~$ nv set interface bond1 bond mlag id 1
 cumulus@leaf01:~$ nv set interface bond2 bond mlag id 2
-cumulus@switch:~$ nv set interface bond1-2 bridge domain br_default 
+cumulus@switch:~$ nv set interface bond1-2 bridge domain br_default
 cumulus@leaf01:~$ nv set interface peerlink bond member swp49-50
 cumulus@leaf01:~$ nv set mlag mac-address 44:38:39:BE:EF:AA
 cumulus@leaf01:~$ nv set mlag backup 10.10.10.2
@@ -491,18 +641,18 @@ Installed Software
 =====================
                       description                                                     package                version
 --------------------- ----------------------------                                    --------------------   ------------
-acpi                  displays information on ACPI devices                            acpi                   1.7-1.1                   
+acpi                  displays information on ACPI devices                            acpi                   1.7-1.1
 acpi-support-base     scripts for handling base ACPI events such as the power button  acpi-support-base      0.142-8
 acpid                 Advanced Configuration and Power Interface event daemon         acpid                  1:2.0.31-1
 adduser               add and remove users and groups                                 adduser                3.118
 apt                   commandline package manager                                     apt                    1.8.2.3
 arping                sends IP and/or ARP pings (to the MAC address)                  arping                 2.19-6
 arptables             ARP table administration                                        arptables              0.0.4+snapshot20181021-4
-atftp                 advanced TFTP client                                            atftp                  0.7.git20120829-3.2~deb10u1                 
-atftpd                advanced TFTP server                                            atftpd                 0.7.git20120829-3.2~deb10u1 
-auditd                User space tools for security auditing                          auditd                 1:2.8.4-3              
-base-files            Debian base system miscellaneous files                          base-files             10.3+deb10u9                 
-base-passwd           Debian base system master password and group files              base-passwd            3.5.46 
+atftp                 advanced TFTP client                                            atftp                  0.7.git20120829-3.2~deb10u1
+atftpd                advanced TFTP server                                            atftpd                 0.7.git20120829-3.2~deb10u1
+auditd                User space tools for security auditing                          auditd                 1:2.8.4-3
+base-files            Debian base system miscellaneous files                          base-files             10.3+deb10u9
+base-passwd           Debian base system master password and group files              base-passwd            3.5.46
 bash                  GNU Bourne Again SHell                                          bash                   5.0-4
 ...
 ```
@@ -604,9 +754,156 @@ The following example patches the pending configuration (runs the set or unset c
 cumulus@switch:~$ nv config patch /deps/nv-02/13/2021.yaml
 ```
 
+## Flexible Snippet Architecture
+
+If you configure Cumulus Linux with NVUE commands, then want to configure a feature that does not yet support the NVUE Object Model, you can create a snippet in `yaml` format and add the configuration to either the `/etc/frr/frr.conf` or `/etc/network/interfaces` file.
+
+{{< tabs "612 ">}}
+{{< tab "/etc/frr/frr.conf Snippets ">}}
+
+In Cumulus Linux 4.4, NVUE does not support configuring the loopback interface in an OSPF area. The following example configures the loopback interface to be in OSPF area 0:
+
+1. Create a `.yaml` file with the following snippet:
+
+   ```
+   cumulus@switch:~$ sudo nano ./ospf_snippet.yaml
+   - set:
+       platform:
+         config:
+           snippet:
+             frr.conf: |
+               interface lo
+               ip ospf area 0
+   ```
+
+2. Run the following command to patch the configuration:
+
+   ```
+   cumulus@switch:~$ nv config patch ./ospf_snippet.yaml
+   ```
+
+3. Run the `nv config apply` command to apply the configuration:
+
+   ```
+   cumulus@switch:~$ nv config apply
+   ```
+
+4. Verify that the configuration exists at the end of the `/etc/frr/frr.conf` file:
+
+   ```
+   cumulus@switch:~$ sudo cat /etc/frr/frr.conf
+   ...
+   ! end of router ospf block
+   !---- CUE snippets ----
+   interface lo
+   ip ospf area 0
+   ```
+
+{{< /tab >}}
+{{< tab "/etc/network/interfaces Snippets ">}}
+
+{{< tabs "667 ">}}
+{{< tab "Configure an Interface Description ">}}
+
+In Cumulus Linux 4.4, NVUE does not support configuring interface descriptions (aliases). The following example configures the loopback interface with the description `loopback` and swp1 with the description `bond_member_of_bond1`:
+
+1. Create a `.yaml` file and add the following snippet:
+
+```
+cumulus@switch:~$ sudo nano ./alias_snippet.yaml
+- set:
+    platform:
+      config:
+        snippet:
+          ifupdown2_eni:
+            lo: |
+              alias loopback
+            swp1: |
+              alias bond_member_of_bond1
+```
+
+2. Run the following command to patch the configuration:
+
+   ```
+   cumulus@switch:~$ nv config patch ./alias_snippet.yaml
+   ```
+
+3. Run the `nv config apply` command to apply the configuration:
+
+   ```
+   cumulus@switch:~$ nv config apply
+   ```
+
+4. Verify that the configuration exists in the lo and swp1 stanzas in the `/etc/network/interfaces` file:
+
+   ```
+   cumulus@switch:~$ sudo cat /etc/network/interfaces
+   ...
+   auto lo
+   iface lo inet loopback
+     alias loopback
+     address 10.10.10.1/32
+   auto swp1
+   iface swp1
+     alias bond_member_of_bond1
+   ...
+   ```
+
+{{< /tab >}}
+{{< tab "Configure a Traditional Bridge ">}}
+
+In Cumulus Linux 4.4, NVUE does not support configuring traditional bridges. The following example configures a traditional bridge called `br0` with the IP address 11.0.0.10/24. swp1, swp2 are members of the bridge.
+
+1. Create a `.yaml` file and add the following snippet:
+
+```
+cumulus@switch:~$ sudo nano ./bridge_snippet.yaml
+- set:
+    platform:
+     config:
+       snippet:
+         ifupdown2_eni:
+           eni_stanzas: |
+             auto br0
+             iface br0
+               address 11.0.0.10/24
+               bridge-ports swp1 swp2
+               bridge-vlan-aware no
+```
+
+2. Run the following command to patch the configuration:
+
+   ```
+   cumulus@switch:~$ nv config patch ./bridge_snippet.yaml
+   ```
+
+3. Run the `nv config apply` command to apply the configuration:
+
+   ```
+   cumulus@switch:~$ nv config apply
+   ```
+
+4. Verify that the configuration exists at the end of the `/etc/network/interfaces` file:
+
+   ```
+   cumulus@switch:~$ sudo cat /etc/network/interfaces
+   ...
+   auto br0
+   iface br0
+     address 11.0.0.10/24
+     bridge-ports swp1 swp2
+     bridge-vlan-aware no
+   ```
+
+{{< /tab >}}
+{{< /tabs >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
 ## How Is NVUE Different from NCLU?
 
-This section lists some of the differences between NVUE CLI and the NCLU CLI.
+This section lists some of the differences between the NVUE CLI and the NCLU CLI.
 
 ### Configuration File
 

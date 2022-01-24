@@ -36,7 +36,7 @@ On each of the peer switches, you must place the links that connect to the dual-
 
 The dual-connected bonds on the peer switches have their system ID set to the MLAG system ID. Therefore, from the point of view of the hosts, each of the links in its bond connects to the same system and so the host uses both links.
 
-Each peer switch periodically makes a list of the LACP partner MAC addresses for its bonds and sends that list to its peer (using the `clagd` service). The LACP partner MAC address is the MAC address of the system at the other end of a bond (server01, server02, and server03 in the figure above). When a switch receives this list from its peer, it compares the list to the LACP partner MAC addresses on its switch. If there are any matches and the `clag-id` for those bonds match, then that bond is a dual-connected bond. You can find the LACP partner MAC address by the running `net show bridge macs` command.
+Each peer switch periodically makes a list of the LACP partner MAC addresses for its bonds and sends that list to its peer (using the `clagd` service). The LACP partner MAC address is the MAC address of the system at the other end of a bond (server01, server02, and server03 in the figure above). When a switch receives this list from its peer, it compares the list to the LACP partner MAC addresses on its switch. If there are any matches and the `clag-id` for those bonds match, then that bond is a dual-connected bond.
 
 ### Requirements
 
@@ -67,21 +67,7 @@ If you cannot use LACP in your environment, you can configure the bonds in {{<li
 
    The following examples place swp1 in bond1 and swp2 in bond2.
 
-    {{< tabs "TabID67 ">}}
-{{< tab "NCLU Commands ">}}
-
-The example also adds a description for the bonds (an alias), which is optional.
-
-```
-cumulus@leaf01:~$ net add bond bond1 bond slaves swp1
-cumulus@leaf01:~$ net add bond bond1 alias bond1 on swp1
-cumulus@leaf01:~$ net add bond bond2 bond slaves swp2
-cumulus@leaf01:~$ net add bond bond2 alias bond2 on swp2
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
+    {{< tabs "TabID70 ">}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -116,23 +102,13 @@ iface bond2
 {{< /tab >}}
 {{< /tabs >}}
 
-3. Add a unique MLAG ID (clag-id) to each bond.
+3. Add a unique MLAG ID to each bond.
 
    You must specify a unique MLAG ID (clag-id) for every dual-connected bond on each peer switch so that switches know which links dual-connect or connect to the same host or switch. The value must be between 1 and 65535 and must be the same on both peer switches. A value of 0 disables MLAG on the bond.
 
    The example commands below add an MLAG ID of 1 to bond1 and 2 to bond2:
 
-    {{< tabs "TabID110 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add bond bond1 clag id 1
-cumulus@leaf01:~$ net add bond bond2 clag id 2
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
+    {{< tabs "TabID123 ">}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -171,15 +147,6 @@ iface bond2
    You must add **all** VLANs configured on the MLAG bond to the bridge so that traffic to the downstream device connected in MLAG redirects over the peerlink in case the MLAG bond fails.
 
    {{< tabs "TabID150 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add bridge bridge ports bond1,bond2
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -225,51 +192,6 @@ When using BGP, to ensure IP connectivity between the loopbacks, the MLAG peer s
    The following examples show commands for both MLAG peers (leaf01 and leaf02).
 
    {{< tabs "TabID222 ">}}
-{{< tab "NCLU Commands ">}}
-
-The NCLU command is a macro command that:
-- Automatically creates the inter-chassis bond (`peerlink`) and the peer link VLAN subinterface (`peerlink.4094`), and adds the `peerlink` bond to the bridge
-- Configures the peer link IP address (`primary` is the link-local address)
-- Adds the MLAG system MAC address, the MLAG bond interfaces, and the backup IP address you specify
-
-   {{< tabs "TabID230 ">}}
-{{< tab "leaf01 ">}}
-
-```
-cumulus@leaf01:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.2
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-To configure the backup link to a VRF, include the name of the VRF with the `backup-ip` parameter. The following example configures the backup link to VRF RED:
-
-```
-cumulus@leaf01:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.2 vrf RED
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "leaf02 ">}}
-
-```
-cumulus@leaf02:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.1
-cumulus@leaf02:~$ net pending
-cumulus@leaf02:~$ net commit
-```
-
-To configure the backup link to a VRF, include the name of the VRF with the `backup-ip` parameter. The following example configures the backup link to VRF RED:
-
-```
-cumulus@leaf02:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.1 vrf RED
-cumulus@leaf02:~$ net pending
-cumulus@leaf02:~$ net commit
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
    {{< tabs "TabID223 ">}}
@@ -432,15 +354,6 @@ Each MLAG-enabled switch in the pair has a *role*. When the peering relationship
 By default, the switch determines the role by comparing the MAC addresses of the two sides of the peering link; the switch with the lower MAC address assumes the primary role. You can override this by setting the `priority` option for the peer link:
 
 {{< tabs "TabID308 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add interface peerlink.4094 clag priority 2048
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -480,7 +393,7 @@ However, if the primary switch goes down without stopping the MLAG service or if
 
 ### Set clagctl Timers
 
-The `clagd` service has several timers that you can tune for enhanced performance:
+The `clagd` service has several timers that you can tune for enhanced performance.
 
 | <div style="width:250px">Timer | Description |
 | ----- | ----------- |
@@ -491,17 +404,6 @@ The `clagd` service has several timers that you can tune for enhanced performanc
 | `--lacpPoll <seconds>` | The number of seconds `clagd` waits before obtaining local LACP information. <br>The default is 2 seconds.|
 
 {{< tabs "TabID363 ">}}
-{{< tab "NCLU Commands ">}}
-
-Run the `net add interface peerlink.4094 clag args <timer> <value>` command. The following example command sets the peerlink timer to 900 seconds:
-
-```
-cumulus@leaf01:~$ net add interface peerlink.4094 clag args --initDelay 100
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 The only timer you can set with NVUE is the initial delay timer. The following example NVUE Command sets the initial delay to 100 seconds:
@@ -581,24 +483,28 @@ iface br0.10
 ```
 
 {{%notice note%}}
-In an MLAG and traditional bridge configuration, NVIDIA recommends that you set bridge learning to off on all VLANs over the peerlink except for the layer 3 peerlink subinterface.
+In an MLAG and traditional bridge configuration, NVIDIA recommends that you set bridge learning to off on all VLANs over the peerlink except for the layer 3 peerlink subinterface; for example:
+
+```
+...
+auto peerlink
+iface peerlink
+    bridge-learning off
+    
+auto peerlink.1510
+iface peerlink.1510
+    bridge-learning off
+
+auto peerlink.4094
+iface peerlink.4094
+...
+```
+
 {{%/notice%}}
 
 ### Configure a Backup UDP Port
 
 By default, Cumulus Linux uses UDP port 5342 with the backup IP address. To change the backup UDP port, edit the `/etc/network/interfaces` file to add `clagd-args --backupPort <port>` to the `auto peerlink.4094` stanza. For example:
-
-{{< tabs "TabID582 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add interface peerlink.4094 clag args --backupPort 5400
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "Linux Commands ">}}
 
 ```
 ...
@@ -617,9 +523,6 @@ Run the `sudo ifreload -a` command to apply all the configuration changes:
 cumulus@leaf01:~$ sudo ifreload -a
 ```
 
-{{< /tab >}}
-{{< /tabs >}}
-
 ## Best Practices
 
 Follow these best practices when configuring MLAG on your switches.
@@ -631,18 +534,6 @@ The bridge MTU determines the {{<link url="Switch-Port-Attributes#mtu" text="MTU
 The following example commands set an MTU of 1500 for each of the bond interfaces (peerlink, uplink, bond1, bond2), which are members of bridge *bridge*:
 
 {{< tabs "TabID498 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add bond peerlink mtu 1500
-cumulus@leaf01:~$ net add bond uplink mtu 1500
-cumulus@leaf01:~$ net add bond bond1 mtu 1500
-cumulus@leaf01:~$ net add bond bond2 mtu 1500
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -730,30 +621,10 @@ To set up the adjacency, configure a {{<link url="Border-Gateway-Protocol-BGP#bg
 For BGP, use a configuration like this:
 
 {{< tabs "TabID704 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add bgp neighbor peerlink.4094 interface remote-as internal
-cumulus@leaf01:~$ net commit
-```
-
-If you are using {{<link url="Ethernet-Virtual-Private-Network-EVPN" text="EVPN">}} and MLAG, you need to enable the EVPN address family across the peerlink.4094 interface as well:
-
-```
-cumulus@leaf01:~$ net add bgp neighbor peerlink.4094 interface remote-as internal
-cumulus@leaf01:~$ net add bgp l2vpn evpn neighbor peerlink.4094 activate
-cumulus@leaf01:~$ net commit
-```
-
-{{%notice note%}}
-If you use NCLU to create an iBGP peering across the peer link, the `net add bgp l2vpn evpn neighbor peerlink.4094 activate` command creates a new eBGP neighbor when one is already configured for iBGP. The existing iBGP configuration is still valid.
-{{%/notice%}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
-cumulus@leaf01:~$ nv set vrf default router bgp neighbor peerlink remote-as internal
+cumulus@leaf01:~$ nv set vrf default router bgp neighbor peerlink.4094 remote-as internal
 cumulus@leaf01:~$ nv config apply
 ```
 
@@ -765,7 +636,7 @@ cumulus@leaf01:~$ sudo vtysh
 leaf01# configure terminal
 leaf01(config)# router bgp 65101
 leaf01(config-router)# bgp router-id 10.10.10.1
-leaf01(config-router)# neighbor peerlink remote-as external
+leaf01(config-router)# neighbor peerlink.4094 remote-as external
 leaf01(config-router)# end
 leaf01# write memory
 leaf01# exit
@@ -779,9 +650,9 @@ cumulus@leaf01:~$ sudo vtysh
 leaf01# configure terminal
 leaf01(config)# router bgp 65101
 leaf01(config-router)# bgp router-id 10.10.10.1
-leaf01(config-router)# neighbor peerlink remote-as external
+leaf01(config-router)# neighbor peerlink.4094 remote-as external
 leaf01(config-router)# address-family l2vpn evpn
-leaf01(config-router-af)# neighbor peerlink activate
+leaf01(config-router-af)# neighbor peerlink.4094 activate
 leaf01(config-router-af)# end
 leaf01# write memory
 leaf01# exit
@@ -793,24 +664,10 @@ cumulus@leaf01:~$
 
 For OSPF, use a configuration like this:
 
-{{< tabs "TabID787 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add interface peerlink.4094 ospf area 0.0.0.1
-cumulus@v:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "NVUE Commands ">}}
-
 ```
 cumulus@leaf01:~$ nv set interface peerlink.4094 router ospf area 0.0.0.1
 cumulus@leaf01:~$ nv config apply
 ```
-
-{{< /tab >}}
-{{< /tabs >}}
 
 ## Configuration Example
 
@@ -821,294 +678,6 @@ The example below shows a basic MLAG configuration, where:
 {{< figure src="/images/cumulus-linux/mlag-config.png" width="450" >}}
 
 For an example configuration with MLAG and BGP, see the {{<link title="Configuration Example" text="BGP configuration example">}}.
-
-### NCLU Commands
-
-{{< tabs "TabID803 ">}}
-{{< tab "NCLU ">}}
-
-{{< tabs "TabID821 ">}}
-{{< tab "leaf01 ">}}
-
-```
-cumulus@leaf01:~$ net add loopback lo ip address 10.10.10.1/32
-cumulus@leaf01:~$ net add interface swp1-3,swp49-51
-cumulus@leaf01:~$ net add bond bond1 bond slaves swp1
-cumulus@leaf01:~$ net add bond bond2 bond slaves swp2
-cumulus@leaf01:~$ net add bond bond3 bond slaves swp3
-cumulus@leaf01:~$ net add bond bond1 clag id 1
-cumulus@leaf01:~$ net add bond bond2 clag id 2
-cumulus@leaf01:~$ net add bond bond3 clag id 3
-cumulus@leaf01:~$ net add bridge bridge ports bond1,bond2,bond3
-cumulus@leaf01:~$ net add vlan 10 vlan-id 10
-cumulus@leaf01:~$ net add vlan 20 vlan-id 20
-cumulus@leaf01:~$ net add vlan 30 vlan-id 30
-cumulus@leaf01:~$ net add vlan 10 ip address 10.1.10.2/24
-cumulus@leaf01:~$ net add vlan 20 ip address 10.1.20.2/24
-cumulus@leaf01:~$ net add vlan 30 ip address 10.1.30.2/24
-cumulus@leaf01:~$ net add bridge bridge vids 10,20,30
-cumulus@leaf01:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.2
-cumulus@leaf01:~$ net add interface peerlink.4094 clag args --initDelay 100
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "leaf02 ">}}
-
-```
-cumulus@leaf02:~$ net add loopback lo ip address 10.10.10.2/32
-cumulus@leaf02:~$ net add interface swp1-3,swp49-51
-cumulus@leaf02:~$ net add bond bond1 bond slaves swp1
-cumulus@leaf02:~$ net add bond bond2 bond slaves swp2
-cumulus@leaf02:~$ net add bond bond3 bond slaves swp3
-cumulus@leaf02:~$ net add bond bond1 clag id 1
-cumulus@leaf02:~$ net add bond bond2 clag id 2
-cumulus@leaf02:~$ net add bond bond3 clag id 3
-cumulus@leaf02:~$ net add bridge bridge ports bond1,bond2,bond3
-cumulus@leaf02:~$ net add vlan 10 vlan-id 10
-cumulus@leaf02:~$ net add vlan 20 vlan-id 20
-cumulus@leaf02:~$ net add vlan 30 vlan-id 30
-cumulus@leaf02:~$ net add vlan 10 ip address 10.1.10.3/24
-cumulus@leaf02:~$ net add vlan 20 ip address 10.1.20.3/24
-cumulus@leaf02:~$ net add vlan 30 ip address 10.1.30.3/24
-cumulus@leaf02:~$ net add bridge bridge vids 10,20,30
-cumulus@leaf02:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.1
-cumulus@leaf02:~$ net add interface peerlink.4094 clag args --initDelay 100
-cumulus@leaf02:~$ net pending
-cumulus@leaf02:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "spine01 ">}}
-
-```
-cumulus@spine01:~$ net add loopback lo ip address 10.10.10.101/32
-cumulus@spine01:~$ net add interface swp1-2
-cumulus@spine01:~$ net pending
-cumulus@spine01:~$ net commit
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
-{{< tab "/etc/network/interfaces ">}}
-
-{{< tabs "TabID860 ">}}
-{{< tab "leaf01 ">}}
-
-```
-cumulus@leaf01:~$ cat /etc/network/interfaces
-
-auto lo
-iface lo inet loopback
-    address 10.10.10.1/32
-
-auto swp1
-iface swp1
-
-auto swp2
-iface swp2
-
-auto swp3
-iface swp3
-
-auto swp49
-iface swp49
-
-auto swp50
-iface swp50
-
-auto swp51
-iface swp51
-
-auto bond1
-iface bond1
-    bond-slaves swp1
-    clag-id 1
-
-auto bond2
-iface bond2
-    bond-slaves swp2
-    clag-id 2
-
-auto bond3
-iface bond3
-    bond-slaves swp3
-    clag-id 3
-
-auto bridge
-iface bridge
-    bridge-ports bond1 bond2 bond3 peerlink
-    bridge-vids 10 20 30
-    bridge-vlan-aware yes
-
-auto mgmt
-iface mgmt
-    vrf-table auto
-    address 127.0.0.1/8
-    address ::1/128
-
-auto eth0
-iface eth0 inet dhcp
-    vrf mgmt
-
-auto peerlink
-iface peerlink
-    bond-slaves swp49 swp50
-
-auto peerlink.4094
-iface peerlink.4094
-    clagd-args --initDelay 100
-    clagd-backup-ip 10.10.10.2
-    clagd-peer-ip linklocal
-    clagd-priority 1000
-    clagd-sys-mac 44:38:39:BE:EF:AA
-
-auto vlan10
-iface vlan10
-    address 10.1.10.2/24
-    vlan-id 10
-    vlan-raw-device bridge
-
-auto vlan20
-iface vlan20
-    address 10.1.20.2/24
-    vlan-id 20
-    vlan-raw-device bridge
-
-auto vlan30
-iface vlan30
-    address 10.1.30.2/24
-    vlan-id 30
-    vlan-raw-device bridge
-```
-
-{{< /tab >}}
-{{< tab "leaf02 ">}}
-
-```
-cumulus@leaf02:~$ cat /etc/network/interfaces
-
-auto lo
-iface lo inet loopback
-    address 10.10.10.2/32
-
-auto swp1
-iface swp1
-
-auto swp2
-iface swp2
-
-auto swp3
-iface swp3
-
-auto swp49
-iface swp49
-
-auto swp50
-iface swp50
-
-auto swp51
-iface swp51
-
-auto bond1
-iface bond1
-    bond-slaves swp1
-    clag-id 1
-
-auto bond2
-iface bond2
-    bond-slaves swp2
-    clag-id 2
-
-auto bond3
-iface bond3
-    bond-slaves swp3
-    clag-id 3
-
-auto bridge
-iface bridge
-    bridge-ports bond1 bond2 bond3 peerlink
-    bridge-vids 10 20 30
-    bridge-vlan-aware yes
-
-auto mgmt
-iface mgmt
-    vrf-table auto
-    address 127.0.0.1/8
-    address ::1/128
-
-auto eth0
-iface eth0 inet dhcp
-    vrf mgmt
-
-auto peerlink
-iface peerlink
-    bond-slaves swp49 swp50
-
-auto peerlink.4094
-iface peerlink.4094
-    clagd-args --initDelay 100
-    clagd-backup-ip 10.10.10.1
-    clagd-peer-ip linklocal
-    clagd-priority 32768
-    clagd-sys-mac 44:38:39:BE:EF:AA
-
-auto vlan10
-iface vlan10
-    address 10.1.10.3/24
-    vlan-id 10
-    vlan-raw-device bridge
-
-auto vlan20
-iface vlan20
-    address 10.1.20.3/24
-    vlan-id 20
-    vlan-raw-device bridge
-
-auto vlan30
-iface vlan30
-    address 10.1.30.3/24
-    vlan-id 30
-    vlan-raw-device bridge
-```
-
-{{< /tab >}}
-{{< tab "spine01 ">}}
-
-```
-cumulus@spine01:~$ cat /etc/network/interfaces
-
-auto lo
-iface lo inet loopback
-    address 10.10.10.101/32
-
-auto swp1
-iface swp1
-
-auto swp2
-iface swp2
-
-auto mgmt
-iface mgmt
-    vrf-table auto
-    address 127.0.0.1/8
-    address ::1/128
-
-auto eth0
-iface eth0 inet dhcp
-    vrf mgmt
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-### NVUE Commands
 
 {{< tabs "TabID1087 ">}}
 {{< tab "NVUE ">}}
@@ -1183,12 +752,62 @@ cumulus@spine01:~$ nv config apply
 
 ```
 - set:
-     interface:
+    bridge:
+      domain:
+        br_default:
+          vlan:
+            '10': {}
+            '20': {}
+            '30': {}
+    interface:
+      bond1:
+        bond:
+          member:
+            swp1: {}
+          mlag:
+            enable: on
+            id: 1
+        bridge:
+          domain:
+            br_default: {}
+        type: bond
+      bond2:
+        bond:
+          member:
+            swp2: {}
+          mlag:
+            enable: on
+            id: 2
+        bridge:
+          domain:
+            br_default: {}
+        type: bond
+      bond3:
+        bond:
+          member:
+            swp3: {}
+          mlag:
+            enable: on
+            id: 3
+        bridge:
+          domain:
+            br_default: {}
+        type: bond
       lo:
         ip:
           address:
             10.10.10.1/32: {}
         type: loopback
+      peerlink:
+        bond:
+          member:
+            swp49: {}
+            swp50: {}
+        type: peerlink
+      peerlink.4094:
+        base-interface: peerlink
+        type: sub
+        vlan: 4094
       swp1:
         type: swp
       swp2:
@@ -1201,36 +820,6 @@ cumulus@spine01:~$ nv config apply
         type: swp
       swp51:
         type: swp
-      bond1:
-        bond:
-          member:
-            swp1: {}
-          mlag:
-            id: 1
-        type: bond
-        bridge:
-          domain:
-            br_default: {}
-      bond2:
-        bond:
-          member:
-            swp2: {}
-          mlag:
-            id: 2
-        type: bond
-        bridge:
-          domain:
-            br_default: {}
-      bond3:
-        bond:
-          member:
-            swp3: {}
-          mlag:
-            id: 3
-        type: bond
-        bridge:
-          domain:
-            br_default: {}
       vlan10:
         ip:
           address:
@@ -1249,29 +838,13 @@ cumulus@spine01:~$ nv config apply
             10.1.30.2/24: {}
         type: svi
         vlan: 30
-      peerlink:
-        bond:
-          member:
-            swp49: {}
-            swp50: {}
-        type: peerlink
-      peerlink.4094:
-        type: sub
-        base-interface: peerlink
-        vlan: 4094
-    bridge:
-      domain:
-        br_default:
-          vlan:
-            '10': {}
-            '20': {}
-            '30': {}
     mlag:
-      mac-address: 44:38:39:BE:EF:AA
       backup:
         10.10.10.2: {}
-      peer-ip: linklocal
+      enable: on
       init-delay: 100
+      mac-address: 44:38:39:BE:EF:AA
+      peer-ip: linklocal
 ```
 
 {{< /tab >}}
@@ -1279,12 +852,62 @@ cumulus@spine01:~$ nv config apply
 
 ```
 - set:
+    bridge:
+      domain:
+        br_default:
+          vlan:
+            '10': {}
+            '20': {}
+            '30': {}
     interface:
+      bond1:
+        bond:
+          member:
+            swp1: {}
+          mlag:
+            enable: on
+            id: 1
+        bridge:
+          domain:
+            br_default: {}
+        type: bond
+      bond2:
+        bond:
+          member:
+            swp2: {}
+          mlag:
+            enable: on
+            id: 2
+        bridge:
+          domain:
+            br_default: {}
+        type: bond
+      bond3:
+        bond:
+          member:
+            swp3: {}
+          mlag:
+            enable: on
+            id: 3
+        bridge:
+          domain:
+            br_default: {}
+        type: bond
       lo:
         ip:
           address:
             10.10.10.2/32: {}
         type: loopback
+      peerlink:
+        bond:
+          member:
+            swp49: {}
+            swp50: {}
+        type: peerlink
+      peerlink.4094:
+        base-interface: peerlink
+        type: sub
+        vlan: 4094
       swp1:
         type: swp
       swp2:
@@ -1297,36 +920,6 @@ cumulus@spine01:~$ nv config apply
         type: swp
       swp51:
         type: swp
-      bond1:
-        bond:
-          member:
-            swp1: {}
-          mlag:
-            id: 1
-        type: bond
-        bridge:
-          domain:
-            br_default: {}
-      bond2:
-        bond:
-          member:
-            swp2: {}
-          mlag:
-            id: 2
-        type: bond
-        bridge:
-          domain:
-            br_default: {}
-      bond3:
-        bond:
-          member:
-            swp3: {}
-          mlag:
-            id: 3
-        type: bond
-        bridge:
-          domain:
-            br_default: {}
       vlan10:
         ip:
           address:
@@ -1345,29 +938,13 @@ cumulus@spine01:~$ nv config apply
             10.1.30.3/24: {}
         type: svi
         vlan: 30
-      peerlink:
-        bond:
-          member:
-            swp49: {}
-            swp50: {}
-        type: peerlink
-      peerlink.4094:
-        type: sub
-        base-interface: peerlink
-        vlan: 4094
-    bridge:
-      domain:
-        br_default:
-          vlan:
-            '10': {}
-            '20': {}
-            '30': {}
     mlag:
-      mac-address: 44:38:39:BE:EF:AA
       backup:
         10.10.10.1: {}
-      peer-ip: linklocal
+      enable: on
       init-delay: 100
+      mac-address: 44:38:39:BE:EF:AA
+      peer-ip: linklocal
 ```
 
 {{< /tab >}}
@@ -1375,7 +952,7 @@ cumulus@spine01:~$ nv config apply
 
 ```
 - set:
-    nterface:
+    interface:
       lo:
         ip:
           address:
@@ -1592,7 +1169,7 @@ iface swp2
 
 {{< /tab >}}
 {{< tab "Try It " >}}
-    {{< simulation name="Try It CL44 - MLAG" showNodes="leaf01,leaf02,spine01,server01,server02,server03" >}}
+    {{< simulation name="Try It CL501 - MLAG" showNodes="leaf01,leaf02,spine01,server01,server02,server03" >}}
 
 This simulation starts with the example MLAG configuration. The demo is pre-configured using {{<exlink url="https://docs.nvidia.com/networking-ethernet-software/cumulus-linux/System-Configuration/NVIDIA-User-Experience-NVUE/" text="NVUE">}} commands.
 
@@ -1607,23 +1184,23 @@ Use the following troubleshooting tips to check MLAG configuration.
 
 ### Check MLAG Status
 
-To check the status of your MLAG configuration, run the NCLU `net show clag` command or the Linux `clagctl` command. For example:
+To check the status of your MLAG configuration:
 
 ```
-cumulus@leaf01:~$ net show clag
+cumulus@leaf01:~$ clagctl
 The peer is alive
-     Our Priority, ID, and Role: 32768 44:38:39:00:00:59 primary
-    Peer Priority, ID, and Role: 32768 44:38:39:00:00:5a secondary
-          Peer Interface and IP: peerlink.4094 fe80::4638:39ff:fe00:5a (linklocal)
+     Our Priority, ID, and Role: 32768 44:38:39:00:00:11 primary
+    Peer Priority, ID, and Role: 32768 44:38:39:00:00:12 secondary
+          Peer Interface and IP: peerlink.4094 fe80::4638:39ff:fe00:12 (linklocal)
                       Backup IP: 10.10.10.2 (inactive)
                      System MAC: 44:38:39:be:ef:aa
 
 CLAG Interfaces
 Our Interface      Peer Interface     CLAG Id   Conflicts              Proto-Down Reason
 ----------------   ----------------   -------   --------------------   -----------------
-           bond1   -                  1         -                      -              
-           bond2   -                  2         -                      -              
-           bond3   -                  3         -                      -              
+           bond1   bond1              1         -                      -
+           bond2   bond2              2         -                      -
+           bond3   bond3              3         -                      -
 ```
 
 ### Show All MLAG Settings
@@ -1656,20 +1233,10 @@ peerPort = 5342
 peerTimeout = 20
 initDelay = 100
 sendTimeout = 30
-sendBufSize = 65536
-forceDynamic = False
-dormantDisable = False
-redirectEnable = False
-redirect2Enable = True
-backupIp = 10.10.10.2
-backupVrf = None
-backupPort = 5342
-vxlanAnycast = None
-neighSync = True
-permanentMacSync = True
-cmdLine = /usr/sbin/clagd --daemon linklocal peerlink.4094 44:38:39:BE:EF:AA --priority 32768 --backupIp 10.10.10.2 --initDelay 100
-peerlinkLearnEnable = False
+...
 ```
+
+The NVUE `nv show mlag` command shows the current MLAG configuration settings.
 
 ### View the MLAG Log File
 
@@ -1724,12 +1291,27 @@ cumulus@leaf01:~$ systemctl status clagd.service
 
 You can expect a large volume of packet drops across one of the peer link interfaces. These drops serve to prevent looping of BUM (broadcast, unknown unicast, multicast) packets. When the switch receives a packet across the peer link, if the destination lookup results in an egress interface that is a dual-connected bond, the switch does not forward the packet (to prevent loops). The peer link records a dropped packet.
 
-To check packet drops across peer link interfaces, run the following command:
+To check packet drops across peer link interfaces, run the `ethtool -S <interface>` command:
 
-{{< tabs "TabID1547 ">}}
-{{< tab "NCLU Commands ">}}
+```
+cumulus@leaf01:mgmt:~$ ethtool -S swp49
+NIC statistics:
+     rx_queue_0_packets: 136
+     rx_queue_0_bytes: 36318
+     rx_queue_0_drops: 0
+     rx_queue_0_xdp_packets: 0
+     rx_queue_0_xdp_tx: 0
+     rx_queue_0_xdp_redirects: 0
+     rx_queue_0_xdp_drops: 0
+     rx_queue_0_kicks: 1
+     tx_queue_0_packets: 200
+     tx_queue_0_bytes: 44244
+     tx_queue_0_xdp_tx: 0
+     tx_queue_0_xdp_tx_drops: 0
+     tx_queue_0_kicks: 195
+```
 
-Run the `net show counters` command. The number of dropped packets shows in the `RX_DRP` column.
+You can also run the `net show counters` command. The number of dropped packets shows in the `RX_DRP` column.
 
 ```
 cumulus@leaf01:~$ net show counters
@@ -1752,32 +1334,6 @@ swp50           9216    11804         0         0         0    11841         0  
 swp51           9216        0         0         0         0      292         0         0         0  BMRU
 ```
 
-{{< /tab >}}
-{{< tab "Linux Commands ">}}
-
-Run the `ethtool -S <interface>` command:
-
-```
-cumulus@leaf01:mgmt:~$ ethtool -S swp49
-NIC statistics:
-     rx_queue_0_packets: 136
-     rx_queue_0_bytes: 36318
-     rx_queue_0_drops: 0
-     rx_queue_0_xdp_packets: 0
-     rx_queue_0_xdp_tx: 0
-     rx_queue_0_xdp_redirects: 0
-     rx_queue_0_xdp_drops: 0
-     rx_queue_0_kicks: 1
-     tx_queue_0_packets: 200
-     tx_queue_0_bytes: 44244
-     tx_queue_0_xdp_tx: 0
-     tx_queue_0_xdp_tx_drops: 0
-     tx_queue_0_kicks: 195
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
 ### Peer Link Interfaces and the protodown State
 
 In addition to the standard UP and DOWN administrative states, an interface that is a member of an MLAG bond can also be in a `protodown` state. When MLAG detects a problem that can result in connectivity issues, it puts that interface into `protodown` state. Such connectivity issues include:
@@ -1788,10 +1344,11 @@ In addition to the standard UP and DOWN administrative states, an interface that
 
 When an interface goes into a `protodown` state, it results in a local OPER DOWN (carrier down) on the interface.
 
-To show an interface in `protodown` state, run the NCLU `net show bridge link` command or the Linux `ip link show` command. For example:
+To show an interface in `protodown` state, run the Linux `ip link show` command or the `net show bridge link` command. For example:
 
 ```
-cumulus@leaf01:~$ net show bridge link
+cumulus@leaf01:~$ sudo vtysh
+leaf01# ip link show
 3: swp1 state DOWN: <NO-CARRIER,BROADCAST,MULTICAST,MASTER,UP> mtu 9216 master pfifo_fast master host-bond1 state DOWN mode DEFAULT qlen 500 protodown on
     link/ether 44:38:39:00:69:84 brd ff:ff:ff:ff:ff:ff
 ```

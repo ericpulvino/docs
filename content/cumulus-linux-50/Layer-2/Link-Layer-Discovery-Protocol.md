@@ -259,11 +259,10 @@ Configuration:
 --------------------------------------------------------------------
 ```
 
-You can also run the NVUE `nv show system lldp` command to show the running LLDP configuration.
-
 ## Considerations
 
-Cumulus Linux does not support LLDP Annex E (and Annex D).
+- Cumulus Linux does not support LLDP Annex E (and Annex D).
+- If you configure both an eth0 IP address and a loopback IP address on the switch, LLDP advertises the loopback IP address as the management IP address. In this case, the Cumulus Linux switch behaves more like a typical Linux host than a networking appliance.
 
 ## Related Information
 

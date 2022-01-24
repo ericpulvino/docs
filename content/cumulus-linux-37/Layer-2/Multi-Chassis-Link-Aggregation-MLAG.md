@@ -37,11 +37,10 @@ MLAG has these requirements:
 - You must specify a unique `clag-id` for every dual-connected bond on each peer switch; the value must be between 1 and 65535 and must be the same on both peer switches in order for the bond to be considered *dual-connected*.
 - The dual-connected devices (servers or switches) can use LACP (IEEE 802.3ad/802.1ax) to form the {{<link url="Bonding-Link-Aggregation" text="bond">}}. In this case, the peer switches must also use LACP.
 - Both switches in the MLAG pair must be running the same release of Cumulus Linux.
+- Cumulus Linux does not support MLAG with 802.1X; the switch cannot synchronize 802.1X authenticated MAC addresses over the peerlink.
 
   {{%notice tip%}}
-
 If for some reason you cannot use LACP, you can also use {{<link url="Bonding-Link-Aggregation#enable-balance-xor-mode" text="balance-xor mode">}} to dual-connect host-facing bonds in an MLAG environment. If you do, you must still configure the same `clag-id` parameter on the MLAG bonds, and it must be the same on both MLAG switches. Otherwise, the MLAG switch pair treats the bonds as if they are single-connected.
-
   {{%/notice%}}
 
 More elaborate configurations are also possible. The number of links between the host and the switches can be greater than two, and does not have to be symmetrical:
@@ -896,7 +895,23 @@ iface br0.100
 ```
 
 {{%notice note%}}
-In an MLAG and traditional bridge configuration, NVIDIA recommends that you set bridge learning to off on all VLANs over the peerlink except for the layer 3 peerlink subinterface.
+In an MLAG and traditional bridge configuration, NVIDIA recommends that you set bridge learning to off on all VLANs over the peerlink except for the layer 3 peerlink subinterface; for example:
+
+```
+...
+auto peerlink
+iface peerlink
+    bridge-learning off
+    
+auto peerlink.1510
+iface peerlink.1510
+    bridge-learning off
+
+auto peerlink.4094
+iface peerlink.4094
+...
+```
+
 {{%/notice%}}
 
 For a deeper comparison of traditional versus VLAN-aware bridge modes, read this [knowledge base article]({{<ref "/knowledge-base/Configuration-and-Usage/Network-Interfaces/Compare-Traditional-Bridge-Mode-to-VLAN-aware-Bridge-Mode" >}}).

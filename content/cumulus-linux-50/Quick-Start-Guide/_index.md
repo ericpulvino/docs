@@ -30,7 +30,7 @@ These steps describe a flexible unattended installation method; you do not need 
 {{%/notice%}}
 
 After installing Cumulus Linux, you are ready to:
-- Log in to Cumulus Linux on the switch.<!--\- Install the Cumulus Linux license.-->
+- Log in to Cumulus Linux on the switch.
 - Configure Cumulus Linux. This quick start guide provides instructions on configuring switch ports and a loopback interface.
 
 ## Get Started
@@ -68,16 +68,6 @@ A Cumulus Linux switch always provides at least one dedicated Ethernet managemen
 To set a static IP address:
 
 {{< tabs "TabID86 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface eth0 ip address 192.0.2.42/24
-cumulus@switch:~$ net add interface eth0 ip gateway 192.0.2.1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -114,17 +104,6 @@ Do not use an underscore (_), apostrophe ('), or non-ASCII characters in the hos
 To change the hostname:
 
 {{< tabs "TabID131 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add hostname leaf01
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The above command modifies both the `/etc/hostname` and `/etc/hosts` files.
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -158,7 +137,20 @@ The command prompt in the terminal does not reflect the new hostname until you e
 
 The default time zone on the switch is UTC (Coordinated Universal Time). Change the time zone on your switch to be the time zone for your location.
 
-To update the time zone, use NTP interactive mode:
+To update the time zone:
+
+{{< tabs "TabID19 ">}}
+{{< tab "NVUE Commands ">}}
+<!-- vale off -->
+Run the `nv set system timezone <timezone>` command. To see all the available time zones, run `nv set system timezone` and press the Tab key. The following example sets the time zone to US/Eastern:
+
+```
+cumulus@switch:~$ nv set system timezone US/Eastern
+cumulus@switch:~$ nv config apply
+```
+
+{{< /tab >}}
+{{< tab "Follow the Guided Wizard ">}}
 
 1. In a terminal, run the following command:
 
@@ -168,8 +160,11 @@ To update the time zone, use NTP interactive mode:
 
 2. Follow the on screen menu options to select the geographic area and region.
 
+{{< /tab >}}
+{{< /tabs >}}
+
 {{%notice note%}}
-Programs that are already running (including log files) and logged in users, do not see time zone changes made with interactive mode. To set the time zone for all services and daemons, reboot the switch.
+Programs that are already running (including log files) and logged in users, do not see time zone changes. To set the time zone for all services and daemons, reboot the switch.
 {{%/notice%}}
 
 ### Verify the System Time
@@ -189,27 +184,6 @@ If you are using 4x10G DAC or AOC cables, or you want to break out 100G or 40G s
 By default, Cumulus Linux disables all data plane ports (every Ethernet port except the management interface, eth0). To test cable connectivity, administratively enable physical ports.
 
 {{< tabs "TabID260 ">}}
-{{< tab "NCLU Commands ">}}
-
-To administratively enable a port:
-
-```
-cumulus@switch:~$ net add interface swp1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-To administratively enable all physical ports on a switch that has ports numbered from swp1 to swp52:
-
-```
-cumulus@switch:~$ net add interface swp1-52
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-To view link status, run the `net show interface all` command.
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 To administratively enable a port:
@@ -254,25 +228,6 @@ To view link status, run the `ip link show` command.
 Cumulus Linux does not put all ports into a bridge by default. To create a bridge and configure one or more front panel ports as members of the bridge:
 
 {{< tabs "TabID367 ">}}
-{{< tab "NCLU Commands ">}}
-
-In the following configuration example, the front panel port swp1 is in a bridge called *bridge*.
-
-```
-cumulus@switch:~$ net add bridge bridge ports swp1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-You can add a range of ports in one command. For example, to add swp1 through swp10, swp12, and swp14 through swp20 to bridge:
-
-```
-cumulus@switch:~$ net add bridge bridge ports swp1-10,12,14-20
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 The following configuration example places the front panel port swp1 into the default bridge called `br_default`.
@@ -334,26 +289,6 @@ For more information about Ethernet bridges, see {{<link url="Ethernet-Bridging-
 You can configure a front panel port or bridge interface as a layer 3 port.
 
 {{< tabs "TabID437 ">}}
-{{< tab "NCLU Commands ">}}
-
-In the following configuration example, the front panel port swp1 is a layer 3 access port:
-
-```
-cumulus@switch:~$ net add interface swp1 ip address 10.1.1.1/30
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-To add an IP address to a bridge interface, you must put it into a VLAN interface. If you want to use a VLAN other than the native one, set the bridge PVID:
-
-```
-cumulus@switch:~$ net add vlan 100 ip address 10.2.2.1/24
-cumulus@switch:~$ net add bridge bridge pvid 100
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 The following configuration example configures the front panel port swp1 as a layer 3 access port:
@@ -414,60 +349,12 @@ cumulus@switch:~$ sudo ifup -a
 Cumulus Linux has a preconfigured loopback interface. When the switch boots up, the loopback interface, called *lo*, is up and assigned an IP address of 127.0.0.1.
 
 {{%notice note%}}
-The loopback interface *lo* must always exist on the switch and must always be up.
+The loopback interface *lo* must always exist on the switch and must always be up. To check the status of the loopback interface, run the NVUE `nv show interface lo` command or the Linux `ip addr show lo` command.
 {{%/notice%}}
-
-To check the status of the loopback interface:
-
-{{< tabs "TabID473 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net show interface lo
-    Name    MAC                Speed    MTU    Mode
---  ------  -----------------  -------  -----  --------
-UP  lo      00:00:00:00:00:00  N/A      65536  Loopback
-
-Alias
------
-loopback interface
-IP Details
--------------------------  --------------------
-IP:                        127.0.0.1/8, ::1/128
-IP Neighbor(ARP) Entries:  0
-```
-
-The loopback is up with the IP address 127.0.0.1.
-
-{{< /tab >}}
-{{< tab "NVUE Commands ">}}
-
-```
-cumulus@switch:~$ nv show interface lo
-```
-
-{{< /tab >}}
-{{< tab "Linux Commands ">}}
-
-```
-cumulus@switch:~$ ip addr show lo
-```
-
-{{< /tab >}}
-{{< /tabs >}}
 
 To add an IP address to a loopback interface, configure the *lo* interface:
 
 {{< tabs "TabID510 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add loopback lo ip address 10.1.1.1/32
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -496,7 +383,7 @@ If you configure an IP address without a subnet mask, it becomes a /32 IP addres
 You can add multiple loopback addresses. For more information, see {{<link url="Interface-Configuration-and-Management/#loopback-interface" text="Interface Configuration and Management">}}.
 
 {{%notice info%}}
-If you run NVUE Commands to configure the switch, run the `nv config save` command before you reboot to save the applied configuration to the startup configuration so that the changes persist after the reboot.
+If you run NVUE Commands to configure the switch, run the `nv config save` command before you reboot. The command saves the applied configuration to the startup configuration so that the changes persist after the reboot.
 
 ```
 cumulus@switch:~$ nv config save

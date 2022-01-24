@@ -47,6 +47,7 @@ MLAG has these requirements:
 - There must be a direct connection between the two peer switches configured with MLAG. This is typically a bond for increased reliability and bandwidth.
 - There must be only two peer switches in one MLAG configuration, but you can have multiple configurations in a network for *switch-to-switch MLAG*.
 - Both switches in the MLAG pair must be running the same release of Cumulus Linux. See {{<link url="Upgrading-Cumulus-Linux#upgrade-switches-in-an-mlag-pair" text="Upgrading Cumulus Linux">}}.
+- Cumulus Linux does not support MLAG with 802.1X; the switch cannot synchronize 802.1X authenticated MAC addresses over the peerlink.
 
 ## Basic Configuration
 
@@ -494,7 +495,23 @@ iface br0.10
 ```
 
 {{%notice note%}}
-In an MLAG and traditional bridge configuration, NVIDIA recommends that you set bridge learning to off on all VLANs over the peerlink except for the layer 3 peerlink subinterface.
+In an MLAG and traditional bridge configuration, NVIDIA recommends that you set bridge learning to off on all VLANs over the peerlink except for the layer 3 peerlink subinterface; for example:
+
+```
+...
+auto peerlink
+iface peerlink
+    bridge-learning off
+    
+auto peerlink.1510
+iface peerlink.1510
+    bridge-learning off
+
+auto peerlink.4094
+iface peerlink.4094
+...
+```
+
 {{%/notice%}}
 
 ### Configure a Backup UDP Port

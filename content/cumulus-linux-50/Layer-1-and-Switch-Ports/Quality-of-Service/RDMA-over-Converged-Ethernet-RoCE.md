@@ -18,28 +18,16 @@ RoCE uses the Infiniband (IB) Protocol over converged Ethernet. The IB global ro
 
 To configure RoCE with PFC and ECN:
 
-{{< tabs "roce lossless commands">}}
-{{< tab "NCLU Commands">}}
 ```
-cumulus@switch:~$ net add roce lossless
-cumulus@switch:~$ net commit
+cumulus@switch:~$ nv set qos roce
+cumulus@switch:~$ nv config apply
 ```
-
-{{< /tab >}}
-{{< tab "NVUE Commands">}}
 
 {{% notice note %}}
 NVUE defaults to `roce mode lossless`. The command `nv set qos roce` and `nv set qos roce mode lossless` are equivalent.
 
 If you enable `mode lossy`, configuring `nv set qos roce` without a `mode` does not change the RoCE mode. To change to lossless, you must configure `mode lossless`.
 {{% /notice %}}
-
-```
-cumulus@switch:~$ nv set qos roce
-cumulus@switch:~$ nv config apply
-```
-{{< /tab >}}
-{{< /tabs >}}
 
 {{%notice note%}}
 {{<link url="Quality-of-Service#link-pause" text="Link pause">}} is another way to provide lossless ethernet; however, PFC is the preferred method. PFC allows more granular control by pausing the traffic flow for a given CoS group instead of the entire link.
@@ -53,38 +41,19 @@ RoCEv2 congestion management uses RFC 3168 to signal congestion experienced to t
 
 To configure RoCE with ECN:
 
-{{< tabs "roce commands">}}
-{{< tab "NCLU Commands">}}
-```
-cumulus@switch:~$ net add roce lossy
-cumulus@switch:~$ net commit
-```
-{{< /tab >}}
-{{< tab "NVUE Commands">}}
 ```
 cumulus@switch:~$ nv set qos roce mode lossy
 cumulus@switch:~$ nv config apply
 ```
-{{< /tab >}}
-{{< /tabs >}}
 
 ## Remove RoCE Configuration
+
 To remove RoCE configurations:
 
-{{< tabs "remove roce commands">}}
-{{< tab "NCLU Commands">}}
-```
-cumulus@switch:~$ net del roce
-cumulus@switch:~$ net commit
-```
-{{< /tab >}}
-{{< tab "NVUE Commands">}}
 ```
 cumulus@switch:~$ nv unset qos roce
 cumulus@switch:~$ nv config apply
 ```
-{{< /tab >}}
-{{< /tabs >}}
 
 ## Verify RoCE Configuration
 
@@ -202,7 +171,7 @@ RoCE Pool Status
     3   roce-reserved-egress   DYNAMIC  14       -                  3              inf       7.29 MB        13.47 MB
 ```
 
-To show detailed information about current buffer utilization as well as historic RoCE byte and packet counts, run the `nv show interface qos roce counters` command:
+To show detailed information about current buffer utilization as well as historic RoCE byte and packet counts, run the `nv show interface <interface> qos roce counters` command:
 
 ```
 cumulus@switch:mgmt:~$ nv show interface swp16 qos roce counters
@@ -251,6 +220,8 @@ tx-stats
     tc-usage                   7.29 MB                Current TC-buffer usage for RoCE traffic
     unicast-no-buffer-discard  663060754115           Tx buffer discards for RoCE traffic
 ```
+
+To reset the counters that the `nv show interface <interface> qos roce` command displays, run the `nv action clear interface <interface> qos roce counters` command.
 
 ## Related Information
 

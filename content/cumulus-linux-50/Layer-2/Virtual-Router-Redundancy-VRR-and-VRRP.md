@@ -45,16 +45,6 @@ Cumulus Linux only supports VRR on an [SVI](## "Switched Virtual Interface"). Yo
 The example commands below create a VLAN-aware bridge interface for a VRR-enabled network. The example assumes you have already configured a VLAN-aware bridge with VLAN 10 and that VLAN 10 has an IP address:
 
 {{< tabs "TabID53 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add vlan 10 ip address-virtual 00:00:5E:00:01:01 10.1.10.1/24
-cumulus@switch:~$ net add vlan 10 ipv6 address-virtual 00:00:5e:00:01:00 10.1.20.1/24
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -114,25 +104,6 @@ The following examples uses a single virtual MAC address for VLANs. You can add 
 {{< tab "leaf01 ">}}
 
 {{< tabs "TabID119 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add interface eth0 ip address 192.168.200.11/24
-cumulus@leaf01:~$ net add bond bond1 bond slaves swp1
-cumulus@leaf01:~$ net add bond bond2 bond slaves swp2
-cumulus@leaf01:~$ net add bond bond1 clag id 1
-cumulus@leaf01:~$ net add bond bond2 clag id 2
-cumulus@leaf01:~$ net add bridge bridge ports bond1,bond2
-cumulus@leaf01:~$ net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp49-50 primary backup-ip 10.10.10.2
-cumulus@leaf01:~$ net add vlan 10 ip address 10.1.10.2/24
-cumulus@leaf01:~$ net add vlan 10 ip address-virtual 00:00:5E:00:01:01 10.1.10.1/24
-cumulus@leaf01:~$ net add vlan 20 ip address 10.1.20.2/24
-cumulus@leaf01:~$ net add vlan 20 ip address-virtual 00:00:5E:00:01:01 10.1.20.1/24
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -165,61 +136,52 @@ cumulus@leaf01:~$ nv config apply
 ```
 auto lo
 iface lo inet loopback
-
 auto mgmt
 iface mgmt
     address 127.0.0.1/8
     address ::1/128
     vrf-table auto
-
 auto eth0
 iface eth0 inet dhcp
     address 192.168.200.11/24
     ip-forward off
     ip6-forward off
     vrf mgmt
-
 auto bond1
 iface bond1
     bond-slaves swp1
     bond-mode 802.3ad
     bond-lacp-bypass-allow no
     clag-id 1
-
 auto bond2
 iface bond2
     bond-slaves swp2
     bond-mode 802.3ad
     bond-lacp-bypass-allow no
     clag-id 2
-
 auto peerlink
 iface peerlink
     bond-slaves swp49 swp50
     bond-mode 802.3ad
     bond-lacp-bypass-allow no
-
 auto peerlink.4094
 iface peerlink.4094
     clagd-peer-ip linklocal
     clagd-backup-ip 10.10.10.2
     clagd-sys-mac 44:38:39:BE:EF:AA
     clagd-args --initDelay 180
-
 auto vlan10
 iface vlan10
     address 10.1.10.2/24
     address-virtual 00:00:5e:00:01:00 10.1.10.1/24
     vlan-raw-device br_default
     vlan-id 10
-
 auto vlan20
 iface vlan20
     address 10.1.20.2/24
     address-virtual 00:00:5e:00:01:00 10.1.20.1/24
     vlan-raw-device br_default
     vlan-id 20
-
 auto br_default
 iface br_default
     bridge-ports peerlink bond1 bond2
@@ -267,61 +229,52 @@ cumulus@leaf02:~$ nv config apply
 ```
 auto lo
 iface lo inet loopback
-
 auto mgmt
 iface mgmt
     address 127.0.0.1/8
     address ::1/128
     vrf-table auto
-
 auto eth0
 iface eth0
     address 192.168.200.12/24
     ip-forward off
     ip6-forward off
     vrf mgmt
-
 auto bond1
 iface bond1
     bond-slaves swp1
     bond-mode 802.3ad
     bond-lacp-bypass-allow no
     clag-id 1
-
 auto bond2
 iface bond2
     bond-slaves swp2
     bond-mode 802.3ad
     bond-lacp-bypass-allow no
     clag-id 2
-
 auto peerlink
 iface peerlink
     bond-slaves swp49 swp50
     bond-mode 802.3ad
     bond-lacp-bypass-allow no
-
 auto peerlink.4094
 iface peerlink.4094
     clagd-peer-ip linklocal
     clagd-backup-ip 10.10.10.1
     clagd-sys-mac 44:38:39:BE:EF:AA
     clagd-args --initDelay 180
-
 auto vlan10
 iface vlan10
     address 10.1.10.3/24
     address-virtual 00:00:5e:00:01:00 10.1.10.1/24
     vlan-raw-device br_default
     vlan-id 10
-
 auto vlan20
 iface vlan20
     address 10.1.20.3/24
     address-virtual 00:00:5e:00:01:00 10.1.20.1/24
     vlan-raw-device br_default
     vlan-id 20
-
 auto br_default
 iface br_default
     bridge-ports peerlink bond1 bond2
@@ -341,15 +294,12 @@ Create a configuration similar to the following on an Ubuntu host:
 ```
 auto eth0
 iface eth0 inet dhcp
-
 auto eth1
 iface eth1 inet manual
     bond-master uplink
-
 auto eth2
 iface eth2 inet manual
     bond-master uplink
-
 auto uplink
 iface uplink inet static
     bond-slaves eth1 eth2
@@ -362,19 +312,15 @@ iface uplink inet static
     netmask 255.255.255.0
     post-up ip route add 172.16.0.0/16 via 172.16.1.1
     post-up ip route add 10.0.0.0/8 via 172.16.1.1
-
 auto uplink:200
 iface uplink:200 inet static
     address 10.0.2.101
-
 auto uplink:300
 iface uplink:300 inet static
     address 10.0.3.101
-
 auto uplink:400
 iface uplink:400 inet static
     address 10.0.4.101
-
 # modprobe bonding
 ```
 
@@ -386,15 +332,12 @@ Create a configuration similar to the following on an Ubuntu host:
 ```
 auto eth0
 iface eth0 inet dhcp
-
 auto eth1
 iface eth1 inet manual
     bond-master uplink
-
 auto eth2
 iface eth2 inet manual
     bond-master uplink
-
 auto uplink
 iface uplink inet static
     bond-slaves eth1 eth2
@@ -407,19 +350,15 @@ iface uplink inet static
     netmask 255.255.255.0
     post-up ip route add 172.16.0.0/16 via 172.16.1.1
     post-up ip route add 10.0.0.0/8 via 172.16.1.1
-
 auto uplink:200
 iface uplink:200 inet static
     address 10.0.2.101
-
 auto uplink:300
 iface uplink:300 inet static
     address 10.0.3.101
-
 auto uplink:400
 iface uplink:400 inet static
     address 10.0.4.101
-
 # modprobe bonding
 ```
 
@@ -436,7 +375,7 @@ All virtual routers use 00:00:5E:00:01:XX for IPv4 gateways or 00:00:5E:00:02:XX
 - Cumulus Linux supports both VRRPv2 and VRRPv3. The default protocol version is VRRPv3.
 - You can configure a maximum of 255 virtual routers on a switch.
 - You cannot use VRRP with [MLAG](## "Multi-chassis Link Aggregation").
-- To configure VRRP on an [SVI](## "Switched Virtual Interface") or {{<link url="Traditional-Bridge-Mode" text="traditional mode bridge">}}, you need to edit the `etc/network/interfaces` and `/etc/frr/frr.conf` files. NCLU commands do not support SVIs or traditional mode bridges.
+- To configure VRRP on an [SVI](## "Switched Virtual Interface") or {{<link url="Traditional-Bridge-Mode" text="traditional mode bridge">}}, you need to edit the `etc/network/interfaces` and `/etc/frr/frr.conf` files.
 - You can use VRRP with [EVPN](## "Ethernet Virtual Private Network"), and on layer 3 interfaces and subinterfaces that are part of a [VRF](## "Virtual Routing and Forwarding").
 {{%/notice%}}
 
@@ -460,6 +399,7 @@ You can also set these optional parameters:
 | `priority` | 100 | The priority level of the virtual router within the virtual router group, which determines the role that each virtual router plays and what happens if the master fails. Virtual routers have a priority between 1 and 254; the router with the highest priority becomes the master. |
 | `advertisement interval` | 1000 milliseconds | The advertisement interval is the interval between successive advertisements by the master in a virtual router group. You can specify a value between 10 and 40950.|
 | `preempt` | enabled | Preempt mode lets the router take over as master for a virtual router group if it has a higher priority than the current master. Preempt mode is on by default. To disable preempt mode, edit the `/etc/frr/frr.conf` file to add the line `no vrrp <VRID> preempt` to the interface stanza, then restart the FRR service.|
+| `version` | 3 | The VRRP protocol version. You can specify a value of either 2 or 3.|
 
 The following example commands configure two switches (spine01 and spine02) that form one virtual router group (VRID 44) with IPv4 address 10.0.0.1/24 and IPv6 address 2001:0db8::1/64. *spine01* is the master; it has a priority of 254. *spine02* is the backup VRRP router.
 
@@ -468,38 +408,6 @@ The parent interface must use a primary address as the source address on VRRP ad
 {{%/notice%}}
 
 {{< tabs "TabID448 ">}}
-{{< tab "NCLU Commands ">}}
-
-{{< tabs "TabID526 ">}}
-{{< tab "spine01 ">}}
-
-```
-cumulus@spine01:~$ net add interface swp1 ip address 10.0.0.2/24
-cumulus@spine01:~$ net add interface swp1 ipv6 address 2001:0db8::2/64
-cumulus@spine01:~$ net add interface swp1 vrrp 44 10.0.0.1
-cumulus@spine01:~$ net add interface swp1 vrrp 44 2001:0db8::1
-cumulus@spine01:~$ net add interface swp1 vrrp 44 priority 254
-cumulus@spine01:~$ net add interface swp1 vrrp 44 advertisement-interval 5000
-cumulus@spine01:~$ net pending
-cumulus@spine01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "spine02 ">}}
-
-```
-cumulus@spine02:~$ net add interface swp1 ip address 10.0.0.3/24
-cumulus@spine02:~$ net add interface swp1 ipv6 address 2001:0db8::3/64
-cumulus@spine02:~$ net add interface swp1 vrrp 44 10.0.0.1
-cumulus@spine02:~$ net add interface swp1 vrrp 44 2001:0db8::1/64
-cumulus@spine02:~$ net pending
-cumulus@spine02:~$ net commit
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 {{< tabs "TabID504 ">}}
@@ -552,7 +460,7 @@ cumulus@spine02:~$ nv config apply
 
     ```
     cumulus@spine01:~$ sudo vtysh
-
+    ...
     spine01# configure terminal
     spine01(config)# interface swp1
     spine01(config-if)# vrrp 44 ip 10.0.0.1
@@ -584,7 +492,7 @@ cumulus@spine02:~$ nv config apply
 
    ```
    cumulus@spine02:~$ sudo vtysh
-
+   ...
    spine02# configure terminal
    spine02(config)# interface swp1
    spine02(config-if)# vrrp 44 ip 10.0.0.1
@@ -600,7 +508,7 @@ cumulus@spine02:~$ nv config apply
 {{< /tab >}}
 {{< /tabs >}}
 
-The NCLU and vtysh commands save the configuration in the `/etc/network/interfaces` file and the `/etc/frr/frr.conf` file. For example:
+The vtysh commands save the configuration in the `/etc/network/interfaces` file and the `/etc/frr/frr.conf` file. For example:
 
 ```
 cumulus@spine01:~$ sudo cat /etc/network/interfaces
@@ -627,10 +535,10 @@ vrrp 44 ipv6 2001:0db8::1
 
 ### Show VRRP Configuration
 
-To show virtual router information on a switch, run the NCLU `net show vrrp <VRID>` command or the vtysh `show vrrp <VRID>` command. For example:
+To show virtual router information on a switch, run the vtysh `show vrrp <VRID>` command or the `net show vrrp <VRID>` command. For example:
 
 ```
-cumulus@spine01:~$ net show vrrp 44
+cumulus@spine01:~$ show vrrp 44
 Virtual Router ID                    44
 Protocol Version                     3
 Autoconfigured                       No

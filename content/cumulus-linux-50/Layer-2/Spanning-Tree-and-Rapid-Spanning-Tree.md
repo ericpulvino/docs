@@ -59,15 +59,6 @@ If you have a multiple spanning tree instance (MSTI 0, also known as a common sp
 The following example command sets the tree priority to 8192:
 
 {{< tabs "TabID213 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge stp treeprio 8192
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -119,16 +110,6 @@ You typically configure edge ports as access ports for a simple end host. In the
 The following example commands configure PortAdminEdge and BPDU guard for swp5:
 
 {{< tabs "TabID276 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp5 stp bpduguard
-cumulus@switch:~$ net add interface swp5 stp portadminedge
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -187,15 +168,6 @@ Cumulus Linux enables PortAutoEdge by default.
 The following example commands disable PortAutoEdge on swp1:
 
 {{< tabs "TabID344 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 stp portautoedge no
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -229,15 +201,6 @@ cumulus@switch:~$ sudo ifreload -a
 The following example commands reenable PortAutoEdge on swp1:
 
 {{< tabs "TabID383 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net del interface swp1 stp portautoedge no
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -260,15 +223,6 @@ You can configure *BPDU guard* to protect the spanning tree topology from unauth
 The following example commands set BPDU guard for swp5:
 
 {{< tabs "TabID411 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp5 stp bpduguard
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -306,14 +260,6 @@ mstpd: error, MSTP_IN_rx_bpdu: bridge:bond0 Recvd BPDU on BPDU Guard Port - Port
 To see if a port has BPDU guard on or if the port receives a BPDU:
 
 {{< tabs "TabID454 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net show bridge spanning-tree | grep bpdu
-  bpdu guard port    yes                bpdu guard error     yes
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -355,7 +301,7 @@ bridge:bond0 CIST info
 The only way to recover a port that is in the disabled state is to manually bring up the port with the `sudo ifup <interface>` command. See {{<link title="Interface Configuration and Management">}} for more information about `ifupdown`.
 
 {{%notice note%}}
-Bringing up the disabled port does not correct the problem if the configuration on the connected end-station does not resolve.
+Bringing up the disabled port does not correct the problem if the configuration on the connected end station does not resolve.
 {{%/notice%}}
 
 ### Bridge Assurance
@@ -367,15 +313,6 @@ Cumulus Linux disables bridge assurance by default.
 The following example commands enable bridge assurance on swp1:
 
 {{< tabs "TabID513 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 stp portnetwork
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -437,15 +374,6 @@ Using BDPU filter sometimes causes layer 2 loops. Use this feature with caution.
 The following example commands configure the BPDU filter on swp6:
 
 {{< tabs "TabID584 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp6 stp portbpdufilter
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -546,42 +474,14 @@ Be sure to run the `sudo ifreload -a` command after you set the STP parameter in
 To check STP status for a bridge:
 
 {{< tabs "TabID50 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net show bridge spanning-tree
-Bridge info
-  enabled         yes
-  bridge id       8.000.44:38:39:FF:40:94
-    Priority:     32768
-    Address:      44:38:39:FF:40:94
-  This bridge is root.
-
-  designated root 8.000.44:38:39:FF:40:94
-    Priority:     32768
-    Address:      44:38:39:FF:40:94
-
-  root port       none
-  path cost     0          internal path cost   0
-  max age       20         bridge max age       20
-  forward delay 15         bridge forward delay 15
-  tx hold count 6          max hops             20
-  hello time    2          ageing time          300
-  force protocol version     rstp
-
-INTERFACE  STATE  ROLE  EDGE
----------  -----  ----  ----
-peerlink   forw   Desg  Yes
-vni13      forw   Desg  Yes
-vni24      forw   Desg  Yes
-vxlan4001  forw   Desg  Yes
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
 cumulus@switch:~$ nv show bridge domain br_default stp
+          operational  applied  description
+--------  -----------  -------  ---------------------------------------------------------------------
+priority  32768        32768    stp priority. The priority value must be a number between 4096 and...
+state     up           up       The state of STP on the bridge
 ```
 
 {{< /tab >}}

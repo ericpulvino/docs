@@ -4,9 +4,9 @@ author: NVIDIA
 weight: 1145
 toc: 4
 ---
-SPAN (Switched Port Analyzer) enables you to mirror all packets that come in from or go out of an interface (the *SPAN source*), and copy and transmit the packets out of a local port or CPU (the *SPAN destination*) for monitoring. The SPAN destination port is also referred to as a mirror-to-port (MTP). The original packet is still switched, while a mirrored copy of the packet goes out of the MTP.
+[SPAN](## "Switched Port Analyzer") enables you to mirror all packets that come in from or go out of an interface (the *SPAN source*), and copy and transmit the packets out of a local port or CPU (the *SPAN destination*) for monitoring. The SPAN destination port is also referred to as a mirror-to-port (MTP). The original packet is still switched, while a mirrored copy of the packet goes out of the MTP.
 
-ERSPAN (Encapsulated Remote SPAN) enables the mirrored packets go to a monitoring node located anywhere across the routed network. The switch finds the outgoing port of the mirrored packets by looking up the destination IP address in its routing table. The switch encapsulates the original layer 2 packet with GRE for IP delivery. The encapsulated packets have the following format:
+[ERSPAN](## "Encapsulated Remote SPAN") enables the mirrored packets go to a monitoring node located anywhere across the routed network. The switch finds the outgoing port of the mirrored packets by looking up the destination IP address in its routing table. The switch encapsulates the original layer 2 packet with GRE for IP delivery. The encapsulated packets have the following format:
 
 ```
  ----------------------------------------------------------
@@ -16,7 +16,6 @@ ERSPAN (Encapsulated Remote SPAN) enables the mirrored packets go to a monitorin
 
 You can configure SPAN and ERSPAN in one of the following ways:
 - With NVUE Commands
-- With NCLU commands
 - With ACL rules
 - Manually by editing the `/etc/cumulus/switchd.d/port-mirror.conf` file (for advanced users)
 
@@ -29,96 +28,6 @@ You can configure SPAN and ERSPAN in one of the following ways:
 - Mirroring to the same interface that you are monitoring causes a recursive flood of traffic and might impact traffic on other interfaces.
 {{%/notice%}}
 
-## NCLU Configuration
-
-- To configure SPAN with NCLU, run the `net add port-mirror session <session-id> (ingress|egress) span src-port <interface> dst-port <interface>` command.
-- To configure ERSPAN with NCLU, run the `net add port-mirror session <session-id> (ingress|egress) erspan src-port <interface> src-ip <interface> dst-ip <ip-address>` command.
-
-The following table describes the command parameters.
-
-| <div style="width:250px">Parameter | Description |
-| --------- | ----------- |
-| `session <id>` | The session ID. This is a number between 0 and 7. |
-| `ingress|egress` | The session direction:<ul><li> Ingress, where packets received on a port are sent to a sniffer port (SPAN) or destination IP address (ERSPAN).</li><li>Egress, where packets transmitted by the port are sent to the sniffer port (SPAN) or destination IP address (ERSPAN).</li></ul><br>To configure both ingress and egress, create two sessions.|
-| `src-port <interface>` | The interface or list of interfaces on which the mirror session applies. You can specify swp or bond interfaces. Separate the interfaces in the list with a comma; for example swp1,swp45,swp46.{{%notice note%}}For ERSPAN, you can specify only one interface.{{%/notice%}}|
-| `dst-port <interface>` | The interface where the switch mirrors the frame for SPAN. You can connect a traffic analyzer, monitor or a host to this interface to observe the traffic from the source interface. You can only use switch ports (swps).<br><br>On NVIDIA Spectrum switches, Cumulus Linux supports a maximum of three analyzer ports. On NVIDIA switches with the Spectrum-2 and Spectrum-3 ASIC, Cumulus Linux supports a maximum of eight analyzer ports. You can configure multiple sessions to a single analyzer port.|
-| `src-ip <ip-address>` | The source IP address for ERSPAN encapsulation. This is typically the loopback address of the switch. |
-| `dst-ip <ip-address>` | The destination IP address for ERSPAN encapsulation. This is typically the loopback address of the destination device.|
-
-The NCLU commands save the configuration in the `/etc/cumulus/switchd.d/port-mirror.conf` file.
-
-### Example Commands
-
-The following example commands mirror all packets received on swp1, and copy and transmit the packets to swp2 for monitoring:
-
-```
-cumulus@switch:~$ net add port-mirror session 1 ingress span src-port swp1 dst-port swp2
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The following example commands mirror all packets that go out of swp1, and copy and transmit the packets to swp2 for monitoring:
-
-```
-cumulus@switch:~$ net add port-mirror session 1 egress span src-port swp1 dst-port swp2
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The following example commands mirror all packets that swp1 receives, and copy and transmit the packets from source IP address 10.10.10.1 to destination IP address 10.10.10.234 through a GRE tunnel:
-
-```
-cumulus@switch:~$ net add port-mirror session 1 ingress erspan src-port swp1 src-ip 10.10.10.1 dst-ip 10.10.10.234
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The following example commands mirror all packets that go out of swp1, and copy and transmit the packets from source IP address 10.10.10.1 to destination IP address 10.10.10.234 through a GRE tunnel:
-
-```
-cumulus@switch:~$ net add port-mirror session 1 egress erspan src-port swp1 src-ip 10.10.10.1 dst-ip 10.10.10.234
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-### Show Session Configuration
-
-To show SPAN and ERSPAN configuration for a specific session:
-
-```
-cumulus@switch:~$ net show port-mirror session 1
-session-id  direction  type  src   dest
-----------  ---------  ----  ----  -----
-         1  ingress    span  swp1  swp2
-```
-
-To show SPAN and ERSPAN configuration for all sessions:
-
-```
-cumulus@switch:~$ net show port-mirror session all
-session-id  direction  type  src   dest
-----------  ---------  ----  ----  -----
-         1  ingress    span  swp1  swp2
-```
-
-### Delete Sessions
-
-To delete a SPAN or ERSPAN session, run the `net del port-mirror session <session-id>` command. For example:
-
-```
-cumulus@switch:~$ net del port-mirror session 1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-You can delete all SPAN or ERSPAN sessions with the `net del port-mirror session all` command. For example:
-
-```
-cumulus@switch:~$ net del port-mirror session all
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
 ## NVUE Configuration
 
 - To configure SPAN with NVUE, run the `nv set system port-mirror session <session-id> span <option>` command.
@@ -127,11 +36,11 @@ cumulus@switch:~$ net commit
 SPAN and ERSPAN configuration requires a session ID, which is a number between 0 and 7.
 
 You can set the following SPAN and ERSPAN options:
-- Source port (`src-port`)
+- Source port (`source-port`)
 - Destination port (`destination`)
 - Direction (`ingress` or `egress`)
-- Source IP address for ERSPAN encapsulation (`destination src-ip`)
-- Destination IP address for ERSPAN encapsulation (`destination dst-ip`)
+- Source IP address for ERSPAN encapsulation (`destination source-ip`)
+- Destination IP address for ERSPAN encapsulation (`destination dest-ip`)
 
 You can also truncate the mirrored frames at specified number of bytes. The size must be between 4 and 4088 bytes and a multiple of 4.
 
@@ -143,7 +52,7 @@ The following example commands mirror all packets received on swp1, and copy and
 
 ```
 cumulus@switch:~$ nv set system port-mirror session 1 span direction ingress 
-cumulus@switch:~$ nv set system port-mirror session 1 span src-port swp1 
+cumulus@switch:~$ nv set system port-mirror session 1 span source-port swp1 
 cumulus@switch:~$ nv set system port-mirror session 1 span destination swp2
 cumulus@switch:~$ nv config apply
 ```
@@ -152,7 +61,7 @@ The following example commands mirror all packets that go out of swp1, and copy 
 
 ```
 cumulus@switch:~$ nv set system port-mirror session 1 span direction egress
-cumulus@switch:~$ nv set system port-mirror session 1 span src-port swp1
+cumulus@switch:~$ nv set system port-mirror session 1 span source-port swp1
 cumulus@switch:~$ nv set system port-mirror session 1 span destination swp2
 cumulus@switch:~$ nv config apply
 ```
@@ -160,9 +69,9 @@ cumulus@switch:~$ nv config apply
 The following example commands mirror all packets that swp1 receives, and copy and transmit the packets from source IP address 10.10.10.1 to destination IP address 10.10.10.234 through a GRE tunnel:
 
 ```
-cumulus@switch:~$ nv set system port-mirror session 1 erspan src-port swp1
-cumulus@switch:~$ nv set system port-mirror session 1 erspan destination src-ip 10.10.10.1 
-cumulus@switch:~$ nv set system port-mirror session 1 erspan destination dst-ip 10.10.10.234
+cumulus@switch:~$ nv set system port-mirror session 1 erspan source-port swp1
+cumulus@switch:~$ nv set system port-mirror session 1 erspan destination source-ip 10.10.10.1 
+cumulus@switch:~$ nv set system port-mirror session 1 erspan destination dest-ip 10.10.10.234
 cumulus@switch:~$ nv config apply
 ```
 
@@ -170,9 +79,9 @@ The following example commands mirror all packets that go out of swp1, and copy 
 
 ```
 cumulus@switch:~$ nv set system port-mirror session 1 erspan direction egress
-cumulus@switch:~$ nv set system port-mirror session 1 erspan src-port swp1
-cumulus@switch:~$ nv set system port-mirror session 1 erspan destination src-ip 10.10.10.1
-cumulus@switch:~$ nv set system port-mirror session 1 erspan destination dst-ip 10.10.10.234
+cumulus@switch:~$ nv set system port-mirror session 1 erspan source-port swp1
+cumulus@switch:~$ nv set system port-mirror session 1 erspan destination source-ip 10.10.10.1
+cumulus@switch:~$ nv set system port-mirror session 1 erspan destination dest-ip 10.10.10.234
 cumulus@switch:~$ nv config apply
 ```
 
@@ -526,7 +435,7 @@ cumulus@switch:~$ sudo cl-acltool -L all | grep SPAN
 
 ## Manual Configuration (Advanced)
 
-You can configure SPAN and ERSPAN by editing the `/etc/cumulus/switchd.d/port-mirror.conf` file. The NCLU commands save SPAN and ERSPAN configuration to this file.
+You can configure SPAN and ERSPAN by editing the `/etc/cumulus/switchd.d/port-mirror.conf` file.
 
 The following example SPAN configuration mirrors all packets received on swp1, and copies and transmits the packets to swp2 for monitoring:
 

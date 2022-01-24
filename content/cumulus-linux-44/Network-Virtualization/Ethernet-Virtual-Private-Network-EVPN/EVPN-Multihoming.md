@@ -77,6 +77,7 @@ The following features are not supported with EVPN-MH:
 
 - {{<link url="Traditional-Bridge-Mode" text="Traditional bridge mode">}}
 - {{<link url="Inter-subnet-Routing/#asymmetric-routing" text="Distributed asymmetric routing">}}
+- {{<link url="EVPN-Enhancements/#duplicate-address-detection" text="Duplicate address detection">}}
 
 ## Basic Configuration
 
@@ -212,13 +213,6 @@ cumulus@leaf01:~$ nv set interface bond1-3 evpn multihoming segment df-preferenc
 cumulus@leaf01:~$ nv config apply
 ```
 
-The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
-
-```
-
 {{</tab>}}
 {{<tab "vtysh Commands">}}
 
@@ -340,12 +334,6 @@ cumulus@leaf01:~$ nv config apply
 
 If you are configuring EVPN multihoming with EVPN-PIM, be sure to configure PIM on the interfaces.
 
-The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
-```
-
 {{</tab>}}
 {{<tab "vtysh Commands">}}
 
@@ -435,12 +423,6 @@ cumulus@leaf01:~$ nv set evpn multihoming mac-holdtime 1000
 cumulus@leaf01:~$ nv config apply
 ```
 
-The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
-```
-
 {{</tab>}}
 {{<tab "vtysh Commands">}}
 
@@ -490,12 +472,6 @@ cumulus@leaf01:~$ nv set evpn multihoming neighbor-holdtime 600
 cumulus@leaf01:~$ nv config apply
 ```
 
-The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
-```
-
 {{</tab>}}
 {{<tab "vtysh Commands">}}
 
@@ -543,12 +519,6 @@ evpn mh startup-delay 1800
 ```
 cumulus@leaf01:~$ nv set evpn multihoming startup-delay 1800
 cumulus@leaf01:~$ nv config apply
-```
-
-The NVUE Commands create the following configuration snippet in the `/etc/nvue.d/startup.yaml` file:
-
-```
-cumulus@leaf01:~$ sudo cat /etc/nvue.d/startup.yaml
 ```
 
 {{</tab>}}

@@ -188,46 +188,12 @@ This also creates a route on the neighbor device to the management network throu
 NVIDIA recommends route maps to control advertised networks that you redistribute with the `redistribute connected` command.
 
 {{< tabs "TabID222 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add routing route-map REDISTRIBUTE-CONNECTED deny 100 match interface eth0
-cumulus@switch:~$ net add routing route-map REDISTRIBUTE-CONNECTED permit 1000
-cumulus@switch:~$ net add bgp redistribute connected route-map REDISTRIBUTE-CONNECTED
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The NCLU commands save the configuration in the `/etc/frr/frr.conf` file. For example:
-
-```
-...
-router bgp 65101
- bgp router-id 10.10.10.1
- neighbor swp51 interface remote-as external
- neighbor swp52 interface remote-as external
- !
- address-family ipv4 unicast
-  network 10.1.10.0/24
-  network 10.10.10.1/32
-  redistribute connected route-map REDISTRIBUTE-CONNECTED
-  maximum-paths 64
-  maximum-paths ibgp 64
- exit-address-family
-!
-route-map REDISTRIBUTE-CONNECTED deny 100
-match interface eth0
-!
-route-map REDISTRIBUTE-CONNECTED permit 1000
-...
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
+cumulus@switch:~$ nv set router policy route-map REDISTRIBUTE rule 10 match type ipv4
 cumulus@switch:~$ nv set router policy route-map REDISTRIBUTE rule 10 match interface eth0
-cumulus@switch:~$ nv set router policy route-map REDISTRIBUTE rule 100 action deny
+cumulus@switch:~$ nv set router policy route-map REDISTRIBUTE rule 10 action deny
 cumulus@switch:~$ nv set vrf default router bgp address-family ipv4-unicast redistribute connected route-map REDISTRIBUTE
 cumulus@switch:~$ nv config apply
 ```
@@ -237,7 +203,7 @@ cumulus@switch:~$ nv config apply
 
 ```
 cumulus@switch:$ sudo vtysh
-
+...
 switch# configure terminal
 switch(config)# route-map REDISTRIBUTE-CONNECTED deny 10 
 switch(config-route-map)# match interface eth0
@@ -249,7 +215,6 @@ switch((config-router-af)# redistribute connected route-map REDISTRIBUTE-CONNECT
 switch(config)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 The vtysh commands save the configuration in the `/etc/frr/frr.conf` file. For example:
@@ -289,41 +254,6 @@ cumulus@switch:~$ sudo ip vrf exec default ssh 10.23.23.2 10.3.3.3
 
 ## View the Routing Tables
 
-{{< tabs "TabID276 ">}}
-{{< tab "NCLU Commands ">}}
-
-The `ip route show` command shows the switch port (*main*) table. You can see the data plane routing table with the `net show route vrf main` command.
-
-To show information for eth0 (the management routing table), run the `net show route vrf mgmt` command:
-
-```
-cumulus@switch:~$ net show route vrf mgmt
-default via 192.168.0.1 dev eth0
-```
-
-```
-cumulus@switch:~$ net show route
-default via 10.23.23.3 dev swp17  proto zebra  metric 20
-10.3.3.3 via 10.23.23.3 dev swp17
-10.23.23.0/24 dev swp17  proto kernel  scope link  src 10.23.23.2
-192.168.0.0/24 dev eth0  proto kernel  scope link  src 192.168.0.11
-```
-
-If you run the `ip route get` command to return information about a single route, the command resolves over the *mgmt* table by default. To obtain information about the route in the switching silicon, run this command:
-
-```
-cumulus@switch:~$ net show route <ip-address>
-```
-
-To show the route for any VRF, run the `net show route vrf <vrf-name> <ip-address>` command:
-
-```
-cumulus@switch:~$ net show route vrf mgmt <ip-address>
-```
-
-{{< /tab >}}
-{{< tab "Linux Commands ">}}
-
 When you use `ip route get` to return information about a single route, the command resolves over the *mgmt* table by default. To show information about the route in the switching silicon, run this command:
 
 ```
@@ -342,8 +272,6 @@ To get the route for any VRF, run the `ip route get <ip-address> oif <vrf-name>`
 cumulus@switch:~$ ip route get <ip-address> oif mgmt
 ```
 
-{{< /tab >}}
-{{< /tabs >}}
 <!-- vale off -->
 ## mgmt Interface Class
 <!-- vale on -->
@@ -393,17 +321,6 @@ For DNS to use the management VRF, the static DNS entries must reference the man
 For example, to specify DNS servers and associate some of them with the management VRF, run the following commands:
 
 {{< tabs "TabID388 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add dns nameserver ipv4 192.0.2.1
-cumulus@switch:~$ net add dns nameserver ipv4 198.51.100.31 vrf mgmt
-cumulus@switch:~$ net add dns nameserver ipv4 203.0.113.13 vrf mgmt
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```

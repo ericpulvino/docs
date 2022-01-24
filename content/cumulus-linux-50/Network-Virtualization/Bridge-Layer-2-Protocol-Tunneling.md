@@ -12,16 +12,6 @@ A [VXLAN](## "Virtual Extensible LAN") connects layer 2 domains across a layer 3
 To configure bridge layer 2 protocol tunneling for all protocols:
 
 {{< tabs "TabID14 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 bridge l2protocol-tunnel all
-cumulus@switch:~$ net add interface vni10 bridge l2protocol-tunnel all
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 NVUE Commands are not supported.
@@ -64,16 +54,6 @@ interface vni10
 To configure bridge layer 2 protocol tunneling for a **specific** protocol, such as LACP:
 
 {{< tabs "TabID68 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 bridge l2protocol-tunnel lacp
-cumulus@switch:~$ net add interface vni10 bridge l2protocol-tunnel lacp
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 NVUE Commands are not supported.

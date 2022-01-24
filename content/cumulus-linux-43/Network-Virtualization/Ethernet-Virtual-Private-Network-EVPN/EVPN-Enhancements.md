@@ -687,17 +687,12 @@ cumulus@leaf01:~$
 
 ## Filter EVPN Routes
 
-A common deployment scenario for large data centers is to sub divide the data center into multiple pods with full host mobility within a pod but only do prefix-based routing across pods. You can achieve this by only exchanging EVPN type-5 routes across pods.
+It is common to subdivide the data center into multiple pods with full host mobility within a pod but only do prefix-based routing across pods. You can achieve this by only exchanging EVPN type-5 routes across pods.
 
-To filter EVPN routes based on the route type and allow only certain types of EVPN routes to be advertised in the fabric:
+The following example commands configure EVPN to advertise type-5 routes:
 
-{{< tabs "TabID63 ">}}
-
+{{< tabs "TabID694 ">}}
 {{< tab "NCLU Commands ">}}
-
-Use the `net add routing route-map <route_map_name> (deny|permit) <1-65535> match evpn default-route` command or the `net add routing route-map <route_map_name> (deny|permit) <1-65535> match evpn route-type (macip|prefix|multicast)` command.
-
-The following example commands configure EVPN to advertise type-5 routes only:
 
 ```
 cumulus@leaf01:~$ net add routing route-map map1 permit 1 match evpn route-type prefix
@@ -706,10 +701,7 @@ cumulus@leaf01:~$ net commit
 ```
 
 {{< /tab >}}
-
 {{< tab "vtysh Commands ">}}
-
-The following example configures EVPN to advertise type-5 routes only:
 
 ```
 cumulus@leaf01:~$ sudo vtysh
@@ -724,19 +716,46 @@ cumulus@leaf01:~$
 ```
 
 {{< /tab >}}
-
-{{< tab "CUE Commands ">}}
-
-```
-cumulus@leaf01:~$ 
-```
-
-{{< /tab >}}
-
 {{< /tabs >}}
 
 {{%notice note%}}
 You must apply the route map for the configuration to take effect. See {{<link url="Route-Filtering-and-Redistribution/#route-maps" text="Route Maps">}} for more information.
+{{%/notice%}}
+
+In many situations, it is also desirable to only exchange EVPN routes carrying a particular VXLAN ID.
+For example, if data centers or pods within a data center only share certain tenants, you can use a route map to control the EVPN routes exchanged based on the VNI.
+
+The following example configures a route map that only advertises EVPN routes from VNI 1000:
+
+{{< tabs "TabID730" >}}
+{{< tab "NCLU Commands" >}}
+
+```
+cumulus@switch:~$ net add routing route-map map1 permit 1 match evpn vni 1000
+cumulus@switch:~$ net pending
+cumulus@switch:~$ net commit
+```
+
+{{< /tab >}}
+{{< tab "vtysh Commands" >}}
+
+```
+cumulus@switch:~$ sudo vtysh
+
+switch# configure terminal
+switch(config)# route-map map1 permit 1
+switch(config)# match evpn vni 1000
+switch(config)# end
+switch# write memory
+switch# exit
+cumulus@switch:~$
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
+{{%notice note%}}
+You can only match type-2 and type-5 routes based on VNI.
 {{%/notice%}}
 
 ## Advertise SVI IP Addresses
@@ -1012,15 +1031,9 @@ Duplicate address detection is enabled by default and triggers when:
 By default, when a duplicate address is detected, Cumulus Linux flags the address as a duplicate and generates an error in syslog so that you can troubleshoot the reason and address the fault, then clear the duplicate address flag. No functional action is taken on the address.
 
 {{%notice note%}}
-
-If a MAC address is flagged as a duplicate, all IP addresses associated with that MAC are flagged as duplicates. However, in an MLAG configuration, only one of the MLAG peers might flag the associated IP addresses as duplicates.
-
-{{%/notice%}}
-
-{{%notice note%}}
-
-In an MLAG configuration, MAC mobility detection runs independently on each switch in the MLAG pair. Based on the sequence in which local learning and/or route withdrawal from the remote VTEP occurs, a type-2 route might have its MAC mobility counter incremented only on one of the switches in the MLAG pair. In rare cases, it is possible for neither VTEP to increment the MAC mobility counter for the type-2 prefix.
-
+- If a MAC address is flagged as a duplicate, all IP addresses associated with that MAC are flagged as duplicates. However, in an MLAG configuration, only one of the MLAG peers might flag the associated IP addresses as duplicates.
+- In an MLAG configuration, MAC mobility detection runs independently on each switch in the MLAG pair. Based on the sequence in which local learning and/or route withdrawal from the remote VTEP occurs, a type-2 route might have its MAC mobility counter incremented only on one of the switches in the MLAG pair. In rare cases, it is possible for neither VTEP to increment the MAC mobility counter for the type-2 prefix.
+- Duplicate address detection is not supported in an {{<link title="EVPN Multihoming" text="EVPN multihoming">}} configuration.
 {{%/notice%}}
 
 ### When Does Duplicate Address Detection Trigger?

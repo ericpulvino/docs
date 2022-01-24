@@ -74,6 +74,7 @@ You can disable this mode by running the following command in the {{%link url="#
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# configure terminal
 switch(config)# no service integrated-vtysh-config
 ```
@@ -117,12 +118,7 @@ If you need to restore the FRR configuration to the default running configuratio
 
 Back up `frr.conf` (or any configuration files you want to remove) before proceeding.
 
-1. Confirm that `service integrated-vtysh-config` is running:
-
-    ``` 
-    cumulus@switch:~$ net show configuration | grep integrated
-    service integrated-vtysh-config  
-    ```
+1. Confirm that `service integrated-vtysh-config` is running.
 
 2. Remove `/etc/frr/frr.conf`:
 
@@ -444,15 +440,11 @@ To reload your FRR configuration after you modify `/etc/frr/frr.conf`, run:
 cumulus@switch:~$ sudo systemctl reload frr.service
 ```
 
-Examine the running configuration and verify that it matches the configuration in `/etc/frr/frr.conf`:
-
-```
-cumulus@switch:~$ net show configuration
-```
+Examine the running configuration and verify that it matches the configuration in `/etc/frr/frr.conf`.
 
 If the running configuration is not what you expect, {{<exlink url="https://support.mellanox.com/s/contact-support-page" text="submit a support request">}} and supply the following information:
 
-- The current running configuration (run `net show configuration` and output the contents to a file)
+- The current running configuration (run `show running-config` and output the contents to a file)
 - The contents of `/etc/frr/frr.conf`
 - The contents of `/var/log/frr/frr-reload.log`
 
@@ -471,22 +463,64 @@ To write debug messages to the log file, you must run the `log syslog debug` com
 The switch can have two hostnames in the FRR configuration. For example:
 
 ```
-Spine01# configure terminal
-Spine01(config)# hostname Spine01-1
-Spine01-1(config)# do sh run
+cumulus@spine01:~$ sudo vtysh...
+spine01# configure terminal
+spine01(config)# hostname spine01-1
+spine01-1(config)# do sh run
 Building configuration...
 Current configuration:
 !
 frr version 7.0+cl4u3
 frr defaults datacenter
-hostname Spine01
-hostname Spine01-1
+hostname spine01
+hostname spine01-1
 ...
 ```
 
 {{%notice note%}}
 If you configure the same numbered BGP neighbor with both the `neighbor x.x.x.x` and `neighbor swp# interface` commands, two neighbor entries are present for the same IP address in the configuration. To correct this issue, update the configuration and restart the FRR service.
 {{%/notice%}}
+
+### TCP Sockets and BGP Peering Sessions
+
+The FRR startup configuration includes a setting for the maximum number of open files allowed. For BGP, open files include TCP sockets that BGP connections use. Either BGP speaker can start a BGP peering almost simultaneously; therefore, you can have two TCP sockets for a single BGP peer. These two sockets exist until the BGP protocol determines which socket to use, then the other socket closes.
+
+The default setting of 1024 open files supports up to 512 BGP peering sessions. If you expect your network deployment to have more BGP peering sessions, you need to update this setting.
+
+{{%notice note%}}
+NVIDIA recommends you set the value to at least twice the maximum number of BGP peering sessions you expect.
+{{%/notice%}}
+
+To update the open files setting:
+
+1. Edit the `/lib/systemd/system/frr.service` file and change the `LimitNOFILE` parameter. The following example sets the `LimitNOFILE` parameter to 4096.
+
+   ```
+   cumulus@switch:~$ sudo cat /lib/systemd/system/frr.service
+   [Unit]
+   Description=FRRouting
+   Documentation=https://frrouting.readthedocs.io/en/latest/setup.html
+   After=networking.service csmgrd.service
+   
+   [Service]
+   Nice=-5
+   Type=forking
+   NotifyAccess=all
+   StartLimitInterval=3m
+   StartLimitBurst=3
+   TimeoutSec=2m
+   WatchdogSec=60s
+   RestartSec=5
+   Restart=on-abnormal
+   LimitNOFILE=4096
+   ...
+   ```
+
+2. Restart the FRR service.
+
+   ```
+   cumulus@switch:~$ sudo systemctl restart frr.service
+   ```
 
 ## Related Information
 

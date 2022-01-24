@@ -37,33 +37,6 @@ When you bring an interface up or down administratively (admin up or admin down)
 When you put an interface into an admin down state, the interface *remains down* after any future reboots or configuration changes with `ifreload -a`.
 
 {{< tabs "TabID39 ">}}
-{{< tab "NCLU Commands ">}}
-
-To put an interface into an admin *down* state:
-
-```
-cumulus@switch:~$ net add interface swp1 link down
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-These commands create the following configuration in the `/etc/network/interfaces` file:
-
-```
-auto swp1
-iface swp1
-    link-down yes
-```
-
-To bring the interface back *up*:
-
-```
-cumulus@switch:~$ net del interface swp1 link down
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 To put an interface into an admin *down* state:
@@ -193,15 +166,6 @@ The loopback interface *lo* must always exist on the switch and must always be u
 To configure an IP address for the loopback interface:
 
 {{< tabs "TabID196 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add loopback lo ip address 10.10.10.1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -451,34 +415,6 @@ For IPv6 addresses, you can create or modify the IP address for an interface usi
 The following example commands configure three IP addresses for swp1; two IPv4 addresses and one IPv6 address.
 
 {{< tabs "TabID464 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 ip address 12.0.0.1/30
-cumulus@switch:~$ net add interface swp1 ip address 12.0.0.2/30
-cumulus@switch:~$ net add interface swp1 ipv6 address 2001:DB8::1/126
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-These commands create the following code snippet in the `/etc/network/interfaces` file:
-
-```
-auto swp1
-iface swp1
-    address 12.0.0.1/30
-    address 12.0.0.2/30
-    address 2001:DB8::1/126
-```
-
-- NCLU adds the address method and address family when needed:
-
-   ```
-   auto lo
-   iface lo inet loopback
-   ```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -539,15 +475,6 @@ Interface descriptions also appear in the {{<link url="Simple-Network-Management
 The following example commands create the description `hypervisor_port_1` for swp1:
 
 {{< tabs "TabID838 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 alias hypervisor_port_1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -580,28 +507,9 @@ You can add any valid command in the sequence to bring an interface up or down; 
 The following examples adds a command to an interface to enable proxy ARP:
 
 {{< tabs "TabID640 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 post-up echo 1 > /proc/sys/net/ipv4/conf/swp1/proxy_arp
-cumulus@switch:~$ net add interface ip address 10.0.0.1/30
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{%notice warning%}}
-If your `post-up` command also starts, restarts, or reloads any `systemd` service, you must use the `--no-block` option with `systemctl`. Otherwise, that service or even the switch itself might hang after starting or restarting. For example, to restart the `dhcrelay` service after bringing up VLAN 100, first run:
-
-```
-cumulus@switch:~$ net add vlan 100 post-up systemctl --no-block restart dhcrelay.service
-```
-{{%/notice%}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
-NVUE command is not supported.
-
+The NVUE command is not supported.
 
 {{< /tab >}}
 {{< tab "Linux Commands ">}}
@@ -660,30 +568,6 @@ iface bond0
 To specify port ranges in commands:
 
 {{< tabs "TabID725 ">}}
-{{< tab "NCLU Commands ">}}
-
-Use commas to separate different port ranges (for example, swp1-46,10-12):
-
-```
-cumulus@switch:~$ net add bridge bridge ports swp1-4,6,10-12
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-These commands produce the following snippet in the `/etc/network/interfaces` file. The file renders the list of ports individually.
-
-```
-...
-auto bridge
-iface bridge
-    bridge-ports swp1 swp2 swp3 swp4 swp6 swp10 swp11 swp12
-    bridge-vlan-aware yes
-auto swp1
-iface swp1
-...
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 Use commas to separate different port ranges (for example, swp1-46,10-12):
@@ -766,13 +650,6 @@ addon_scripts_support=1
 To see the link and administrative state of an interface:
 
 {{< tabs "TabID875 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net show interface swp1
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -796,13 +673,6 @@ cumulus@switch:~$ ip link show dev swp1
 To show the assigned IP address on an interface:
 
 {{< tabs "TabID898 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net show interface swp1
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -828,40 +698,6 @@ cumulus@switch:~$ ip addr show swp1
 To show the description (alias) for an interface:
 
 {{< tabs "TabID923 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch$ net show interface swp1
-    Name   MAC                Speed     MTU   Mode
---  ----   -----------------  -------   -----  ---------
-UP  swp1   44:38:39:00:00:04  1G        1500   Access/L2
-Alias
------
-hypervisor_port_1
-```
-
-To show the interface description (alias) for all interfaces on the switch:
-
-```
-cumulus@switch:~$ net show interface alias
-State    Name            Mode              Alias
------    -------------   -------------     ------------------
-UP       bond01          LACP
-UP       bond02          LACP
-UP       bridge          Bridge/L2
-UP       eth0            Mgmt
-UP       lo              Loopback          loopback interface
-UP       mgmt            Interface/L3
-UP       peerlink        LACP
-UP       peerlink.4094   SubInt/L3
-UP       swp1            BondMember        hypervisor_port_1
-UP       swp2            BondMember        to Server02
-...
-```
-
-To show the interface description for all interfaces on the switch in JSON format, run the `net show interface alias json` command.
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -968,18 +804,9 @@ valid_lft forever preferred_lft forever
 To work around this issue, configure the IP address scope:
 
 {{< tabs "TabID589 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp6 post-up ip address add 71.21.21.20/32 dev swp6 scope site
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
-NVUE command is not supported.
+The NVUE command is not supported.
 
 {{< /tab >}}
 {{< tab "Linux Commands ">}}

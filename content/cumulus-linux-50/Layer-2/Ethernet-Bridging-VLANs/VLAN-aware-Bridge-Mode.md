@@ -23,28 +23,6 @@ The example commands below create a VLAN-aware bridge for STP that contains two 
 {{< img src = "/images/cumulus-linux/ethernet-bridging-basic-trunking1.png" >}}
 
 {{< tabs "TabID25 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge bridge ports swp1-2
-cumulus@switch:~$ net add bridge bridge vids 10,20
-cumulus@switch:~$ net add bridge bridge pvid 1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The above commands create the following code snippet in the `/etc/network/interfaces` file:
-
-```
-auto bridge
-iface bridge
-    bridge-ports swp1 swp2
-    bridge-pvid 1
-    bridge-vids 10 20
-    bridge-vlan-aware yes
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 With NVUE, there is a default bridge called `br_default`, which has no ports assigned. The example below configures this default bridge.
@@ -126,20 +104,6 @@ This example shows the commands required to create two VLAN-aware bridges on the
 Bridges are independent so you can reuse VLANs between bridges. Each VLAN-aware bridge maintains its own MAC address and VLAN tag table; MAC and VLAN tags in one bridge are not visible to the other table.
 
 {{< tabs "TabID128 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge bridge1 ports swp1-2
-cumulus@switch:~$ net add bridge bridge1 vids 10,20
-cumulus@switch:~$ net add bridge bridge1 pvid 1
-cumulus@switch:~$ net add bridge bridge2 ports swp3
-cumulus@switch:~$ net add bridge bridge2 vids 10
-cumulus@switch:~$ net add bridge bridge2 pvid 1
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -186,7 +150,16 @@ cumulus@switch:~$ ifreload -a
 {{< /tabs >}}
 
 {{%notice note%}}
-NVIDIA Spectrum switches support a maximum of 6000 VLAN elements and calculate the total number of VLAN elements as the number of VLANs times the number of configured bridges. For example, 6 bridges, each containing 1000 VLANS totals 6000 VLAN elements.
+NVIDIA Spectrum-2 switches and later support a maximum of 15996 VLAN elements and calculate the total number of VLAN elements as the number of VLANs times the number of configured bridges. For example, 6 bridges, each containing 2600 VLANs totals 15600 VLAN elements.
+
+If you enable multiple VLAN-aware bridges and want to use more VLAN elements than the default, you must update the number of VLAN elements in the `/etc/mlx/datapath/broadcast_domains.conf` file:
+- To specify the total number of bridge domains you want to use, uncomment and edit the `broadcast_domain.max_vlans` parameter. The default value is 6143.
+- To specify the total number of subinterfaces you want to use, uncomment and edit the `broadcast_domain.max_subinterfaces` parameter. The default value is 3872.
+
+You must restart `switchd` with the `systemctl restart switchd` command to apply the configuration.
+
+- The number of `broadcast_domain.max_vlans` plus `broadcast_domain.max_subinterfaces` cannot exceed 15996.
+- Increasing the `broadcast_domain.max_vlans` parameter can affect layer 2 multicast scale support.
 {{%/notice%}}
 
 ## Reserved VLAN Range
@@ -194,7 +167,7 @@ NVIDIA Spectrum switches support a maximum of 6000 VLAN elements and calculate t
 For hardware data plane internal operations, the switching silicon requires VLANs for every physical port, Linux bridge, and layer 3 subinterface. Cumulus Linux reserves a range of VLANs by default; the reserved range is 3725-3999.
 
 {{%notice tip%}}
-If the reserved VLAN range conflicts with any user-defined VLANs, you can modify the range. The new range must be a contiguous set of VLANs with IDs between 2 and 4094. For a single VLAN-aware bridge, the minimum size of the range is 32 VLANs.
+If the reserved VLAN range conflicts with any user-defined VLANs, you can modify the range. The new range must be a contiguous set of VLANs with IDs between 2 and 4094. For a single VLAN-aware bridge, the minimum size of the range is 2 VLANs. For multiple VLAN-aware bridges, the minimum size of the range is the number of VLAN-aware bridges on the system plus one.
 {{%/notice%}}
 
 To configure the reserved range, edit the `/etc/cumulus/switchd.conf` file to uncomment the `resv_vlan_range` line and specify a new range. After you save the file, you must restart `switchd`.
@@ -208,18 +181,6 @@ By default, the bridge port inherits the bridge VIDs, however, you can configure
 This example commands configure swp3 to override the bridge VIDs:
 
 {{< tabs "TabID157 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge bridge ports swp1-3
-cumulus@switch:~$ net add bridge bridge vids 10,20
-cumulus@switch:~$ net add bridge bridge pvid 1
-cumulus@switch:~$ net add interface swp3 bridge vids 20
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -265,19 +226,6 @@ Access ports ignore all tagged packets. In the configuration below, swp1 and swp
 {{< img src = "/images/cumulus-linux/ethernet-bridging-vlan_untagged_access_ports1.png" >}}
 <!-- vale on -->
 {{< tabs "TabID223 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge bridge ports swp1-2
-cumulus@switch:~$ net add bridge bridge vids 10,20
-cumulus@switch:~$ net add bridge bridge pvid 1
-cumulus@switch:~$ net add interface swp1 bridge access 10
-cumulus@switch:~$ net add interface swp2 bridge access 10
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -328,15 +276,6 @@ With VLAN-aware bridge mode, you can configure a switch port to drop any untagge
 The following example command configures swp2 to drop untagged frames:
 
 {{< tabs "TabID294 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp2 bridge allow-untagged no
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit 
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -397,16 +336,6 @@ The following example commands declare native VLAN 10 with IPv4 address 10.1.10.
 The NVUE and Linux commands also show an example with multiple VLAN-aware bridges.
 
 {{< tabs "TabID370 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add vlan 10 ip address 10.1.10.2/24
-cumulus@switch:~$ net add vlan 10 ipv6 address 2001:db8::1/32
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 {{< tabs "TabID419 ">}}
@@ -580,15 +509,6 @@ By default, Cumulus Linux automatically generates IPv6 *link-local* addresses on
 To disable automatic address generation for a regular IPv6 address on a VLAN, run the following command. The following example command disables automatic address generation for a regular IPv6 address on VLAN 10.
 
 {{< tabs "TabID248 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add vlan 10 ipv6-addrgen off
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 NVUE commands are not supported.
@@ -619,15 +539,6 @@ cumulus@switch:~$ ifreload -a
 To reenable automatic link-local address generation for a VLAN:
 
 {{< tabs "TabID287 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net del vlan 10 ipv6-addrgen off
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 NVUE commands are not supported.
@@ -645,10 +556,10 @@ Edit the `/etc/network/interfaces` file to **remove** the line `ipv6-addrgen off
 You can add a static MAC address entry to the layer 2 table for an interface within the VLAN-aware bridge by running a command similar to the following:
 
 ```
-cumulus@switch:~$ sudo bridge fdb add 12:34:56:12:34:56 dev swp1 vlan 150 master static
+cumulus@switch:~$ sudo bridge fdb add 12:34:56:12:34:56 dev swp1 vlan 150 master static sticky
 cumulus@switch:~$ sudo bridge fdb show
 44:38:39:00:00:7c dev swp1 master bridge permanent
-12:34:56:12:34:56 dev swp1 vlan 150 master bridge static
+12:34:56:12:34:56 dev swp1 vlan 150 sticky master bridge static
 44:38:39:00:00:7c dev swp1 self permanent
 12:12:12:12:12:12 dev swp1 self permanent
 12:34:12:34:12:34 dev swp1 self permanent
@@ -708,10 +619,6 @@ iface swp49
 - STP runs on a per-bridge basis.
 - `mstpd` remains the user space protocol daemon.
 - Cumulus Linux supports {{<link url="Spanning-Tree-and-Rapid-Spanning-Tree-STP" text="Rapid Spanning Tree Protocol (RSTP)">}}.
-
-<!--### IGMP Snooping
-
-IGMP snooping and group membership are supported on a per-VLAN basis; however, the IGMP snooping configuration (including enable, disable, and mrouter ports) is defined on a per-bridge port basis.-->
 
 ### VLAN Translation
 

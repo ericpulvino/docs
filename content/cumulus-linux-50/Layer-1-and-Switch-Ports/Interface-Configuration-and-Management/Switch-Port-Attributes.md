@@ -8,10 +8,10 @@ toc: 4
 Cumulus Linux exposes network interfaces for several types of physical and logical devices:
 
 - `lo` is the network loopback device
-- `ethN` are switch management ports (for out of band management only)
-- `swpN` are switch front panel ports
-- (optional) `brN` are bridges (IEEE 802.1Q VLANs)
-- (optional) `bondN` are bonds (IEEE 802.3ad link aggregation trunks, or port channels)
+- `eth` is a switch management port (for out of band management only)
+- `swp` is a switch front panel port
+- (optional) `br` is a bridge (IEEE 802.1Q VLAN)
+- (optional) `bond` is a bond (IEEE 802.3ad link aggregation trunk, or port channel)
 
 Each physical network interface (port) has several settings:
 
@@ -21,7 +21,7 @@ Each physical network interface (port) has several settings:
 - [MTU](## "Maximum Transmission Unit")
 - [FEC](## "Forward Error Correction")
 
-For **Spectrum ASICs**, MTU is the only port attribute you can directly configure. The Spectrum firmware configures FEC, link speed, duplex mode and auto-negotiation automatically, following a predefined list of parameter settings until the link comes up. However, you can disable FEC if necessary, which forces the firmware to not try any FEC options.
+For NVIDIA **Spectrum ASICs**, MTU is the only port attribute you can directly configure. The Spectrum firmware configures FEC, link speed, duplex mode and auto-negotiation automatically, following a predefined list of parameter settings until the link comes up. However, you can disable FEC if necessary, which forces the firmware to not try any FEC options.
 
 ## MTU
 
@@ -32,23 +32,6 @@ In Cumulus Linux, `ifupdown2` assigns 9216 as the default MTU setting. The initi
 To change the MTU setting, run the following commands. The example command sets the MTU to 1500 for the swp1 interface.
 
 {{< tabs "TabID227 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 mtu 1500
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-These commands create the following code snippet in the `/etc/network/interfaces` file:
-
-```
-auto swp1
-iface swp1
-    mtu 1500
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -124,23 +107,9 @@ VLAN interfaces inherit their MTU settings from their physical devices or their 
 
 If you are working with {{<link url="Network-Virtualization" text="VXLANs">}}, the MTU for a virtual network interface (VNI must be 50 bytes smaller than the MTU of the physical interfaces on the switch, as various headers and other data require those 50 bytes. Also, consider setting the MTU much higher than 1500.
 
-{{%notice note%}}
-The MTU for an SVI interface, such as vlan10, comes from the bridge. When you use NCLU to change the MTU for an SVI and the MTU setting is higher than it is for the other bridge member interfaces, the MTU for all bridge member interfaces changes to the new setting. If you need to use a mixed MTU configuration for SVIs, (if some SVIs have a higher MTU and some lower), set the MTU for all member interfaces to the maximum value, then set the MTU on the specific SVIs that need to run at a lower MTU.
-{{%/notice%}}
-
 To show the MTU setting for an interface:
 
 {{< tabs "TabID354 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net show interface swp1
-    Name    MAC                Speed      MTU  Mode
---  ------  -----------------  -------  -----  ---------
-UP  swp1    44:38:39:00:00:04  1G        9216  Access/L2
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -159,9 +128,33 @@ cumulus@switch:~$ ip link show dev swp1
 {{< /tab >}}
 {{< /tabs >}}
 
+### Drop Packets that Exceed the Egress Layer 3 MTU
+
+The switch forwards all packets that are within the MTU value set for the egress layer 3 interface. However, when packets are larger in size than the MTU value, the switch fragments the packets that do *not* have the [DF](## "Don’t Fragment") bit set and drops the packets that *do* have the [DF](## "Don’t Fragment") bit set.
+
+Run the following command to drop **all** IP packets that are larger in size than the MTU value for the egress layer 3 interface instead of fragmenting packets:
+
+{{< tabs "TabID166 ">}}
+{{< tab "NVUE Commands ">}}
+
+```
+cumulus@switch:~$ nv set system control-plane trap l3-mtu-err state off
+cumulus@switch:~$ nv config apply
+```
+
+{{< /tab >}}
+{{< tab "Linux Command ">}}
+
+```
+cumulus@switch:~$ echo "0 >" /cumulus/switchd/config/trap/l3-mtu-err/enable
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
 ## FEC
 
-[FEC](## "Forward Error Correction") is an encoding and decoding layer that enables the switch to detect and correct bit errors introduced over the cable between two interfaces. The target IEEE [BER]](## "Bit Error Rate") on high speed Ethernet links is 10<sup>-12</sup>. Because 25G transmission speeds can introduce a higher than acceptable BER on a link, FEC is often required to correct errors to achieve the target BER at 25G, 4x25G, 100G, and higher link speeds. The type and grade of a cable or module and the medium of transmission determine which FEC setting is necessary.
+[FEC](## "Forward Error Correction") is an encoding and decoding layer that enables the switch to detect and correct bit errors introduced over the cable between two interfaces. The target IEEE [BER](## "Bit Error Rate") on high speed Ethernet links is 10<sup>-12</sup>. Because 25G transmission speeds can introduce a higher than acceptable BER on a link, FEC is often required to correct errors to achieve the target BER at 25G, 4x25G, 100G, and higher link speeds. The type and grade of a cable or module and the medium of transmission determine which FEC setting is necessary.
 
 For the link to come up, the two interfaces on each end must use the same FEC setting.
 
@@ -306,15 +299,6 @@ Active FEC encoding: Off
 To enable **Reed Solomon (RS) FEC** on a link:
 
 {{< tabs "TabID313 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ sudo net add interface swp1 link fec rs
-cumulus@switch:~$ sudo net pending
-cumulus@switch:~$ sudo net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -359,15 +343,6 @@ A runtime configuration is non-persistent. The configuration you create does not
 To enable **Base-R/FireCode FEC** on a link:
 
 {{< tabs "TabID366 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ sudo net add interface swp1 link fec baser
-cumulus@switch:~$ sudo net pending
-cumulus@switch:~$ sudo net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -416,16 +391,6 @@ You can use FEC with auto-negotiation on DACs only.
 {{%/notice%}}
 
 {{< tabs "TabID423 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ sudo net add interface swp1 link autoneg on
-cumulus@switch:~$ sudo net pending
-cumulus@switch:~$ sudo net commit
-```
-
-{{< /tab >}}
-
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -480,15 +445,6 @@ Link partner advertised FEC modes: Not reported
 To disable FEC on a link:
 
 {{< tabs "TabID487 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ sudo net add interface swp1 link fec off
-cumulus@switch:~$ sudo net pending
-cumulus@switch:~$ sudo net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -1104,7 +1060,7 @@ Maximum 100G ports: 80
 {{< /tab >}}
 
 {{< /tabs >}}
-<!-- SN4600 PLATFORM IS PLANNED TO AUG21 (CL4.4.1?)
+<!-- SN4600 PLATFORM IS PLANNED TO AUG21 (CL4.4.2?)
 {< tab "SN4600">}}
 
 SN4600 64xQSFP56 (200GbE) interfaces support both PAM4 and NRZ encodings with all speeds down to 1G.
@@ -1232,7 +1188,7 @@ Maximum 400G ports: 32
 {{< /tab >}}
 
 {{< /tabs >}}
-<!-- SN4800 PLATFORM IS PLANNED TO NOV21 (CL5.0?)
+<!-- SN4800 PLATFORM IS PLANNED TO NOV21 (CL5.1?)
 {< tab "SN4800">}}
 
 SN4800 is a modular chassis with up to 8 line cards. Each line card can have up to 16 MAC addresses and can be of a different port form-factor and speed.
@@ -1330,44 +1286,6 @@ For valid port configuration and breakout guidance, see the `/etc/cumulus/ports.
 To configure a breakout port:
 
 {{< tabs "TabID607 ">}}
-{{< tab "NCLU Commands ">}}
-
-This example command breaks out the 100G port on swp1 into four 25G ports:
-
-```
-cumulus@switch:~$ net add interface swp1 breakout 4x25G
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-To break out a port into four 10G ports, you must **also** disable the next port.
-
-```
-cumulus@switch:~$ net add interface swp2 breakout disabled
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-These commands break out swp1 into four 25G interfaces in the `/etc/cumulus/ports.conf` file and create four interfaces in the `/etc/network/interfaces` file:
-
-```
-cumulus@switch:~$ cat /etc/network/interfaces
-...
-auto swp1s0
-iface swp1s0
-
-auto swp1s1
-iface swp1s1
-
-auto swp1s2
-iface swp1s2
-
-auto swp1s3
-iface swp1s3
-...
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 This example command breaks out the 100G port on swp1 into four 25G ports:
@@ -1433,39 +1351,6 @@ cumulus@switch:~$ sudo systemctl reload switchd.service
 To remove a breakout port:
 
 {{< tabs "TabID710 ">}}
-{{< tab "NCLU Commands ">}}
-
-1. Run the `net del interface <interface>` command. For example:
-
-    ```
-    cumulus@switch:~$ net del interface swp1s0
-    cumulus@switch:~$ net del interface swp1s1
-    cumulus@switch:~$ net del interface swp1s2
-    cumulus@switch:~$ net del interface swp1s3
-    cumulus@switch:~$ net pending
-    cumulus@switch:~$ net commit
-    ```
-
-2. Manually edit the `/etc/cumulus/ports.conf` file to configure the interface for the original speed. For example:
-
-    ```
-    cumulus@switch:~$ sudo nano /etc/cumulus/ports.conf
-    ...
-
-    1=100G
-    2=100G
-    3=100G
-    4=100G
-    ...
-    ```
-
-3. Reload `switchd`. The reload does **not** interrupt network services.
-
-   ```
-   cumulus@switch:~$ sudo systemctl reload switchd.service
-   ```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 1. Run the `nv unset interface <interface>` command. For example:
@@ -1513,6 +1398,16 @@ To remove a breakout port:
 ## Logical Switch Port Limitations
 
 100G and 40G switches can support a certain number of logical ports depending on the switch. Before you configure any logical ports on a switch, check the limitations listed in the `/etc/cumulus/ports.conf`file.
+<!-- vale off -->
+### ports.conf File Validator
+<!-- vale on -->
+Cumulus Linux includes a `ports.conf` validator that `switchd` runs automatically before the switch starts up to confirm that the file syntax is correct. You can run the validator manually to verify the syntax of the file whenever you make changes. The validator is useful if you want to copy a new `ports.conf` file to the switch with automation tools, then validate that it has the correct syntax.
+
+To run the validator manually, run the `/usr/cumulus/bin/validate-ports -f <file>` command. For example:
+
+```
+cumulus@switch:~$ /usr/cumulus/bin/validate-ports -f /etc/cumulus/ports.conf
+```
 
 ## Troubleshooting
 
@@ -1520,10 +1415,10 @@ This section shows basic commands for troubleshooting switch ports. For a more c
 
 ### Statistics
 
-To show high-level interface statistics, run the NCLU `net show interface` command. The NVUE Command is `nv show interface`.
+To show high-level interface statistics, run the `nv show interface <interface>` command.
 
 ```
-cumulus@switch:~$ net show interface swp1
+cumulus@switch:~$ nv show interface swp1
 
     Name    MAC                Speed      MTU  Mode
 --  ------  -----------------  -------  -----  ---------
@@ -1598,20 +1493,17 @@ cumulus@switch:~$ sudo ethtool -m swp1 | egrep 'Vendor|type|power\s+:'
 ### Auto-negotiation and FEC
 <!-- vale on -->
 If auto-negotiation is off on 100G and 25G interfaces, you must set FEC to *OFF*, RS, or BaseR to match the neighbor. The FEC default setting of *auto* does not link up when auto-negotiation is off.
+<!-- vale off -->
+<!-- Vale issue #253 -->
+### Auto-negotiation and Link Speed
+<!-- vale on -->
+If auto-negotiation is on and the link speed is set for a port, auto-negotiation takes precedence over the link speed setting.
 
 ### Port Speed and the ifreload -a Command
 
-When configuring port speed or break outs in the `/etc/cumulus/ports.conf` file, you need to run the `ifreload -a` command to reload the configuration after restarting `switchd` in the following cases:
-
-<!-- vale off -->
-<!-- acceptable use of "since" -->
-- If you configure, or configure then remove the port speed in the `/etc/cumulus/ports.conf` file and you also set or remove the speed on the same physical port or breakouts of that port in the `/etc/network/interfaces` file since the last time you restarted `switchd`.
-<!-- vale on -->
-- If you break out a switch port or remove a break out port and you set the port speed in both the `/etc/cumulus/ports.conf` file and the `/etc/network/interfaces` file.
-
-### Port Speed Configuration
-
-If you change the port speed in the `/etc/cumulus/ports.conf` file but the speed for that port is also in the `/etc/network/interfaces` file, after you edit the `/etc/cumulus/ports.conf` file and restart `switchd`, you must also run the `ifreload -a` command.
+When you configure port speed or break outs in the `/etc/cumulus/ports.conf` file, you must run the `ifreload -a` command to reload the configuration after restarting `switchd` if:
+- You configure or configure then remove the port speed in the `/etc/cumulus/ports.conf` file and you also set or remove the speed on the same physical port or breakouts of that port in the `/etc/network/interfaces` file after the last time you restarted `switchd`.
+- You break out a switch port or remove a break out port, and you set the port speed in both the `/etc/cumulus/ports.conf` file and the `/etc/network/interfaces` file.
 
 <!-- vale off -->
 <!-- Vale issue #253 -->
@@ -1627,7 +1519,7 @@ The following  25G switches support 1000BASE-T SFP modules:
 
 ### NVIDIA SN2100 Switch and eth0 Link Speed
 
-After rebooting the NVIDIA SN2100 switch, eth0 always has a speed of 100Mb/s. If you bring the interface down and then back up again, the interface negotiates 1000Mb. This only occurs the first time the interface comes up.
+After rebooting the NVIDIA SN2100 switch, eth0 always has a speed of 100MB per second. If you bring the interface down and then back up again, the interface negotiates 1000MB. This only occurs the first time the interface comes up.
 
 To work around this issue, add the following commands to the `/etc/rc.local` file to flap the interface automatically when the switch boots:
 

@@ -33,7 +33,7 @@ The following illustration shows a basic PIM [ASM](## "Any-source Mulitcast") co
 To configure PIM:
 - Enable PIM on all interfaces that connect to a multicast source or receiver, and on the interface with the RP address.
 
-  With NVUE, you must also run the `nv set router pim enable on` command to enable and start the PIM service. This is not required for NCLU and vtysh configuration.
+  With NVUE, you must also run the `nv set router pim enable on` command to enable and start the PIM service. This is not required for vtysh configuration.
 
 - Enable [IGMP](## "Internet Group Management Protocol") on all interfaces that attach to a host and all interfaces that attach to a multicast receiver. IGMP version 3 is the default. Only specify the version if you want to use IGMP version 2. For [SSM](## "Source Specific Multicast"), you must use IGMP version 3.
 - For [ASM](## "Any-source Mulitcast"), on each PIM enabled switch, specify the IP address of the RP for the multicast group. You can also configure PIM to send traffic from specific multicast groups to specific RPs.
@@ -43,47 +43,6 @@ To configure PIM:
 These example commands configure leaf01, leaf02 and spine01 as shown in the topology example above.
 
 {{< tabs "TabID44 ">}}
-{{< tab "NCLU Commands ">}}
-
-{{< tabs "TabID47 ">}}
-{{< tab "leaf01 ">}}
-
-```
-cumulus@leaf01:~$ net add vlan 10 pim
-cumulus@leaf01:~$ net add vlan 10 igmp
-cumulus@leaf01:~$ net add interface swp51 pim
-cumulus@leaf01:~$ net add pim rp 10.10.10.101
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "leaf02 ">}}
-
-```
-cumulus@leaf02:~$ net add vlan 20 pim
-cumulus@leaf02:~$ net add vlan 20 igmp
-cumulus@leaf02:~$ net add interface swp51 pim
-cumulus@leaf02:~$ net add pim rp 10.10.10.101
-cumulus@leaf02:~$ net pending
-cumulus@leaf02:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "spine01 ">}}
-
-```
-cumulus@spine01:~$ net add interface swp1 pim
-cumulus@spine01:~$ net add interface swp2 pim
-cumulus@spine01:~$ net add pim rp 10.10.10.101 
-cumulus@spine01:~$ net pending
-cumulus@spine01:~$ net commit
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 {{< tabs "TabID86 ">}}
@@ -147,6 +106,7 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
 
    ```
    cumulus@leaf01:~$ sudo vtysh
+   ...
    leaf01# configure terminal
    leaf01(config)# interface vlan10
    leaf01(config-if)# ip pim
@@ -171,7 +131,6 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
    leaf01(config)# exit
    leaf01# write memory
    leaf01#  exit
-   cumulus@leaf01:~$
    ```
 
 {{< /tab >}}
@@ -192,6 +151,7 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
 
    ```
    cumulus@leaf02:~$ sudo vtysh
+   ...
    leaf02# configure terminal
    leaf02(config)# interface vlan20
    leaf02(config-if)# ip pim
@@ -216,7 +176,6 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
    leaf02(config)# exit
    leaf02# write memory
    leaf02# exit
-   cumulus@leaf02:~$
    ```
 
 {{< /tab >}}
@@ -237,6 +196,7 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
 
    ```
    cumulus@spine01:~$ sudo vtysh
+   ...
    spine01# configure terminal
    spine01(config)# interface swp1
    spine01(config-if)# ip pim
@@ -253,7 +213,6 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
    spine01(config-if)# end
    spine01# write memory
    spine01# exit
-   cumulus@spine01:~$
    ```
 
 {{< /tab >}}
@@ -265,14 +224,6 @@ The [FRR](## "FRRouting") package includes PIM. For proper PIM operation, PIM de
 The above commands configure the switch to send all multicast traffic to RP 10.10.10.101. The following commands configure PIM to send traffic from multicast group 224.10.0.0/16 to RP 10.10.10.101 and traffic from multicast group 224.10.2.0/24 to RP 10.10.10.102:
 
 {{< tabs "TabID240 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add pim rp 10.10.10.101 224.10.0.0/16
-cumulus@leaf01:~$ net add pim rp 10.10.10.102 224.10.2.0/24
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -285,15 +236,19 @@ cumulus@leaf01:~$ nv set vrf default router pim address-family ipv4-unicast rp 1
 
 ```
 cumulus@leaf01:~$ sudo vtysh
+...
 spine01# configure terminal
 spine01(config)# ip pim rp 10.10.10.101 224.10.0.0/16
 spine01(config)# ip pim rp 10.10.10.102 224.10.2.0/16
+spine01(config)# end
+spine01# exit
 ```
 
 {{< /tab >}}
 {{< /tabs >}}
 
 {{%notice note%}}
+- You can either configure RP mappings for different multicast groups (as shown above) or use a prefix list to specify the RP to group mapping. You cannot use both methods at the same time.
 - NVIDIA recommends that you do not use a spine switch as an RP when using eBGP in a Clos network. See the [PIM Overview knowledge-base article]({{<ref "/knowledge-base/Configuration-and-Usage/Network-Configuration/PIM-Overview" >}}).
 - zebra does not resolve the next hop for the RP through the default route. To prevent multicast forwarding from failing, either provide a specific route to the RP or run the vtysh `ip nht resolve-via-default` configuration command to resolve the next hop for the RP through the default route.
 {{%/notice%}}
@@ -328,6 +283,7 @@ cumulus@switch:~$ nv config apply
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# configure terminal
 switch(config)# ip prefix-list spt-range permit 235.0.0.0/8 ge 32
 switch(config)# ip prefix-list spt-range permit 238.0.0.0/8 ge 32
@@ -339,9 +295,11 @@ switch# exit
 {{< /tab >}}
 {{< /tabs >}}
 
-To view the configured prefix list, run the vtysh `show ip mroute` command, the NCLU `net show mroute` command. The following command shows that SPT switchover (`pimreg`) is on 235.0.0.0.
+To view the configured prefix list, run the vtysh `show ip mroute` command. The following command shows that SPT switchover (`pimreg`) is on 235.0.0.0.
 
 ```
+cumulus@switch:~$ sudo vtysh
+...
 switch# show ip mroute
 Source          Group           Proto   Input     Output     TTL  Uptime
 *               235.0.0.0       IGMP     swp1     pimreg     1    00:03:3
@@ -358,34 +316,6 @@ You must include `232.0.0.0/8` in the prefix list.
 {{%/notice%}}
 
 {{< tabs "TabID825 ">}}
-{{< tab "NCLU Commands ">}}
-
-Create a prefix list with the `permit` keyword to match address ranges that you want to treat as multicast groups and the `deny` keyword for the address ranges you do not want to treat as multicast groups:
-
-```
-cumulus@switch:~$ net add routing prefix-list ipv4 my-custom-ssm-range seq 5 permit 232.0.0.0/8 ge 32
-cumulus@switch:~$ net add routing prefix-list ipv4 my-custom-ssm-range seq 10 permit 238.0.0.0/8 ge 32
-```
-
-Apply the custom prefix list:
-
-```
-cumulus@switch:~$ net add pim ssm prefix-list my-custom-ssm-range
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-To view the configured prefix lists, run the `net show ip prefix-list` command:
-
-```
-cumulus@switch:~$ net show ip prefix-list my-custom-ssm-range
-ZEBRA: ip prefix-list my-custom-ssm-range: 1 entries
-   seq 5 permit 232.0.0.0/8 ge 32
-PIM: ip prefix-list my-custom-ssm-range: 1 entries
-   seq 10 permit 232.0.0.0/8 ge 32
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 Create a prefix list with the `permit` keyword to match address ranges that you want to treat as multicast groups and the `deny` keyword for the address ranges you do not want to treat as multicast groups:
@@ -411,6 +341,7 @@ Create a prefix list with the `permit` keyword to match address ranges that you 
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# configure terminal
 switch(config)# ip prefix-list ssm-range seq 5 permit 232.0.0.0/8 ge 32
 switch(config)# ip prefix-list ssm-range seq 10 permit 238.0.0.0/8 ge 32
@@ -423,7 +354,6 @@ switch(config)# ip pim ssm prefix-list ssm-range
 switch(config)# exit
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 To view the configured prefix lists, run the vtysh `show ip prefix-list my-custom-ssm-range` command:
@@ -452,25 +382,6 @@ Recalculating all stream paths over one of the ECMP paths can cause some packet 
 {{%/notice%}}
 
 {{< tabs "TabID895 ">}}
-{{< tab "NCLU Commands ">}}
-
-To configure PIM to use all the available next hops when installing mroutes:
-
-```
-cumulus@switch:~$ net add pim ecmp
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-To recalculate all stream paths over one of the ECMP paths if the switch loses a path:
-
-```
-cumulus@switch:~$ net add pim ecmp rebalance
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 To configure PIM to use all the available next hops when installing mroutes:
@@ -494,34 +405,34 @@ To configure PIM to use all the available next hops when installing mroutes:
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# configure terminal
 switch(config)# ip pim ecmp
 switch(config)# exit
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 To recalculate all stream paths over one of the ECMP paths if the switch loses a path:
 
 ```
 cumulus@switch:~$ sudo vtysh
-
+...
 switch# configure terminal
 switch(config)# ip pim ecmp rebalance
 switch(config)# exit
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 {{< /tab >}}
 {{< /tabs >}}
 
-To show the next hop for a specific source or group, run the `show ip pim nexthop` command:
+To show the next hop for a specific source or group, run the vtysh `show ip pim nexthop` command:
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# show ip pim nexthop
 Number of registered addresses: 3
 Address         Interface      Nexthop
@@ -540,15 +451,6 @@ Use multicast boundaries to limit the distribution of multicast traffic and push
 First create a prefix list, then run the following commands:
 
 {{< tabs "TabID983 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add interface swp1 multicast boundary oil my-prefix-list
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -561,13 +463,13 @@ cumulus@switch:~$ nv config apply
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# configure terminal
 switch(config)# interface swp1
 switch(config-if)# ip multicast boundary oil my-prefix-list
 switch(config-if)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 {{< /tab >}}
@@ -586,58 +488,7 @@ When an RP discovers a new source (a PIM-SM register message), it sends an [SA](
 
 The following steps configure a Cumulus switch to use MSDP:
 
-{{< tabs "TabID1032 ">}}
-{{< tab "NCLU Commands ">}}
-
-1. Add an anycast IP address to the loopback interface for each RP in the domain:
-
-   ```
-   cumulus@rp01:~$ net add loopback lo ip address 10.10.10.101/32
-   cumulus@rp01:~$ net add loopback lo ip address 10.100.100.100/32
-   ```
-
-2. On every multicast switch, configure the group to RP mapping using the anycast address:
-
-   ```
-   cumulus@switch:$ net add pim rp 10.100.100.100 224.0.0.0/4
-   cumulus@switch:$ net pending
-   cumulus@switch:$ net commit
-   ```
-
-3. Configure the MSDP mesh group for all active RPs. The following example uses three RPs:
-
-   The mesh group must include all RPs in the domain as members, with a unique address as the source. This configuration results in MSDP peerings between all RPs.
-
-   ```
-   cumulus@rp01:$ net add msdp mesh-group cumulus member 100.1.1.2
-   cumulus@rp01:$ net add msdp mesh-group cumulus member 100.1.1.3
-
-   cumulus@rp02:$ net add msdp mesh-group cumulus member 100.1.1.1
-   cumulus@rp02:$ net add msdp mesh-group cumulus member 100.1.1.3
-
-   cumulus@rp03:$ net add msdp mesh-group cumulus member 100.1.1.1
-   cumulus@rp03:$ net add msdp mesh-group cumulus member 100.1.1.2
-   ```
-
-4. Pick the local loopback address as the source of the MSDP control packets:
-
-   ```
-   cumulus@rp01:$ net add msdp mesh-group cumulus source 10.10.10.101
-
-   cumulus@rp02:$ net add msdp mesh-group cumulus source 10.10.10.102
-
-   cumulus@rp03:$ net add msdp mesh-group cumulus source 10.10.10.103
-   ```
-
-5. Inject the anycast IP address into the IGP of the domain. If the network uses unnumbered BGP as the IGP, avoid using the anycast IP address to establish unicast or multicast peerings. For PIM-SM, ensure that you use the unique address as the PIM hello source by setting the source:
-
-   ```
-   cumulus@rp01:$ net add loopback lo pim use-source 10.100.100.100
-   cumulus@rp01:$ net pending
-   cumulus@rp01:$ net commit
-   ```
-
-{{< /tab >}}
+{{< tabs "TabID579 ">}}
 {{< tab "NVUE Commands ">}}
 
 1. Add an anycast IP address to the loopback interface for each RP in the domain:
@@ -650,7 +501,7 @@ The following steps configure a Cumulus switch to use MSDP:
 2. On every multicast switch, configure the group to RP mapping using the anycast address:
 
    ```
-   cumulus@switch:$ nv set vrf default router pim address-family ipv4-unicast rp 10.100.100.100 224.0.0.0/4
+   cumulus@switch:$ nv set vrf default router pim address-family ipv4-unicast rp 10.100.100.100 group-range 224.0.0.0/4
    cumulus@switch:$ nv config apply
    ```
 
@@ -710,7 +561,7 @@ The following steps configure a Cumulus switch to use MSDP:
 
    ```
    cumulus@rp01:~$ sudo vtysh
-
+   ...
    rp01# configure terminal
    rp01(config)# ip pim rp 10.100.100.100 224.0.0.0/4
    ```
@@ -746,7 +597,6 @@ The following steps configure a Cumulus switch to use MSDP:
    rp01(config-if)# end
    rp01# write memory
    rp01# exit
-   cumulus@rp01:~$
    ```
 
 {{< /tab >}}
@@ -763,33 +613,6 @@ If you do not enable [MP-BGP](## "Multi Protocol BGP ") [MPLS VPN](## "Multiprot
 To configure PIM in a VRF:
 
 {{< tabs "TabID1170 ">}}
-{{< tab "NCLU Commands ">}}
-
-Add the VRFs and associate them with switch ports:
-
-```
-cumulus@switch:~$ net add vrf RED
-cumulus@switch:~$ net add vrf BLUE
-cumulus@switch:~$ net add interface swp1 vrf RED
-cumulus@switch:~$ net add interface swp2 vrf BLUE
-```
-
-Add PIM configuration:
-
-```
-cumulus@switch:~$ net add interface swp1 pim
-cumulus@switch:~$ net add interface swp2 pim
-cumulus@switch:~$ net add bgp vrf RED auto 65001
-cumulus@switch:~$ net add bgp vrf BLUE auto 65000
-cumulus@switch:~$ net add bgp vrf RED router-id 10.1.1.1
-cumulus@switch:~$ net add bgp vrf BLUE router-id 10.1.1.2
-cumulus@switch:~$ net add bgp vrf RED neighbor swp1 interface remote-as external
-cumulus@switch:~$ net add bgp vrf BLUE neighbor swp2 interface remote-as external
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 Add the VRFs and associate them with switch ports:
@@ -810,8 +633,8 @@ cumulus@switch:~$ nv set vrf RED router bgp autonomous-system 65001
 cumulus@switch:~$ nv set vrf BLUE router bgp autonomous-system 65000
 cumulus@switch:~$ nv set vrf RED router bgp router-id 10.1.1.1
 cumulus@switch:~$ nv set vrf BLUE router bgp router-id 10.1.1.2
-cumulus@switch:~$ nv set vrf RED router bgp peer swp1 remote-as external
-cumulus@switch:~$ nv set vrf BLUE router bgp peer swp2 remote-as external
+cumulus@switch:~$ nv set vrf RED router bgp neighbor swp1 remote-as external
+cumulus@switch:~$ nv set vrf BLUE router bgp neighbor swp2 remote-as external
 cumulus@switch:~$ nv config apply
 ```
 
@@ -845,6 +668,7 @@ Add the PIM configuration:
 
 ```
 cumulus@switch:~$ sudo vtysh
+...
 switch# configure terminal
 switch(config)# interface swp1
 switch(config-if)# ip pim
@@ -862,7 +686,6 @@ switch(config-router)# neighbor swp2 interface remote-as external
 switch(config-router)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 {{< /tab >}}
@@ -873,30 +696,6 @@ cumulus@switch:~$
 You can use {{<link url="Bidirectional-Forwarding-Detection-BFD" text="BFD">}} for PIM neighbors to detect link failures. When you configure an interface, include the `pim bfd` option. The following example commands configure BFD between leaf01 and spine01:
 
 {{< tabs "TabID709 ">}}
-{{< tab "NCLU Commands ">}}
-
-{{< tabs "TabID712 ">}}
-{{< tab "leaf01 ">}}
-
-```
-cumulus@leaf01:~$ net add interface swp51 pim bfd
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "spine01 ">}}
-
-```
-cumulus@spine01:~$ net add interface swp1 pim bfd
-cumulus@spine01:~$ net pending
-cumulus@spine01:~$ net commit
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 {{< tabs "TabID886 ">}}
@@ -926,13 +725,13 @@ cumulus@spine01:~$ nv config apply
 
 ```
 cumulus@leaf01:~$ sudo vtysh
+...
 leaf01# configure terminal
 leaf01(config)# interface swp51
 leaf01(config-if)# ip pim bfd
 leaf01(config-if)# end
 leaf01# write memory
 leaf01# exit
-cumulus@leaf01:~$
 ```
 
 {{< /tab >}}
@@ -940,13 +739,13 @@ cumulus@leaf01:~$
 
 ```
 cumulus@spine01:~$ sudo vtysh
+...
 spine01# configure terminal
 spine01(config)# interface swp1
 spine01(config-if)# ip pim bfd
 spine01(config-if)# end
 spine01# write memory
 spine01# exit
-cumulus@spine01:~$
 ```
 
 {{< /tab >}}
@@ -964,11 +763,6 @@ In some configurations, it is desirable to configure the LHR with an RP address 
 You can configure the switch to allow joins from all upstream neighbors or you can provide a prefix list so that the switch only accepts joins with an upstream neighbor address.
 
 {{< tabs "TabID997 ">}}
-{{< tab "NCLU Commands ">}}
-
-NCLU does not provide commands for this feature.
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 The following example command configures PIM to ignore the RP check for all upstream neighbors:
@@ -999,7 +793,6 @@ switch(config-if)# ip pim allow-rp
 switch(config-if)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 The following example command configures PIM to only ignore the RP check for the upstream neighbors in the prefix list called allowRP:
@@ -1013,7 +806,6 @@ switch(config-if)# ip pim allow-rp rp-list allowRP
 switch(config-if)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 {{< /tab >}}
@@ -1025,44 +817,14 @@ Cumulus Linux provides the following PIM timers:
 
 | Timer | Description |
 |------ | ----------- |
-| `hello-interval` | The interval in seconds at which the PIM router sends hello messages to discover PIM neighbors and maintain PIM neighbor relationships. You can specify a value between 1 and 180. The default setting is 30 seconds. With NCLU and vtysh, you set the hello interval for a specific PIM enabled interface. With NVUE, you can set the hello interval globally for all PIM enabled interfaces or for a specific PIM enabled interface.  |
-| `holdtime`  | The number of seconds during which the neighbor must be in a reachable state. `auto` (the default setting) uses three and half times the `hello-interval`. You can specify a value between 1 and 180. With NCLU and vtysh, you set the holdtime for a specific PIM enabled interface. With NVUE, you can set the holdtime globally for all PIM enabled interfaces or for a specific PIM enabled interface.|
-| `join-prune-interval` | The interval in seconds at which a PIM router sends join/prune messages to its upstream neighbors for a state update. You can specify a value between 60 and 600. The default setting is 60 seconds. You set the `join-prune-interval` globally for all PIM enabled interfaces. NVUE and NCLU also provide the option of setting the `join-prune-interval` for a specific VRF.|
+| `hello-interval` | The interval in seconds at which the PIM router sends hello messages to discover PIM neighbors and maintain PIM neighbor relationships. You can specify a value between 1 and 180. The default setting is 30 seconds. With vtysh, you set the hello interval for a specific PIM enabled interface. With NVUE, you can set the hello interval globally for all PIM enabled interfaces or for a specific PIM enabled interface.  |
+| `holdtime`  | The number of seconds during which the neighbor must be in a reachable state. `auto` (the default setting) uses three and half times the `hello-interval`. You can specify a value between 1 and 180. With vtysh, you set the holdtime for a specific PIM enabled interface. With NVUE, you can set the holdtime globally for all PIM enabled interfaces or for a specific PIM enabled interface.|
+| `join-prune-interval` | The interval in seconds at which a PIM router sends join/prune messages to its upstream neighbors for a state update. You can specify a value between 60 and 600. The default setting is 60 seconds. You set the `join-prune-interval` globally for all PIM enabled interfaces. NVUE also provides the option of setting the `join-prune-interval` for a specific VRF.|
 | `keep-alive` | The timeout value for the S,G stream in seconds. You can specify a value between 31 and 60000. The default setting is 210 seconds. You can set the `keep-alive` timer globally or all PIM enabled interfaces or for a specific VRF.|
 | `register-suppress` | The number of seconds during which to stop sending register messages to the RP. You can specify a value between 5 and 60000. The default setting is 60 seconds. You can set the `keep-alive` timer globally for all PIM enabled interfaces or for a specific VRF. |
 | `rp-keep-alive` | NVUE only. The timeout value for the RP in seconds. You can specify a value between 31 and 60000. The default setting is 185 seconds. You set the `register-suppress-time` timer globally for all PIM enabled interfacesor for a specific VRF.|
 
 {{< tabs "TabID1037 ">}}
-{{< tab "NCLU Commands ">}}
-
-The following example commands set the `join-prune-interval` to 100 seconds, the `keep-alive` timer to 10000 seconds, and the `register-suppress` time to 20000 seconds globally for all PIM enabled interfaces:
-
-```
-cumulus@switch:~$ net add pim join-prune-interval 100
-cumulus@switch:~$ net add pim keep-alive-timer 10000
-cumulus@switch:~$ net add pim register-suppress-time 20000
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The following example commands set the `hello-interval` to 60 seconds and the `holdtime` to 120 seconds for swp51:
-
-```
-cumulus@switch:~$ net add interface swp1 pim hello 60 120
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-The following example commands set the `join-prune-interval` to 100 and the `keep-alive-timer` to 10000 for VRF RED:
-
-```
-cumulus@switch:~$ net add pim vrf RED join-prune-interval 100
-cumulus@switch:~$ net add pim vrf RED keep-alive-timer 10000
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 The following example commands set the `join-prune-interval` to 100 seconds, the `keep-alive` timer to 10000 seconds, and the `register-suppress` time to 20000 seconds globally for all PIM enabled interfaces:
@@ -1103,7 +865,6 @@ switch(config)# ip pim register-suppress-time 20000
 switch(config)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 The following example command sets the `hello-interval` to 60 seconds and the `holdtime` to 120 for swp51:
@@ -1117,7 +878,6 @@ switch(config-if)# ip pim hello 60 120
 switch(config-if)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 The following example command sets the `keep-alive-timer` to 10000 seconds for VRF RED:
@@ -1131,7 +891,6 @@ switch(config-vrf)# ip pim keep-alive-timer 10000
 switch(config-if)# end
 switch# write memory
 switch# exit
-cumulus@switch:~$
 ```
 
 {{< /tab >}}
@@ -1141,28 +900,61 @@ cumulus@switch:~$
 
 For large multicast environments, the default [CoPP](## "Control Plane Policing") policer might be too restrictive. You can adjust the policer to improve multicast convergence.
 
-- The default PIM forwarding rate is set to 2000 packets per second and the burst rate is set to 2000 packets.
-- The default IGMP forwarding rate is set to 300 packets per second and the burst rate is set to 100 packets.
+- The default PIM forwarding rate and burst rate is set to 2000 packets per second.
+- The default IGMP forwarding rate and burst rate is set to 1000 packets per second.
 
-To tune the PIM and IGMP forwarding and burst rate, edit the `/etc/cumulus/acl/policy.d/00control_plane.rules` file and change `--set-rate` and `--set-burst` in the PIM and IGMP policer lines.
+To adjust the policer:
 
-The following example command changes the **PIM** forwarding rate to 2050 packets per second and the burst rate to 2050 packets.
+{{< tabs "991 ">}}
+{{< tab "NVUE Commands ">}}
 
-```
--A $INGRESS_CHAIN -p pim -j POLICE --set-mode pkt --set-rate 2050 --set-burst 2050
-```
-
-The following command example changes the **IGMP** forwarding rate to 400 packets per second and the burst rate to 200 packets.
+The following example commands set the PIM forwarding and burst rate to 400 packets per second:
 
 ```
--A $INGRESS_CHAIN -p igmp -j POLICE --set-mode pkt --set-rate 400 --set-burst 200
+cumulus@switch:~$ nv set system control-plane policer pim-ospf-rip rate 400
+cumulus@switch:~$ nv set system control-plane policer pim-ospf-rip burst 400
+cumulus@switch:~$ nv config apply 
 ```
 
-To apply the rules, run the `sudo cl-acltool -i` command:
+The following example commands set the IGMP forwarding rate to 400 and the IGMP burst rate to 200 packets per second:
 
 ```
-cumulus@switch:~$ sudo cl-acltool -i
+cumulus@switch:~$ nv set system control-plane policer igmp rate 400
+cumulus@switch:~$ nv set system control-plane policer igmp burst 200
+cumulus@switch:~$ nv config apply 
 ```
+
+{{< /tab >}}
+{{< tab "Edit /etc/cumulus/control-plane/policers.conf ">}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+1. Edit the `/etc/cumulus/control-plane/policers.conf` file:
+
+   - To tune the PIM forwarding and burst rate, change the `copp.pim_ospf_rip.rate` and `copp.pim_ospf_rip.burst` parameters.
+   - To tune the IGMP forwarding and burst rate, change the `copp.igmp.rate` and `copp.igmp.burst` parameters.
+
+      The following example changes the PIM forwarding rate and the PIM burst rate to 400 packets per second, the IGMP forwarding rate to 400 packets per second and the IGMP burst rate to 200 packets per second:
+
+      ```
+      cumulus@switch:~$ sudo nano /etc/cumulus/control-plane/policers.conf
+      ...
+      copp.pim_ospf_rip.enable = TRUE
+      copp.pim_ospf_rip.rate = 400
+      copp.pim_ospf_rip.burst = 400
+      ...
+      copp.igmp.enable = TRUE
+      copp.igmp.rate = 400
+      copp.igmp.burst = 200
+      ...
+      ```
+
+2. Run the following command:
+
+   ```
+   cumulus@switch:~$ switchdctl --load /etc/cumulus/control-plane/policers.conf
+   ```
 
 <!-- vale off -->
 <!-- vale.ai Issue #253 -->
@@ -1205,16 +997,6 @@ The examples below show the flow of traffic between server02 and server03:
 You can use a multicast sender or receiver over a dual-attached MLAG bond. On the VLAN interface where multicast sources or receivers exist, configure PIM active-active and IGMP. Enabling PIM active-active automatically enables PIM on that interface.
 
 {{< tabs "TabID363 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@leaf01:~$ net add vlan 10 pim active-active
-cumulus@leaf01:~$ net add vlan 10 igmp
-cumulus@leaf01:~$ net pending
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 ```
@@ -1228,19 +1010,25 @@ cumulus@leaf01:~$ nv config apply
 
 ```
 cumulus@leaf01:~$ sudo vtysh
+...
 leaf01# configure terminal
 leaf01(config)# interface vlan10
 leaf01(config-if)# ip pim active-active
 leaf01(config-if)# ip igmp
+leaf01(config-if)# end
+leaf01# write memory
+leaf01# exit
 ```
 
 {{< /tab >}}
 {{< /tabs >}}
 
-To verify PIM active-active configuration, run the NCLU `net show pim mlag summary` command or the `show ip pim mlag summary` command:
+To verify PIM active-active configuration, run the vtysh `show ip pim mlag summary` command or the `net show pim mlag summary` command:
 
 ```
-cumulus@leaf01:mgmt:~$ net show pim mlag summary
+cumulus@leaf01:mgmt:~$ sudo vtysh
+...
+leaf01# show ip pim mlag summary
 MLAG daemon connection: up
 MLAG peer state: up
 Zebra peer state: up
@@ -1263,10 +1051,12 @@ This section provides commands to examine your PIM configuration and provides tr
 
 ### PIM Show Commands
 
-To show the contents of the IP multicast routing table, run the NCLU `net show mroute` command or the vtysh `show ip mroute` command. You can verify the (S,G) and (*,G) state entries from the flags and check that the incoming and outgoing interfaces are correct:
+To show the contents of the IP multicast routing table, run the vtysh `show ip mroute` command or the `net show mroute` command. You can verify the (S,G) and (*,G) state entries from the flags and check that the incoming and outgoing interfaces are correct:
 
 ```
-cumulus@fhr:~$ net show mroute
+cumulus@fhr:~$ sudo vtysh
+...
+fhr# show ip mroute
 IP Multicast Routing Table
 Flags: S - Sparse, C - Connected, P - Pruned
        R - RP-bit set, F - Register flag, T - SPT-bit set
@@ -1275,36 +1065,44 @@ Source          Group           Flags    Proto  Input            Output         
 10.1.10.101     239.1.1.1       SFP      none   vlan10           none             0    --:--:-- 
 ```
 
-To see the active source on the switch, run the NCLU `net show pim upstream` command or the vtysh `show ip pim upstream` command:
+To see the active source on the switch, run the vtysh `show ip pim upstream` command or the `net show pim upstream` command.
 
 ```
-cumulus@fhr:~$ net show pim upstream
+cumulus@fhr:~$ sudo vtysh
+...
+fhr# show ip pim upstream
 Iif    Source        Group     State   Uptime    JoinTimer  RSTimer   KATimer   RefCnt
 vlan10 10.1.10.101   239.1.1.1 Prune   00:07:40  --:--:--   00:00:36  00:02:50  1
 ```
 
-To show upstream information for S,Gs and the desire to join the multicast tree, run the NCLU `net show pim upstream-join-desired` command or the vtysh `show ip pim upstream-join-desired` command:
+To show upstream information for S,Gs and the desire to join the multicast tree, run the vtysh `show ip pim upstream-join-desired` command or the `net show pim upstream-join-desired` command.
 
 ```
-cumulus@fhr:~$ net show pim upstream-join-desired
+cumulus@fhr:~$ sudo vtysh
+...
+fhr# show ip pim upstream-join-desired
 Source          Group           EvalJD
 10.1.10.101     239.1.1.1       yes 
 ```
 
-To show the PIM interfaces on the switch, run the NCLU `net show pim interface` command or the vtysh `show ip pim interface` command:
+To show the PIM interfaces on the switch, run the vtysh `show ip pim interface` command or the `net show pim interface` command.
 
 ```
-cumulus@fhr:mgmt:~$ net show pim interface
+cumulus@fhr:mgmt:~$ sudo vtysh
+...
+fhr# show ip pim interface
 Interface         State          Address  PIM Nbrs           PIM DR  FHR IfChannels
 lo                   up       10.10.10.1         0            local    0          0
 swp51                up       10.10.10.1         1     10.10.10.101    0          0
 vlan10               up        10.1.10.1         0            local    1          0
 ```
 
-The `net show pim interface detail` or vtysh `show ip pim interface detail` command shows more detail about the PIM interfaces on the switch:
+The vtysh `show ip pim interface detail` command and the `net show pim interface detail` command shows more detail about the PIM interfaces on the switch:
 
 ```
-cumulus@fhr:~$ net show pim interface detail
+cumulus@fhr:~$ sudo vtysh
+...
+fhr# show ip pim interface detail
 ...
 Interface  : vlan10
 State      : up
@@ -1325,37 +1123,45 @@ FHR - First Hop Router
 ...
 ```
 
-To show local membership information for a PIM interface, run the NCLU `net show pim local-membership` or vtysh `show ip pim local-membership` command:
+To show local membership information for a PIM interface, run the vtysh `show ip pim local-membership` command or the  `net show pim local-membership`.
 
 ```
-cumulus@lhr:~$ net show pim local-membership
+cumulus@lhr:~$ sudo vtysh
+...
+lhr# show ip pim local-membership
 Interface         Address          Source           Group            Membership
 vlan20            10.2.10.1        *                239.1.1.1        INCLUDE 
 ```
 
-To show information about known S,Gs, the [IIF](## "Incoming Interface") and the [OIL](## "Outgoing Interface"), run the NCLU `net show pim state` command or the vtysh `show ip pim state` command:
+To show information about known S,Gs, the [IIF](## "Incoming Interface") and the [OIL](## "Outgoing Interface"), run the vtysh `show ip pim state` command or the `net show pim state` command.
 
 ```
-cumulus@fhr:~$ net show pim state
+cumulus@fhr:~$ sudo vtysh
+...
+fhr# show ip pim state
 Codes: J -> Pim Join, I -> IGMP Report, S -> Source, * -> Inherited from (*,G), V -> VxLAN, M -> Muted
 Active Source           Group            RPT  IIF               OIL
 1      10.1.10.101      239.1.1.1        n    vlan10 
 ```
 
-To verify that the receiver is sending IGMP reports (joins) for the group, run the NCLU `net show igmp groups` or the vtysh `show ip igmp groups` command:
+To verify that the receiver is sending IGMP reports (joins) for the group, run the vtysh `show ip igmp groups` command or the `net show igmp groups` command.
 
 ```
-cumulus@lhr:~$ net show igmp groups
+cumulus@lhr:~$ sudo vtysh
+...
+lhr# show ip igmp groups
 Total IGMP groups: 1
 Watermark warn limit(Not Set): 0
 Interface   Address      Group        Mode Timer      Srcs V   Uptime  
 vlan20      10.2.10.1    239.1.1.1    EXCL 00:02:18   1    3   05:27:33 
 ```
 
-To show IGMP source information, run the NCLU `net show igmp sources` command or the vtysh `show ip igmp sources` command:
+To show IGMP source information, run the vtysh `show ip igmp sources` command or the `net show igmp sources` command.
 
 ```
-cumulus@lhr:~$ net show igmp sources
+cumulus@lhr:~$ sudo vtysh
+...
+lhr# show ip igmp sources
 Interface        Address         Group           Source          Timer Fwd Uptime  
 vlan20           10.2.10.1       239.1.1.1       *               03:13   Y 05:28:42 
 ```
@@ -1367,7 +1173,9 @@ When a multicast source starts, the FHR sends unicast PIM register messages from
 To assess this issue, review the FHR. You can see the output interface of `pimreg` here. If this does not change to an interface within a couple of seconds, it is possible that the FHR remains in the registering process.
 
 ```
-cumulus@fhr:~$ net show mroute
+cumulus@fhr:~$ sudo vtysh
+...
+fhr# show ip mroute
 Source          Group           Proto  Input      Output     TTL  Uptime
 10.1.10.101     239.2.2.3       PIM    vlan10     pimreg     1    00:03:59
 ```
@@ -1422,6 +1230,8 @@ To troubleshoot the issue:
 If you do not enable both PIM **and** IGMP on an interface facing a receiver, the LHR does not build [\*,G](## "Represents the RP Tree. \* is a wildcard indicating any multicast source. G is the multicast group.").
 
 ```
+cumulus@lhr:~$ sudo vtysh
+...
 lhr# show run
 !
 interface vlan20
@@ -1455,6 +1265,8 @@ To troubleshoot this issue:
 2. Verify PIM configuration on the interface facing the source:
 
    ```
+   cumulus@fhr:~$ sudo vtysh
+   ...
    fhr# show run
    !
    interface vlan10
@@ -1486,21 +1298,25 @@ To troubleshoot this issue:
 An RP does not build an mroute when there are no active receivers for a multicast group even though the FR creates the mroute.
 
 ```
-cumulus@rp01:~$ net show mroute
+cumulus@rp01:~$ sudo vtysh
+...
+rp01# show ip mroute
 Source          Group           Flags    Proto  Input            Output           TTL  Uptime
 ```
 
-You can see the active source on the RP with either the NCLU `net show pim upstream` command or the vtysh `show ip pim upstream` command:
+You can see the active source on the RP with either the vtysh `show ip pim upstream` command or the `net show pim upstream` command.
 
 ```
-cumulus@rp01:~$ net show pim upstream
+cumulus@rp01:~$ sudo vtysh
+...
+rp01# show ip pim upstream
 Iif             Source          Group           State       Uptime   JoinTimer RSTimer   KATimer   RefCnt
 vlan10          10.1.10.101     239.1.1.1       Prune       00:08:03 --:--:--  --:--:--  00:02:20       1
 ```
 
 ### No mroute Entry in Hardware
 
-Use the `cl-resource-query | grep Mcast` command or the NCLU `net show system asic | grep Mcast` command to verify that the hardware IP multicast entry is the maximum value:
+To verify that the hardware IP multicast entry is the maximum value, run the `cl-resource-query | grep Mcast` command or the `net show system asic | grep Mcast` command.
 
 ```
 cumulus@switch:~$ cl-resource-query  | grep Mcast
@@ -1511,17 +1327,20 @@ Refer to {{<link url="Supported-Route-Table-Entries#tcam-resource-profiles-for-s
 
 ### Verify the MSDP Session State
 
-To verify the state of MSDP sessions, run the NCLU `net show msdp mesh-group` command or the vtysh `show ip msdp mesh-group` command:
+To verify the state of MSDP sessions, run the vtysh `show ip msdp mesh-group` command or the `net show msdp mesh-group` command.
 
 ```
-cumulus@switch:~$ net show msdp mesh-group
+cumulus@switch:~$ sudo vtysh
+...
+switch# show ip msdp mesh-group
 Mesh group : pod1
   Source : 10.1.10.101
   Member                 State
   10.1.10.102        established
   10.1.10.103        established
 
-cumulus@switch:~$ net show msdp peer
+cumulus@switch:~$ sudo vtysh
+switch# show ip msdp peer
 Peer                    Local         State     Uptime    SaCnt
 10.1.10.102       10.1.10.101   established    00:07:21       0
 10.1.10.103       10.1.10.101   established    00:07:21       0
@@ -1529,10 +1348,12 @@ Peer                    Local         State     Uptime    SaCnt
 
 ### View the Active Sources
 
-To review the active sources that the switch learns locally (through PIM registers) and from MSDP peers, run the NCLU `net show msdp sa` command or the vtysh `show ip msdp sa` command:
+To review the active sources that the switch learns locally (through PIM registers) and from MSDP peers, run the vtysh `show ip msdp sa` command or the `net show msdp sa` command.
 
 ```
-cumulus@switch:~$ net show msdp sa
+cumulus@switch:~$ sudo vtysh
+...
+switch# show ip msdp sa
 Source                Group               RP   Local    SPT      Uptime
 10.1.10.101       239.1.1.1     10.10.10.101       n      n    00:00:40
 10.1.10.101       239.1.1.2    100.10.10.101       n      n    00:00:25
@@ -1557,75 +1378,6 @@ The following example configures PIM and BGP on leaf01, leaf02, and spine01.
 
 <!-- vale off -->
 {{< tabs "TabID1395 ">}}
-{{< tab "NCLU Commands">}}
-
-{{< tabs "TabID1398 ">}}
-{{< tab "leaf01 ">}}
-
-```
-cumulus@leaf01:~$ net add loopback lo ip address 10.10.10.1/32
-cumulus@leaf01:~$ net add interface swp1,swp49,swp51
-cumulus@leaf01:~$ net add bridge bridge ports swp1
-cumulus@leaf01:~$ net add vlan 10 ip address 10.1.10.1/24
-cumulus@leaf01:~$ net add interface swp1 bridge access 10 
-cumulus@leaf01:~$ net add bridge bridge vids 10
-cumulus@leaf01:~$ net add bgp autonomous-system 65101
-cumulus@leaf01:~$ net add bgp router-id 10.10.10.1
-cumulus@leaf01:~$ net add bgp neighbor swp51 remote-as external
-cumulus@leaf01:~$ net add bgp ipv4 unicast network 10.10.10.1/32
-cumulus@leaf01:~$ net add bgp ipv4 unicast network 10.1.10.0/24
-cumulus@leaf01:~$ net add loopback lo pim
-cumulus@leaf01:~$ net add interface swp51 pim
-cumulus@leaf01:~$ net add vlan 10 pim
-cumulus@leaf01:~$ net add vlan 10 igmp
-cumulus@leaf01:~$ net add pim rp 10.10.10.101
-cumulus@leaf01:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "leaf02 ">}}
-
-```
-cumulus@leaf02:~$ net add loopback lo ip address 10.10.10.2/32
-cumulus@leaf02:~$ net add interface swp2,swp49,swp51
-cumulus@leaf02:~$ net add bridge bridge ports swp2
-cumulus@leaf02:~$ net add vlan 20 ip address 10.2.10.1/24
-cumulus@leaf02:~$ net add interface swp2 bridge access 20
-cumulus@leaf02:~$ net add bridge bridge vids 20
-cumulus@leaf02:~$ net add bgp autonomous-system 65102
-cumulus@leaf02:~$ net add bgp router-id 10.10.10.2
-cumulus@leaf02:~$ net add bgp neighbor swp51 remote-as external
-cumulus@leaf02:~$ net add bgp ipv4 unicast network 10.10.10.2/32
-cumulus@leaf02:~$ net add bgp ipv4 unicast network 10.2.10.0/24
-cumulus@leaf02:~$ net add loopback lo pim
-cumulus@leaf02:~$ net add interface swp51 pim
-cumulus@leaf02:~$ net add vlan 20 pim
-cumulus@leaf02:~$ net add vlan 20 igmp
-cumulus@leaf02:~$ net add pim rp 10.10.10.101
-cumulus@leaf02:~$ net commit
-```
-
-{{< /tab >}}
-{{< tab "spine01 ">}}
-
-```
-cumulus@spine01:~$ net add loopback lo ip address 10.10.10.101/32
-cumulus@spine01:~$ net add bgp autonomous-system 65199
-cumulus@spine01:~$ net add bgp router-id 10.10.10.101
-cumulus@spine01:~$ net add bgp neighbor swp1 remote-as external
-cumulus@spine01:~$ net add bgp neighbor swp2 remote-as external
-cumulus@spine01:~$ net add bgp ipv4 unicast network 10.10.10.101/32
-cumulus@spine01:~$ net add loopback lo pim
-cumulus@spine01:~$ net add interface swp1 pim
-cumulus@spine01:~$ net add interface swp2 pim
-cumulus@spine01:~$ net add pim rp 10.10.10.101 
-cumulus@spine01:~$ net commit
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< /tab >}}
 {{< tab "NVUE Commands">}}
 
 {{< tabs "TabID1468 ">}}
@@ -1636,11 +1388,12 @@ cumulus@leaf01:~$ nv set router pim enable on
 cumulus@leaf01:~$ nv set interface lo ip address 10.10.10.1/32
 cumulus@leaf01:~$ nv set interface swp1,swp49,swp51
 cumulus@leaf01:~$ nv set interface swp1 bridge domain br_default
+cumulus@leaf01:~$ nv set interface swp1 bridge domain br_default access 10
 cumulus@leaf01:~$ nv set bridge domain br_default vlan 10
 cumulus@leaf01:~$ nv set interface vlan10 ip address 10.1.10.1/24
 cumulus@leaf01:~$ nv set router bgp autonomous-system 65101
 cumulus@leaf01:~$ nv set router bgp router-id 10.10.10.1
-cumulus@leaf01:~$ nv set vrf default router bgp peer swp51 remote-as external
+cumulus@leaf01:~$ nv set vrf default router bgp neighbor swp51 remote-as external
 cumulus@leaf01:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.10.10.1/32
 cumulus@leaf01:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.1.10.0/24
 cumulus@leaf01:~$ nv set interface lo router pim
@@ -1659,11 +1412,12 @@ cumulus@leaf02:~$ nv set router pim enable on
 cumulus@leaf02:~$ nv set interface lo ip address 10.10.10.2/32
 cumulus@leaf02:~$ nv set interface swp2,swp49,swp51
 cumulus@leaf02:~$ nv set interface swp2 bridge domain br_default
+cumulus@leaf02:~$ nv set interface swp2 bridge domain br_default access 20
 cumulus@leaf02:~$ nv set bridge domain br_default vlan 20
 cumulus@leaf02:~$ nv set interface vlan20 ip address 10.2.10.1/24
 cumulus@leaf02:~$ nv set router bgp autonomous-system 65102
 cumulus@leaf02:~$ nv set router bgp router-id 10.10.10.2
-cumulus@leaf02:~$ nv set vrf default router bgp peer swp51 remote-as external
+cumulus@leaf02:~$ nv set vrf default router bgp neighbor swp51 remote-as external
 cumulus@leaf02:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.10.10.2/32
 cumulus@leaf02:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.2.10.0/24
 cumulus@leaf02:~$ nv set interface lo router pim
@@ -1682,14 +1436,229 @@ cumulus@spine01:~$ nv set router pim enable on
 cumulus@spine01:~$ nv set interface lo ip address 10.10.10.101/32
 cumulus@spine01:~$ nv set router bgp autonomous-system 65199
 cumulus@spine01:~$ nv set router bgp router-id 10.10.10.101
-cumulus@spine01:~$ nv set vrf default router bgp peer swp1 remote-as external
-cumulus@spine01:~$ nv set vrf default router bgp peer swp2 remote-as external
+cumulus@spine01:~$ nv set vrf default router bgp neighbor swp1 remote-as external
+cumulus@spine01:~$ nv set vrf default router bgp neighbor swp2 remote-as external
 cumulus@spine01:~$ nv set vrf default router bgp address-family ipv4-unicast network 10.10.10.101/32
 cumulus@spine01:~$ nv set interface lo router pim
 cumulus@spine01:~$ nv set interface swp1 router pim
 cumulus@spine01:~$ nv set interface swp2 router pim
 cumulus@spine01:~$ nv set vrf default router pim address-family ipv4-unicast rp 10.10.10.101 
 cumulus@spine01:~$ nv config apply
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
+{{< /tab >}}
+{{< tab "/etc/nvue.d/startup.yaml ">}}
+
+{{< tabs "TabID1455 ">}}
+{{< tab "leaf01 ">}}
+
+```
+cumulus@leaf01:mgmt:~$ sudo cat /etc/nvue.d/startup.yaml
+- set:
+    bridge:
+      domain:
+        br_default:
+          vlan:
+            '10': {}
+    interface:
+      lo:
+        ip:
+          address:
+            10.10.10.1/32: {}
+        router:
+          pim:
+            enable: on
+        type: loopback
+      swp1:
+        bridge:
+          domain:
+            br_default: {}
+        type: swp
+      swp49:
+        type: swp
+      swp51:
+        router:
+          pim:
+            enable: on
+        type: swp
+      vlan10:
+        ip:
+          address:
+            10.1.10.1/24: {}
+          igmp:
+            enable: on
+        router:
+          pim:
+            enable: on
+        type: svi
+        vlan: 10
+    router:
+      bgp:
+        autonomous-system: 65101
+        enable: on
+        router-id: 10.10.10.1
+      pim:
+        enable: on
+    system:
+      hostname: leaf01
+    vrf:
+      default:
+        router:
+          bgp:
+            address-family:
+              ipv4-unicast:
+                enable: on
+                network:
+                  10.1.10.0/24: {}
+                  10.10.10.1/32: {}
+            enable: on
+            neighbor:
+              swp51:
+                remote-as: external
+                type: unnumbered
+          pim:
+            address-family:
+              ipv4-unicast:
+                rp:
+                  10.10.10.101: {}
+            enable: on
+```
+
+{{< /tab >}}
+{{< tab "leaf02 ">}}
+
+```
+cumulus@leaf02:mgmt:~$ sudo cat /etc/nvue.d/startup.yaml
+- set:
+    bridge:
+      domain:
+        br_default:
+          vlan:
+            '20': {}
+    interface:
+      lo:
+        ip:
+          address:
+            10.10.10.2/32: {}
+        router:
+          pim:
+            enable: on
+        type: loopback
+      swp2:
+        bridge:
+          domain:
+            br_default: {}
+        type: swp
+      swp49:
+        type: swp
+      swp51:
+        router:
+          pim:
+            enable: on
+        type: swp
+      vlan20:
+        ip:
+          address:
+            10.2.10.1/24: {}
+          igmp:
+            enable: on
+        router:
+          pim:
+            enable: on
+        type: svi
+        vlan: 20
+    router:
+      bgp:
+        autonomous-system: 65102
+        enable: on
+        router-id: 10.10.10.2
+      pim:
+        enable: on
+    system:
+      hostname: leaf02
+    vrf:
+      default:
+        router:
+          bgp:
+            address-family:
+              ipv4-unicast:
+                enable: on
+                network:
+                  10.2.10.0/24: {}
+                  10.10.10.2/32: {}
+            enable: on
+            neighbor:
+              swp51:
+                remote-as: external
+                type: unnumbered
+          pim:
+            address-family:
+              ipv4-unicast:
+                rp:
+                  10.10.10.101: {}
+            enable: on
+```
+
+{{< /tab >}}
+{{< tab "spine01 ">}}
+
+```
+cumulus@spine01:mgmt:~$ sudo cat /etc/nvue.d/startup.yaml
+- set:
+    interface:
+      lo:
+        ip:
+          address:
+            10.10.10.101/32: {}
+        router:
+          pim:
+            enable: on
+        type: loopback
+      swp1:
+        router:
+          pim:
+            enable: on
+        type: swp
+      swp2:
+        router:
+          pim:
+            enable: on
+        type: swp
+    router:
+      bgp:
+        autonomous-system: 65199
+        enable: on
+        router-id: 10.10.10.101
+      pim:
+        enable: on
+    system:
+      hostname: spine01
+    vrf:
+      default:
+        router:
+          bgp:
+            address-family:
+              ipv4-unicast:
+                enable: on
+                network:
+                  10.10.10.101/32: {}
+            enable: on
+            neighbor:
+              swp1:
+                remote-as: external
+                type: unnumbered
+              swp2:
+                remote-as: external
+                type: unnumbered
+          pim:
+            address-family:
+              ipv4-unicast:
+                rp:
+                  10.10.10.101: {}
+            enable: on
 ```
 
 {{< /tab >}}
@@ -1703,9 +1672,20 @@ cumulus@spine01:~$ nv config apply
 
 ```
 cumulus@leaf01:mgmt:~$ sudo cat /etc/network/interfaces
+...
 auto lo
 iface lo inet loopback
     address 10.10.10.1/32
+auto mgmt
+iface mgmt
+    address 127.0.0.1/8
+    address ::1/128
+    vrf-table auto
+auto eth0
+iface eth0 inet dhcp
+    ip-forward off
+    ip6-forward off
+    vrf mgmt
 auto swp1
 iface swp1
     bridge-access 10
@@ -1713,24 +1693,19 @@ auto swp49
 iface swp49
 auto swp51
 iface swp51
-auto bridge
-iface bridge
-    bridge-ports swp1
-    bridge-vids 10
-    bridge-vlan-aware yes
-auto mgmt
-iface mgmt
-    vrf-table auto
-    address 127.0.0.1/8
-    address ::1/128
-auto eth0
-iface eth0 inet dhcp
-    vrf mgmt
 auto vlan10
 iface vlan10
     address 10.1.10.1/24
+    hwaddress 44:38:39:22:01:b1
+    vlan-raw-device br_default
     vlan-id 10
-    vlan-raw-device bridge
+auto br_default
+iface br_default
+    bridge-ports swp1
+    hwaddress 44:38:39:22:01:b1
+    bridge-vlan-aware yes
+    bridge-vids 10
+    bridge-pvid 1
 ```
 
 {{< /tab >}}
@@ -1738,9 +1713,20 @@ iface vlan10
 
 ```
 cumulus@leaf02:mgmt:~$ sudo cat /etc/network/interfaces
+...
 auto lo
 iface lo inet loopback
     address 10.10.10.2/32
+auto mgmt
+iface mgmt
+    address 127.0.0.1/8
+    address ::1/128
+    vrf-table auto
+auto eth0
+iface eth0 inet dhcp
+    ip-forward off
+    ip6-forward off
+    vrf mgmt
 auto swp2
 iface swp2
     bridge-access 20
@@ -1748,24 +1734,19 @@ auto swp49
 iface swp49
 auto swp51
 iface swp51
-auto bridge
-iface bridge
-    bridge-ports swp2
-    bridge-vids 20
-    bridge-vlan-aware yes
-auto mgmt
-iface mgmt
-    vrf-table auto
-    address 127.0.0.1/8
-    address ::1/128
-auto eth0
-iface eth0 inet dhcp
-    vrf mgmt
 auto vlan20
 iface vlan20
     address 10.2.10.1/24
+    hwaddress 44:38:39:22:01:af
+    vlan-raw-device br_default
     vlan-id 20
-    vlan-raw-device bridge
+auto br_default
+iface br_default
+    bridge-ports swp2
+    hwaddress 44:38:39:22:01:af
+    bridge-vlan-aware yes
+    bridge-vids 20
+    bridge-pvid 1
 ```
 
 {{< /tab >}}
@@ -1773,21 +1754,24 @@ iface vlan20
 
 ```
 cumulus@spine01:mgmt:~$ sudo cat /etc/network/interfaces
+...
 auto lo
 iface lo inet loopback
     address 10.10.10.101/32
+auto mgmt
+iface mgmt
+    address 127.0.0.1/8
+    address ::1/128
+    vrf-table auto
+auto eth0
+iface eth0 inet dhcp
+    ip-forward off
+    ip6-forward off
+    vrf mgmt
 auto swp1
 iface swp1
 auto swp2
 iface swp2
-auto mgmt
-iface mgmt
-    vrf-table auto
-    address 127.0.0.1/8
-    address ::1/128
-auto eth0
-iface eth0 inet dhcp
-    vrf mgmt
 ```
 
 {{< /tab >}}
@@ -1841,22 +1825,41 @@ iface eth2 inet manual
 ```
 cumulus@leaf01:mgmt:~$ sudo cat /etc/frr/frr.conf
 ...
-router bgp 65101
- bgp router-id 10.10.10.1
- neighbor swp51 interface
- neighbor swp51 remote-as external
- address-family ipv4 unicast
-  network 10.10.10.1/32
-  network 10.1.10.0/24
- exit-address-family
 interface lo
- ip pim
+ip pim
 interface swp51
- ip pim
+ip pim
 interface vlan10
- ip pim
- ip igmp
-ip pim rp 10.10.10.101
+ip igmp
+ip igmp version 3
+ip igmp query-interval 125
+ip igmp last-member-query-interval 10
+ip igmp query-max-response-time 100
+ip pim
+vrf default
+ip pim rp 10.10.10.101 224.0.0.0/4
+exit-vrf
+vrf mgmt
+exit-vrf
+router bgp 65101 vrf default
+bgp router-id 10.10.10.1
+timers bgp 3 9
+bgp deterministic-med
+! Neighbors
+neighbor swp51 interface remote-as external
+neighbor swp51 timers 3 9
+neighbor swp51 timers connect 10
+neighbor swp51 advertisement-interval 0
+neighbor swp51 capability extended-nexthop
+! Address families
+address-family ipv4 unicast
+network 10.1.10.0/24
+network 10.10.10.1/32
+maximum-paths ibgp 64
+maximum-paths 64
+distance bgp 20 200 200
+neighbor swp51 activate
+exit-address-family
 ```
 
 {{< /tab >}}
@@ -1865,22 +1868,41 @@ ip pim rp 10.10.10.101
 ```
 cumulus@leaf02:mgmt:~$ sudo cat /etc/frr/frr.conf
 ...
-router bgp 65102
- bgp router-id 10.10.10.2
- neighbor swp51 interface
- neighbor swp51 remote-as external
- address-family ipv4 unicast
-  network 10.10.10.2/32
-  network 10.2.10.0/24
- exit-address-family
 interface lo
- ip pim
+ip pim
 interface swp51
- ip pim
+ip pim
 interface vlan20
- ip pim
- ip igmp
-ip pim rp 10.10.10.101
+ip igmp
+ip igmp version 3
+ip igmp query-interval 125
+ip igmp last-member-query-interval 10
+ip igmp query-max-response-time 100
+ip pim
+vrf default
+ip pim rp 10.10.10.101 224.0.0.0/4
+exit-vrf
+vrf mgmt
+exit-vrf
+router bgp 65102 vrf default
+bgp router-id 10.10.10.2
+timers bgp 3 9
+bgp deterministic-med
+! Neighbors
+neighbor swp51 interface remote-as external
+neighbor swp51 timers 3 9
+neighbor swp51 timers connect 10
+neighbor swp51 advertisement-interval 0
+neighbor swp51 capability extended-nexthop
+! Address families
+address-family ipv4 unicast
+network 10.10.10.2/32
+network 10.2.10.0/24
+maximum-paths ibgp 64
+maximum-paths 64
+distance bgp 20 200 200
+neighbor swp51 activate
+exit-address-family
 ```
 
 {{< /tab >}}
@@ -1889,22 +1911,41 @@ ip pim rp 10.10.10.101
 ```
 cumulus@spine01:mgmt:~$ sudo cat /etc/frr/frr.conf
 ...
-router bgp 65199
- bgp router-id 10.10.10.101
- neighbor swp1 interface
- neighbor swp1 remote-as external
- neighbor swp2 interface
- neighbor swp2 remote-as external
- address-family ipv4 unicast
-  network 10.10.10.101/32
- exit-address-family
 interface lo
- ip pim
+ip pim
 interface swp1
- ip pim
+ip pim
 interface swp2
- ip pim
-ip pim rp 10.10.10.101
+ip pim
+vrf default
+ip pim rp 10.10.10.101 224.0.0.0/4
+exit-vrf
+vrf mgmt
+exit-vrf
+router bgp 65199 vrf default
+bgp router-id 10.10.10.101
+timers bgp 3 9
+bgp deterministic-med
+! Neighbors
+neighbor swp1 interface remote-as external
+neighbor swp1 timers 3 9
+neighbor swp1 timers connect 10
+neighbor swp1 advertisement-interval 0
+neighbor swp1 capability extended-nexthop
+neighbor swp2 interface remote-as external
+neighbor swp2 timers 3 9
+neighbor swp2 timers connect 10
+neighbor swp2 advertisement-interval 0
+neighbor swp2 capability extended-nexthop
+! Address families
+address-family ipv4 unicast
+network 10.10.10.101/32
+maximum-paths ibgp 64
+maximum-paths 64
+distance bgp 20 200 200
+neighbor swp1 activate
+neighbor swp2 activate
+exit-address-family
 ```
 
 {{< /tab >}}
@@ -1912,9 +1953,9 @@ ip pim rp 10.10.10.101
 
 {{< /tab >}}
 {{< tab "Try It " >}}
-    {{< simulation name="Try It CL44 - PIMv3" showNodes="leaf01,leaf02,spine01,server01,server02" >}}
+    {{< simulation name="Try It CL501 - PIM" showNodes="leaf01,leaf02,spine01,server01,server02" >}}
 
-This simulation starts with the example PIM configuration. To simplify the example, only one spine and two leafs are in the topology. The demo is pre-configured using NCLU commands (Cumulus Linux 4.4 does not support NVUE commands for PIM).
+This simulation starts with the example PIM configuration. To simplify the example, only one spine and two leafs are in the topology. The demo is pre-configured using NVUE commands.
 
 - To show the multicast routing table, run the NCLU `net show mroute` command on the FHR (leaf01), RP (spine01), or LHR (leaf02).
 - To see the active source on the RP, run the `net show pim upstream` command on spine01.

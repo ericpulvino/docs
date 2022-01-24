@@ -22,16 +22,6 @@ To configure spanning tree options for a bridge interface, refer to {{<link titl
 The following example commands configure a traditional mode bridge called `my_bridge` with IP address 10.10.10.10/24. swp1, swp2, swp3, and swp4 are members of the bridge.
 
 {{< tabs "TabID24 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge my_bridge ports swp1-4
-cumulus@switch:~$ net add bridge my_bridge ip address 10.10.10.10/24
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 NVUE commands are not supported.
@@ -126,16 +116,6 @@ The interaction of tagged and un-tagged frames on the same trunk often leads to 
 To create the above example:
 
 {{< tabs "TabID128 ">}}
-{{< tab "NCLU Commands ">}}
-
-```
-cumulus@switch:~$ net add bridge br-VLAN10 ports swp1.10,swp2.10
-cumulus@switch:~$ net add bridge br-VLAN20 ports swp1.20,swp2.20
-cumulus@switch:~$ net pending
-cumulus@switch:~$ net commit
-```
-
-{{< /tab >}}
 {{< tab "NVUE Commands ">}}
 
 NVUE commands are not supported.

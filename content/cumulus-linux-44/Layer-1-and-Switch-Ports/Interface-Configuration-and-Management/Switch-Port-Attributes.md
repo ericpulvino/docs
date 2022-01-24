@@ -163,7 +163,7 @@ cumulus@switch:~$ ip link show dev swp1
 
 The switch forwards all packets that are within the MTU value set for the egress layer 3 interface. However, when packets are larger in size than the MTU value, the switch fragments the packets that do *not* have the [DF](## "Don’t Fragment") bit set and drops the packets that *do* have the [DF](## "Don’t Fragment") bit set.
 
-In Cumulus Linux 4.4.1 and later, run the following command to drop **all** IP packets that are larger in size than the MTU value for the egress layer 3 interface instead of fragmenting packets:
+In Cumulus Linux 4.4.2 and later, run the following command to drop **all** IP packets that are larger in size than the MTU value for the egress layer 3 interface instead of fragmenting packets:
 
 {{< tabs "TabID166 ">}}
 {{< tab "NCLU Command ">}}
@@ -1122,7 +1122,7 @@ Maximum 50G ports: 128
 
 64x 100G - 64x QSFP28 (native speed)
 
-Maximum 100G ports: 80
+Maximum 100G ports: 64
 
 {{< /tab >}}
 {{< /tab >}}
@@ -1538,6 +1538,17 @@ To remove a breakout port:
 
 100G and 40G switches can support a certain number of logical ports depending on the switch. Before you configure any logical ports on a switch, check the limitations listed in the `/etc/cumulus/ports.conf`file.
 
+<!-- vale off -->
+### ports.conf File Validator
+<!-- vale on -->
+Cumulus Linux includes a `ports.conf` validator that `switchd` runs automatically before the switch starts up to confirm that the file syntax is correct. You can run the validator manually to verify the syntax of the file whenever you make changes. The validator is useful if you want to copy a new `ports.conf` file to the switch with automation tools, then validate that it has the correct syntax.
+
+To run the validator manually, run the `/usr/cumulus/bin/validate-ports -f <file>` command. For example:
+
+```
+cumulus@switch:~$ /usr/cumulus/bin/validate-ports -f /etc/cumulus/ports.conf
+```
+
 ## Troubleshooting
 
 This section shows basic commands for troubleshooting switch ports. For a more comprehensive troubleshooting guide, see {{<link url="Troubleshoot-Layer-1">}}.
@@ -1622,6 +1633,11 @@ cumulus@switch:~$ sudo ethtool -m swp1 | egrep 'Vendor|type|power\s+:'
 ### Auto-negotiation and FEC
 <!-- vale on -->
 If auto-negotiation is off on 100G and 25G interfaces, you must set FEC to *OFF*, RS, or BaseR to match the neighbor. The FEC default setting of *auto* does not link up when auto-negotiation is off.
+<!-- vale off -->
+<!-- Vale issue #253 -->
+### Auto-negotiation and Link Speed
+<!-- vale on -->
+If auto-negotiation is on and the link speed is set for a port, auto-negotiation takes precedence over the link speed setting.
 
 ### Port Speed and the ifreload -a Command
 
