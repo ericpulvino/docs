@@ -32,31 +32,6 @@ class Air {
     }
     return id;
   };
-
-  async waitForLoaded(simId, waitTime = 1000) {
-    let retries = 3;
-    return new Promise(resolve => {
-        const interval = setInterval(async () => {
-            try {
-                const res = await this._get(`/simulation/${simId}`);
-                if (!res.state || res.state === 'FAILED') {
-                    throw new Error(res.message);
-                }
-                if (res.state === 'LOADED') {
-                    clearInterval(interval);
-                    resolve(true);
-                }
-            } catch (err) {
-                retries -= 1;
-                console.error(err);
-                if (retries <= 0) {
-                    clearInterval(interval);
-                    resolve(false);
-                }
-            }
-        }, waitTime);
-    });
-  };
 }
 
 class Simulation {
@@ -103,7 +78,6 @@ class Simulation {
     el.addEventListener('click', async () => {
       if (!this.id) {
         self.id = await self.air.autoprovision(self);
-        await self.air.waitForLoaded(self.id);
         if (self.id) {
           self.loadConsoles();
         } else {
